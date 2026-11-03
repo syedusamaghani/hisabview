@@ -61,6 +61,15 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Dev gallery: /dev/components (hidden, lazy-loaded). Update it whenever a component changes.
 - Screenshot helpers live outside the repo; the UI quality process above still applies to every screen.
 
+## Data layer (built in the "data foundation" chunk)
+- SQL lives in supabase/migrations (0001 tables, 0002 security). Run in Supabase SQL Editor in order. Money = whole rupees (bigint, 1 to 999,999,999). No DELETE rule exists on any table. A saved entry can only be cancelled (a database trigger freezes amount, person, kind, date). audit_log is add-only.
+- "Badlo" on an entry = cancel the old one and add a new one (both audited). Opening amount lives in parties.opening_balance; the 'opening' entry kind is reserved and does not change balances.
+- Phone database: src/data (Dexie). Screens use ONLY `src/data/index.ts` repositories: shopsRepo, partiesRepo, entriesRepo, auditRepo. Never import Dexie or Supabase in a screen.
+- Every phone row has pending_sync (1 = not yet sent to the server). The sync engine is Phase 4.
+- Each create/edit/cancel saves its audit row in the SAME Dexie transaction.
+- Who is logged in: src/state/auth.tsx (Google only) fills src/data/context.ts. Supabase is lazy-loaded (src/lib/supabase.ts) to keep the first screen small.
+- Balance: src/lib/balance.ts (pure). balance = opening + diye - mile, active entries only. Tests: `npm test`.
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).

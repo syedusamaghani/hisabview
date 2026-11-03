@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { App } from './App';
 import { LangProvider } from './i18n/i18n';
+import { AuthProvider } from './state/auth';
 import { PrivacyProvider } from './state/privacy';
 
 // The component gallery is only loaded when someone opens /dev/components,
@@ -14,7 +15,15 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LangProvider>
       <PrivacyProvider>
-        <Suspense fallback={null}>{showGallery ? <ComponentGallery /> : <App />}</Suspense>
+        <Suspense fallback={null}>
+          {showGallery ? (
+            <ComponentGallery />
+          ) : (
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          )}
+        </Suspense>
       </PrivacyProvider>
     </LangProvider>
   </StrictMode>,

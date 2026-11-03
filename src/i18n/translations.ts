@@ -44,6 +44,24 @@ export const text = {
   },
   emptyButton: { ro: 'Pehli entry likhein', ur: 'پہلا اندراج لکھیں' },
 
+  // Login
+  loginTitle: { ro: 'Khush aamdeed', ur: 'خوش آمدید' },
+  loginBody: {
+    ro: 'Apna khata hamesha mehfooz rakhne ke liye Google se login karein',
+    ur: 'اپنا کھاتا ہمیشہ محفوظ رکھنے کے لیے گوگل سے لاگ اِن کریں',
+  },
+  loginGoogle: { ro: 'Google se login karein', ur: 'گوگل سے لاگ اِن کریں' },
+  loginError: {
+    ro: 'Login nahi ho saka. Internet check karke dobara koshish karein.',
+    ur: 'لاگ اِن نہیں ہو سکا۔ انٹرنیٹ دیکھ کر دوبارہ کوشش کریں۔',
+  },
+  loginNotReady: {
+    ro: 'Login abhi tayyar nahi hai. Thori der baad koshish karein.',
+    ur: 'لاگ اِن ابھی تیار نہیں ہے۔ تھوڑی دیر بعد کوشش کریں۔',
+  },
+  signedInAs: { ro: 'Login hain', ur: 'لاگ اِن ہیں' },
+  logout: { ro: 'Logout karein', ur: 'لاگ آؤٹ کریں' },
+
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },
   langUr: { ro: 'اردو', ur: 'اردو' },
