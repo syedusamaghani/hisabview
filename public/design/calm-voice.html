@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B5F5A">
+<title>Calm & Clean: voice</title>
+<style>
+:root{--primary:#0B5F5A;--primary-ink:#FFFFFF;--primary-soft:#E3F1F0;--accent:#F5B041;--accent-ink:#0E1B1A;
+--page:#F6F8F8;--surface:#FFFFFF;--ink:#0E1B1A;--ink-soft:#475957;--line:#DDE6E5;
+--out:#B3261E;--out-soft:#FCEBEA;--in:#0B7A3B;--in-soft:#E4F4EA;
+--radius:16px;--radius-btn:16px;--shadow:0 2px 14px rgba(14,27,26,.07);--amt-size:28px;--amt-weight:700;color-scheme:light}
+@font-face{font-family:'Noto Naskh Arabic';font-weight:400;font-display:swap;src:url(fonts/noto-naskh-arabic-400.woff2) format('woff2')}
+@font-face{font-family:'Noto Naskh Arabic';font-weight:700;font-display:swap;src:url(fonts/noto-naskh-arabic-700.woff2) format('woff2')}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--page);overflow-x:hidden}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:18px;color:var(--ink);-webkit-tap-highlight-color:transparent}
+[lang=ur] body,[lang=ur] button{font-family:'Noto Naskh Arabic',system-ui,sans-serif;line-height:1.7}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+bdi{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.2}
+.ic{flex:none}
+.bar{display:flex;align-items:center;gap:6px;min-height:48px;padding:0 12px;background:#1f2937;color:#fff;font:600 14px/1 system-ui,sans-serif;overflow-x:auto;white-space:nowrap}
+.bar a{color:#fff;text-decoration:none;padding:14px 10px;opacity:.75}
+.bar a.on{opacity:1;border-bottom:3px solid #fff}
+.bar .name{margin-inline-end:auto;opacity:.9;padding:14px 8px}
+.bare .bar{display:none}
+.app{max-width:480px;margin:0 auto;min-height:calc(100dvh - 48px);display:flex;flex-direction:column;padding:0 16px 0;position:relative}
+.bare .app{min-height:100dvh}
+.top{display:flex;align-items:center;justify-content:space-between;min-height:72px;padding-top:6px}
+.shop{display:flex;align-items:center;gap:12px;min-width:0}
+.shop small{display:block;font-size:14px;color:var(--ink-soft)}
+.shop b{display:block;font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shop-av{width:48px;height:48px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;flex:none}
+.eye{width:56px;height:56px;border-radius:50%;color:var(--primary)}
+.hint{width:100%;min-height:56px;margin-bottom:12px;padding:0 16px;border-radius:var(--radius);background:var(--primary-soft);color:var(--primary);font-size:15px;font-weight:600;text-align:start;justify-content:flex-start}
+.totals{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
+.tot{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.lbl{font-size:16px;font-weight:600;color:var(--ink-soft)}
+.amt{font-size:min(var(--amt-size),7.6vw);font-weight:var(--amt-weight);letter-spacing:-.5px;line-height:1.15;white-space:nowrap}
+/* Urdu Naskh letters look smaller, so small text gets a little bigger */
+[lang=ur] .lbl,[lang=ur] .k,[lang=ur] .hint{font-size:19px}
+[lang=ur] .sub,[lang=ur] small,[lang=ur] .today h2,[lang=ur] .recent h3{font-size:17px}
+[lang=ur] .who b,[lang=ur] .shop b{font-size:22px}
+[lang=ur] .wa,[lang=ur] .act,[lang=ur] .btn{font-size:21px}
+[lang=ur] .who b,[lang=ur] .who small,[lang=ur] .amt-col small,[lang=ur] .shop b,[lang=ur] .shop small{line-height:1.4}
+.sub{font-size:14px;color:var(--ink-soft)}
+.out{color:var(--out)}.in{color:var(--in)}.mute{color:var(--ink-soft)}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.today h2{font-size:16px;font-weight:700;color:var(--ink-soft);margin-bottom:8px}
+.today-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.today-row div{display:flex;flex-direction:column;gap:2px}
+.today-row b{font-size:24px;font-weight:800;line-height:1.2}
+.k{display:inline-flex;align-items:center;gap:4px;font-size:15px;font-weight:700}
+.wa{width:100%;min-height:56px;border-radius:var(--radius-btn);background:var(--primary-soft);color:var(--primary);font-size:17px;font-weight:700}
+.recent{margin-top:16px}
+.recent h3{font-size:15px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
+.recent ul{list-style:none;padding:0}
+.row{display:flex;align-items:center;gap:12px;min-height:64px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.av{width:44px;height:44px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-weight:800;font-size:19px;flex:none}
+.who{display:flex;flex-direction:column;min-width:0;flex:1}
+.who b{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who small,.amt-col small{font-size:14px;color:var(--ink-soft)}
+.amt-col{display:flex;flex-direction:column;align-items:flex-end;flex:none}
+[dir=rtl] .amt-col{align-items:flex-start}
+.amt-col b{font-size:20px;font-weight:800}
+.dock{position:sticky;bottom:0;margin:auto -16px 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:1fr 96px 1fr;gap:12px;align-items:center}
+.act{height:68px;border-radius:var(--radius-btn);color:#fff;font-size:19px;font-weight:800;flex-direction:column;gap:0}
+.act span{display:inline-flex;align-items:center;gap:2px}
+.diye{background:var(--out)}.mile{background:var(--in)}
+.mic{width:88px;height:88px;border-radius:50%;justify-self:center}
+.spacer{flex:1}
+.slim{min-height:64px}.slim-title{font-size:20px;font-weight:800}
+.heard{margin-bottom:12px}.heard small{font-size:15px;color:var(--ink-soft);font-weight:600}
+.quote{font-size:24px;font-weight:700;line-height:1.35;margin-top:6px}
+.result{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.who-big{display:flex;align-items:center;gap:14px}
+.big-av{width:56px;height:56px;font-size:24px}
+.who-big b{display:block;font-size:30px;font-weight:800;line-height:1.2}
+.who-big small{font-size:17px;color:var(--ink-soft)}
+.kind{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:999px;background:var(--out-soft);font-weight:800;font-size:20px}
+.huge{font-size:64px;line-height:1.05;font-weight:800;letter-spacing:-1.5px}
+.newbal{width:100%;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.newbal span{font-size:15px;color:var(--ink-soft);font-weight:600}.newbal b{font-size:22px}
+.actions{display:grid;grid-template-columns:1fr 1.6fr;gap:12px;padding:12px 0 calc(16px + env(safe-area-inset-bottom,0px))}
+.btn{min-height:68px;border-radius:var(--radius-btn);font-size:20px;font-weight:800}
+.btn.ghost{background:var(--surface);color:var(--primary);box-shadow:inset 0 0 0 2px var(--primary)}
+.btn.main{background:var(--primary);color:var(--primary-ink)}
+@media (prefers-reduced-motion:no-preference){button{transition:transform .12s}button:active{transform:scale(.97)}}
+
+.top{padding-top:8px}
+.tot,.card{border:1px solid var(--line)}
+.dock{background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(14,27,26,.06);border-radius:24px 24px 0 0}
+.mic{background:var(--primary);color:var(--primary-ink);box-shadow:0 0 0 8px var(--primary-soft)}
+.act{border-radius:16px}
+.amt{font-weight:700}
+</style>
+</head>
+<body>
+<script>if(/bare/.test(location.search))document.documentElement.classList.add('bare')</script>
+<div class="bar"><a href="index.html">‹ Styles</a><span class="name">Calm & Clean</span><a href="calm-home.html">Home</a><a href="calm-voice.html" class="on">Voice</a><a href="calm-hidden.html">Hidden</a><a href="calm-urdu.html">Urdu</a></div>
+<main class="app voice">
+  <header class="top slim"><span class="slim-title">Pakka karein?</span>
+    <button class="eye" aria-label="Band karein"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.300 4.900a1 1 0 0 0-1.400 1.400L10.600 12l-5.700 5.700a1 1 0 1 0 1.400 1.400L12 13.400l5.700 5.700a1 1 0 0 0 1.400-1.400L13.400 12l5.700-5.700a1 1 0 0 0-1.400-1.400L12 10.600z"/></svg></button></header>
+  <section class="card heard"><small>Aapne kaha</small><p class="quote">“Aslam ko 500 udhaar diya”</p></section>
+  <section class="card result">
+    <div class="who-big"><span class="av big-av">A</span>
+      <div><b>Aslam</b><small>Masjid wali gali</small></div></div>
+    <div class="kind out"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4.500a1 1 0 0 1 .7.3l5.500 5.500a1 1 0 0 1-1.400 1.400L13 7.900V19a1 1 0 1 1-2 0V7.900l-3.800 3.800a1 1 0 0 1-1.400-1.400l5.500-5.500a1 1 0 0 1 .7-.3z"/></svg>Diye</div>
+    <strong class="huge out"><bdi dir="ltr">Rs 500</bdi></strong>
+    <div class="newbal"><span>Naya hisaab</span><b><bdi dir="ltr">Rs 2,500</bdi> lene hain</b></div>
+  </section>
+  <div class="spacer"></div>
+  <div class="actions">
+    <button class="btn ghost"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.900 3.800a2.100 2.100 0 0 1 3 0l.3.300a2.100 2.100 0 0 1 0 3L8.600 18.700l-4.800 1.200 1.200-4.800z"/></svg>Badlo</button>
+    <button class="btn main"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.500 16.600 5.400 12.500a1.100 1.100 0 0 0-1.500 1.500l4.800 4.800a1.100 1.100 0 0 0 1.500 0L20.100 7.900a1.100 1.100 0 0 0-1.500-1.500z"/></svg>Theek hai</button>
+  </div></main>
+</body>
+</html>

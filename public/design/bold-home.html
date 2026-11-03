@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4A35C8">
+<title>Bold & Bright: home</title>
+<style>
+:root{--primary:#4A35C8;--primary-ink:#FFFFFF;--primary-soft:#ECE9FB;--accent:#FFB300;--accent-ink:#14112B;
+--page:#F3F1FB;--surface:#FFFFFF;--ink:#14112B;--ink-soft:#4A4668;--line:#DAD6EE;
+--out:#C4161C;--out-soft:#FDE8E8;--in:#087238;--in-soft:#E3F6EB;
+--radius:20px;--radius-btn:20px;--shadow:0 6px 0 rgba(46,31,148,.14);--amt-size:40px;--amt-weight:800;color-scheme:light}
+@font-face{font-family:'Noto Naskh Arabic';font-weight:400;font-display:swap;src:url(fonts/noto-naskh-arabic-400.woff2) format('woff2')}
+@font-face{font-family:'Noto Naskh Arabic';font-weight:700;font-display:swap;src:url(fonts/noto-naskh-arabic-700.woff2) format('woff2')}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--page);overflow-x:hidden}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:18px;color:var(--ink);-webkit-tap-highlight-color:transparent}
+[lang=ur] body,[lang=ur] button{font-family:'Noto Naskh Arabic',system-ui,sans-serif;line-height:1.7}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+bdi{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.2}
+.ic{flex:none}
+.bar{display:flex;align-items:center;gap:6px;min-height:48px;padding:0 12px;background:#1f2937;color:#fff;font:600 14px/1 system-ui,sans-serif;overflow-x:auto;white-space:nowrap}
+.bar a{color:#fff;text-decoration:none;padding:14px 10px;opacity:.75}
+.bar a.on{opacity:1;border-bottom:3px solid #fff}
+.bar .name{margin-inline-end:auto;opacity:.9;padding:14px 8px}
+.bare .bar{display:none}
+.app{max-width:480px;margin:0 auto;min-height:calc(100dvh - 48px);display:flex;flex-direction:column;padding:0 16px 0;position:relative}
+.bare .app{min-height:100dvh}
+.top{display:flex;align-items:center;justify-content:space-between;min-height:72px;padding-top:6px}
+.shop{display:flex;align-items:center;gap:12px;min-width:0}
+.shop small{display:block;font-size:14px;color:var(--ink-soft)}
+.shop b{display:block;font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shop-av{width:48px;height:48px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;flex:none}
+.eye{width:56px;height:56px;border-radius:50%;color:var(--primary)}
+.hint{width:100%;min-height:56px;margin-bottom:12px;padding:0 16px;border-radius:var(--radius);background:var(--primary-soft);color:var(--primary);font-size:15px;font-weight:600;text-align:start;justify-content:flex-start}
+.totals{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
+.tot{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.lbl{font-size:16px;font-weight:600;color:var(--ink-soft)}
+.amt{font-size:min(var(--amt-size),7.6vw);font-weight:var(--amt-weight);letter-spacing:-.5px;line-height:1.15;white-space:nowrap}
+/* Urdu Naskh letters look smaller, so small text gets a little bigger */
+[lang=ur] .lbl,[lang=ur] .k,[lang=ur] .hint{font-size:19px}
+[lang=ur] .sub,[lang=ur] small,[lang=ur] .today h2,[lang=ur] .recent h3{font-size:17px}
+[lang=ur] .who b,[lang=ur] .shop b{font-size:22px}
+[lang=ur] .wa,[lang=ur] .act,[lang=ur] .btn{font-size:21px}
+[lang=ur] .who b,[lang=ur] .who small,[lang=ur] .amt-col small,[lang=ur] .shop b,[lang=ur] .shop small{line-height:1.4}
+.sub{font-size:14px;color:var(--ink-soft)}
+.out{color:var(--out)}.in{color:var(--in)}.mute{color:var(--ink-soft)}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.today h2{font-size:16px;font-weight:700;color:var(--ink-soft);margin-bottom:8px}
+.today-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.today-row div{display:flex;flex-direction:column;gap:2px}
+.today-row b{font-size:24px;font-weight:800;line-height:1.2}
+.k{display:inline-flex;align-items:center;gap:4px;font-size:15px;font-weight:700}
+.wa{width:100%;min-height:56px;border-radius:var(--radius-btn);background:var(--primary-soft);color:var(--primary);font-size:17px;font-weight:700}
+.recent{margin-top:16px}
+.recent h3{font-size:15px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
+.recent ul{list-style:none;padding:0}
+.row{display:flex;align-items:center;gap:12px;min-height:64px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.av{width:44px;height:44px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-weight:800;font-size:19px;flex:none}
+.who{display:flex;flex-direction:column;min-width:0;flex:1}
+.who b{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who small,.amt-col small{font-size:14px;color:var(--ink-soft)}
+.amt-col{display:flex;flex-direction:column;align-items:flex-end;flex:none}
+[dir=rtl] .amt-col{align-items:flex-start}
+.amt-col b{font-size:20px;font-weight:800}
+.dock{position:sticky;bottom:0;margin:auto -16px 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:1fr 96px 1fr;gap:12px;align-items:center}
+.act{height:68px;border-radius:var(--radius-btn);color:#fff;font-size:19px;font-weight:800;flex-direction:column;gap:0}
+.act span{display:inline-flex;align-items:center;gap:2px}
+.diye{background:var(--out)}.mile{background:var(--in)}
+.mic{width:88px;height:88px;border-radius:50%;justify-self:center}
+.spacer{flex:1}
+.slim{min-height:64px}.slim-title{font-size:20px;font-weight:800}
+.heard{margin-bottom:12px}.heard small{font-size:15px;color:var(--ink-soft);font-weight:600}
+.quote{font-size:24px;font-weight:700;line-height:1.35;margin-top:6px}
+.result{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.who-big{display:flex;align-items:center;gap:14px}
+.big-av{width:56px;height:56px;font-size:24px}
+.who-big b{display:block;font-size:30px;font-weight:800;line-height:1.2}
+.who-big small{font-size:17px;color:var(--ink-soft)}
+.kind{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:999px;background:var(--out-soft);font-weight:800;font-size:20px}
+.huge{font-size:64px;line-height:1.05;font-weight:800;letter-spacing:-1.5px}
+.newbal{width:100%;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.newbal span{font-size:15px;color:var(--ink-soft);font-weight:600}.newbal b{font-size:22px}
+.actions{display:grid;grid-template-columns:1fr 1.6fr;gap:12px;padding:12px 0 calc(16px + env(safe-area-inset-bottom,0px))}
+.btn{min-height:68px;border-radius:var(--radius-btn);font-size:20px;font-weight:800}
+.btn.ghost{background:var(--surface);color:var(--primary);box-shadow:inset 0 0 0 2px var(--primary)}
+.btn.main{background:var(--primary);color:var(--primary-ink)}
+@media (prefers-reduced-motion:no-preference){button{transition:transform .12s}button:active{transform:scale(.97)}}
+
+body{background:var(--page)}
+.app::before{content:'';position:absolute;top:0;left:-16px;right:-16px;height:262px;background:var(--primary);border-radius:0 0 32px 32px;z-index:0}
+.app>*{position:relative;z-index:1}
+.totals{grid-template-columns:minmax(0,1fr)}
+.tot{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"l a" "s a";align-items:center;column-gap:8px;padding:12px 16px}
+.lbl{grid-area:l}.amt{grid-area:a;font-size:min(var(--amt-size),11vw)}.sub{grid-area:s}
+.tot{padding:10px 16px}.top{min-height:64px}.dock{padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}.row{min-height:56px}.recent{margin-top:12px}.today-row{margin-bottom:8px}.hint{font-size:14px;margin-bottom:10px}
+.top{color:#fff}.shop small{color:rgba(255,255,255,.82)}
+.shop-av{background:rgba(255,255,255,.18);color:#fff}
+.eye{color:#fff;background:rgba(255,255,255,.16)}
+.hint{background:var(--accent);color:var(--accent-ink)}
+.tot{box-shadow:0 6px 0 rgba(46,31,148,.18)}
+.lbl{font-weight:700;color:var(--ink)}
+.amt{font-weight:800}
+.card{box-shadow:0 5px 0 rgba(46,31,148,.10);border-left:8px solid var(--accent)}
+[dir=rtl] .card{border-left:0;border-right:8px solid var(--accent)}
+.heard{border-left:0;border-right:0;border-inline-start:8px solid var(--accent)}
+.slim{color:#fff}.slim .eye{color:#fff}
+.heard small{color:var(--ink-soft)}
+.app.voice::before{height:130px}
+.dock{background:linear-gradient(to top,var(--page) 72%,transparent)}
+.act{box-shadow:0 6px 0 rgba(0,0,0,.28);height:72px;font-size:21px}
+.diye{box-shadow:0 6px 0 #7f0d11}.mile{box-shadow:0 6px 0 #04461f}
+.act:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.28)}
+.mic{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 6px var(--primary),0 10px 0 6px rgba(46,31,148,.35);width:92px;height:92px}
+.btn.main{box-shadow:0 6px 0 #2a1d85}
+.btn.ghost{box-shadow:inset 0 0 0 3px var(--primary),0 6px 0 rgba(46,31,148,.18)}
+.today h2,.recent h3{color:var(--ink);letter-spacing:.2px}
+.huge{font-size:72px;letter-spacing:-2px}
+.kind{font-size:22px}
+</style>
+</head>
+<body>
+<script>if(/bare/.test(location.search))document.documentElement.classList.add('bare')</script>
+<div class="bar"><a href="index.html">‹ Styles</a><span class="name">Bold & Bright</span><a href="bold-home.html" class="on">Home</a><a href="bold-voice.html">Voice</a><a href="bold-hidden.html">Hidden</a><a href="bold-urdu.html">Urdu</a></div>
+<main class="app ">
+  <header class="top">
+    <div class="shop"><span class="shop-av"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M4 20.2a8 8 0 0 1 16 0c0 .5-.4.8-.8.8H4.8c-.4 0-.8-.3-.8-.8z"/></svg></span>
+      <div><small>Dukaan</small><b>Ali General Store</b></div></div>
+    <button class="eye" aria-label="Raqam chhupayein"><svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12 5c4.600 0 8.300 3.100 9.800 6.700a1 1 0 0 1 0 .6C20.300 15.900 16.600 19 12 19S3.700 15.900 2.200 12.300a1 1 0 0 1 0-.6C3.700 8.100 7.400 5 12 5zm0 3.500a3.500 3.500 0 1 0 0 7 3.500 3.500 0 0 0 0-7z"/></svg></button>
+  </header>
+  
+  <section class="totals">
+    <article class="tot"><span class="lbl">Lene hain</span>
+      <strong class="amt out"><bdi dir="ltr">Rs 84,500</bdi></strong><span class="sub">12 customer</span></article>
+    <article class="tot"><span class="lbl">Dene hain</span>
+      <strong class="amt"><bdi dir="ltr">Rs 32,000</bdi></strong><span class="sub">3 supplier</span></article>
+  </section>
+  <section class="card today">
+    <h2>Aaj ka hisaab</h2>
+    <div class="today-row">
+      <div><span class="k out"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4.500a1 1 0 0 1 .7.3l5.500 5.500a1 1 0 0 1-1.400 1.400L13 7.900V19a1 1 0 1 1-2 0V7.900l-3.800 3.800a1 1 0 0 1-1.400-1.400l5.500-5.500a1 1 0 0 1 .7-.3z"/></svg>Diye</span><b class="out"><bdi dir="ltr">Rs 4,200</bdi></b></div>
+      <div><span class="k in"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 19.500a1 1 0 0 1-.7-.3l-5.500-5.500a1 1 0 1 1 1.400-1.400L11 16.100V5a1 1 0 1 1 2 0v11.100l3.800-3.800a1 1 0 0 1 1.400 1.400l-5.500 5.500a1 1 0 0 1-.7.3z"/></svg>Mile</span><b class="in"><bdi dir="ltr">Rs 6,500</bdi></b></div>
+    </div>
+    <button class="wa"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12 2.2a9.8 9.8 0 0 0-8.4 14.8L2.2 21.8l5-1.3A9.8 9.8 0 1 0 12 2.2zM8.7 7.3c.3 0 .5 0 .7.5l.8 1.9c.1.3 0 .5-.1.7l-.6.7c.9 1.7 2.100 2.700 3.800 3.500l.7-.9c.2-.2.4-.3.700-.2l1.900.9c.3.1.5.3.4.7-.2 1.100-1.100 1.800-2.200 1.700-3-.4-6-3.400-6.400-6.400-.1-1.200.5-2.100 1.600-2.700z"/></svg><span>WhatsApp par bhejein</span></button>
+  </section>
+  <section class="recent"><h3>Aakhri entries</h3><ul>
+      <li class="row">
+        <span class="av">A</span>
+        <span class="who"><b>Ali chai wala</b><small>Mile</small></span>
+        <span class="amt-col in"><b><bdi dir="ltr">Rs 2,500</bdi></b><small>Aaj 10:42</small></span>
+      </li>
+      <li class="row">
+        <span class="av">A</span>
+        <span class="who"><b>Aslam</b><small>Masjid wali gali</small></span>
+        <span class="amt-col out"><b><bdi dir="ltr">Rs 500</bdi></b><small>Aaj 10:15</small></span>
+      </li>
+      <li class="row">
+        <span class="av">A</span>
+        <span class="who"><b>Ali</b><small>gali 3</small></span>
+        <span class="amt-col out"><b><bdi dir="ltr">Rs 1,200</bdi></b><small>Kal 7:30</small></span>
+      </li></ul></section>
+  <nav class="dock">
+    <button class="act diye"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity=".55" d="M5 3.500h14a1 1 0 0 1 1 1V5.500H4V4.500a1 1 0 0 1 1-1z"/><path fill-rule="evenodd" d="M4 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zm8 2.800a3.200 3.200 0 1 0 0 6.400 3.200 3.200 0 0 0 0-6.400zM5.500 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm13 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg><span><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4.500a1 1 0 0 1 .7.3l5.500 5.500a1 1 0 0 1-1.400 1.400L13 7.900V19a1 1 0 1 1-2 0V7.900l-3.800 3.800a1 1 0 0 1-1.400-1.400l5.500-5.500a1 1 0 0 1 .7-.3z"/></svg>Diye</span></button>
+    <button class="mic" aria-label="Bolein"><svg class="ic" width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14.5a3.6 3.6 0 0 0 3.6-3.6V6.6a3.6 3.6 0 0 0-7.2 0v4.3a3.6 3.6 0 0 0 3.6 3.6z"/><path d="M5.8 10.6a1 1 0 1 1 2 0 4.2 4.2 0 0 0 8.4 0 1 1 0 1 1 2 0 6.2 6.2 0 0 1-5.2 6.1V19h2.2a1 1 0 1 1 0 2H8.8a1 1 0 1 1 0-2H11v-2.3a6.2 6.2 0 0 1-5.2-6.1z"/></svg></button>
+    <button class="act mile"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity=".55" d="M5 3.500h14a1 1 0 0 1 1 1V5.500H4V4.500a1 1 0 0 1 1-1z"/><path fill-rule="evenodd" d="M4 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zm8 2.800a3.200 3.200 0 1 0 0 6.400 3.200 3.200 0 0 0 0-6.400zM5.500 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm13 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg><span><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 19.500a1 1 0 0 1-.7-.3l-5.500-5.500a1 1 0 1 1 1.400-1.400L11 16.100V5a1 1 0 1 1 2 0v11.100l3.800-3.800a1 1 0 0 1 1.400 1.400l-5.500 5.500a1 1 0 0 1-.7.3z"/></svg>Mile</span></button>
+  </nav></main>
+</body>
+</html>
