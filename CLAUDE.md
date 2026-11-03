@@ -38,6 +38,20 @@ Pain points: embarrassment asking for money, disputes ("maine to paise de diye t
 - "Lene hain" amount is RED (customer owes). "Dene hain" amount is neutral dark, not coloured.
 - Large amounts (lakh-style grouping such as 1,24,500 vs 124,500) are undecided for now; revisit later.
 
+## Chosen style: Warm & Desi (default, chosen in Phase 0.5)
+Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc). Exact values live in tools/design/build.mjs under `desi`. Follow them everywhere.
+- Personality: friendly, familiar, premium. Chai-brown header, marigold highlights, soft jali (diamond lattice) pattern used lightly (header, small card corners, voice transcript card only). Never cluttered.
+- Colours: primary chai-brown #4A2A14 (text on it #FFF6E5); accent marigold #F0A500 (text on it #2B1A0E); page cream #FBF4E6; surface #FFFDF8; ink #2B1A0E; soft ink #6B5240; line #EADCC4; soft primary #F5E6CB.
+- Money colours (only for money): out/red #A8261C on soft #FBE3DD; in/green #1E6B2E on soft #E2F0DC. Red/green buttons use white text. All pairs pass WCAG AA (checked by the build script).
+- "Lene hain" amount red, "Dene hain" amount ink (neutral).
+- Shape: card radius 18px, button radius 16px, soft brown shadow `0 3px 14px rgba(74,42,20,.10)`, 1.5px line borders on cards.
+- Type: system font; amounts weight 800, size min(27px, 7.6vw) in half-width cards, 64px for the confirmation amount; names 18-19px bold. Urdu: Noto Naskh Arabic with small text bumped about 2px.
+- Home layout: brown header with shop name + eye (hide amounts) button; two total cards; "Aaj ka hisaab" card with a 56px WhatsApp button; recent entries; bottom dock = red Diye, big marigold mic (raised, double ring), green Mile, with a scalloped top edge.
+- Confirmation screen: transcript card, result card (name + identifier, Diye chip, huge amount, new balance), bottom buttons "Badlo" (outlined) and "Theek hai" (brown, marigold text). Theek hai is NOT green, because green means money.
+- Hidden amounts: show "Rs ***" in neutral ink; a 56px marigold banner explains how to show them again.
+- Direction is also shown by an arrow icon (up = Diye, down = Mile), so meaning never depends on colour alone.
+- Other two styles (Calm & Clean, Bold & Bright) stay available as optional per-user choices in Settings, built later using the same tokens structure.
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).
