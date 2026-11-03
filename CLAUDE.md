@@ -32,6 +32,12 @@ Pain points: embarrassment asking for money, disputes ("maine to paise de diye t
 - Must look great at 360px width.
 - After the visual style is chosen in Phase 0.5, record it in a "Chosen style" section of this file and follow it everywhere.
 
+## Style decisions (founder approved)
+- Three styles exist as mockups in public/design (generator: tools/design/build.mjs): Calm & Clean, Bold & Bright, Warm & Desi.
+- One style is the default. The other styles are optional and chosen per user in Settings only (never on first launch; first launch asks only for language). All styles use the same token structure in src/design/tokens.ts, and money colours must pass WCAG AA in every style.
+- "Lene hain" amount is RED (customer owes). "Dene hain" amount is neutral dark, not coloured.
+- Large amounts (lakh-style grouping such as 1,24,500 vs 124,500) are undecided for now; revisit later.
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).
