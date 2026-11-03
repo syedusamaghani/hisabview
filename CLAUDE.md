@@ -52,6 +52,15 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Direction is also shown by an arrow icon (up = Diye, down = Mile), so meaning never depends on colour alone.
 - Other two styles (Calm & Clean, Bold & Bright) stay available as optional per-user choices in Settings, built later using the same tokens structure.
 
+## Design system in code (built in the "design system" chunk)
+- Tokens: src/design/tokens.ts (the only place for colours, spacing, radius, font sizes, shadows, motion). tailwind.config.ts reads it. Never type a hex colour or pixel size inside a component.
+- Text: src/i18n/translations.ts (add one line with both languages) and `const { t } = useT()` from src/i18n/i18n.tsx. Urdu sets dir="rtl" on the page. Use logical classes (ps-/pe-/ms-/me-, text-start) and `rtl:` variants; never left/right.
+- Components in src/components: BigButton, AmountText, Card, ScreenHeader, BottomActionBar, Snackbar, NumberKeypad, EmptyState, SaveSuccess, Icon, IconButton (+HideAmountsButton), MicButton. Build screens only from these.
+- Money: always <AmountText> (it hides itself when "hide amounts" is on and shrinks very big numbers to fit). Use reveal only where the shopkeeper types the amount.
+- Pages that use BottomActionBar add pb-[var(--bar-h)] so nothing hides behind it.
+- Dev gallery: /dev/components (hidden, lazy-loaded). Update it whenever a component changes.
+- Screenshot helpers live outside the repo; the UI quality process above still applies to every screen.
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).

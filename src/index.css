@@ -2,16 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
+/* Urdu font: self-hosted, Arabic letters only, so it downloads only when Urdu text is shown */
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/noto-naskh-arabic-400.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+25CC;
+}
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/noto-naskh-arabic-700.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+25CC;
+}
+
+:root {
+  /* Height of the bottom action bar. BottomActionBar keeps this up to date. */
+  --bar-h: 0px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
 body {
+  @apply bg-page font-sans text-body text-ink antialiased;
   margin: 0;
-  background: #F6F7F9;
-  color: #111827;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Urdu: Naskh needs more line height, and its small text needs a little more size */
+html[lang='ur'] body {
+  @apply font-urdu;
+  line-height: 1.7;
+}
+:lang(ur) .text-caption {
+  font-size: 16px;
+}
+:lang(ur) .text-label {
   font-size: 18px;
+}
+:lang(ur) button.text-body {
+  font-size: 21px;
+}
+:lang(ur) .text-display {
+  font-size: 34px;
+}
+/* Latin letters and numbers inside Urdu keep the system font */
+bdi,
+.latin {
+  font-family: theme('fontFamily.sans');
+  line-height: 1.2;
+}
+
+/* Scalloped top edge of the bottom bar (Warm & Desi detail) */
+.scallop::before {
+  content: '';
+  position: absolute;
+  inset: -9px 0 auto 0;
+  height: 10px;
+  background: radial-gradient(circle at 10px 10px, transparent 9px, theme('colors.surface') 10px) repeat-x;
+  background-size: 20px 10px;
+  pointer-events: none;
 }
 
 /* No animations for people who turned them off on their phone */
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
