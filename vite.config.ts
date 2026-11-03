@@ -29,7 +29,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
         // The style mockups in /design are separate pages, not part of the app shell
-        navigateFallbackDenylist: [/^/design//],
+        navigateFallbackDenylist: [/^\/design\//],
         globIgnores: ['design/**'],
       },
     }),
