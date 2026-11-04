@@ -35,7 +35,7 @@ export function ShopNameScreen({ onCreated }: { onCreated: () => void }) {
         <h2 className="text-title font-extrabold text-ink">{t('shopNameTitle')}</h2>
         <p className="text-body text-inkSoft">{t('shopNameBody')}</p>
         <input
-          dir="auto"
+          dir={name ? 'auto' : undefined}
           autoFocus
           maxLength={80}
           value={name}
@@ -45,7 +45,7 @@ export function ShopNameScreen({ onCreated }: { onCreated: () => void }) {
           enterKeyHint="done"
           className={
             'mt-2 min-h-tapLg w-full rounded-button border-[1.5px] border-line bg-surface px-4 text-title font-bold text-ink shadow-card ' +
-            'placeholder:text-body placeholder:font-normal placeholder:text-inkSoft/70 focus:border-primary focus:outline focus:outline-[3px] focus:outline-accent'
+            'placeholder:text-body placeholder:font-normal placeholder:text-inkSoft/90 focus:border-primary focus:outline focus:outline-[3px] focus:outline-accent'
           }
         />
         {failed && (

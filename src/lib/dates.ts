@@ -10,5 +10,5 @@ export function formatDay(iso: string, lang: Lang): string {
 
 // "2:30 pm"
 export function formatTime(iso: string, lang: Lang): string {
-  return new Intl.DateTimeFormat(locale(lang), { timeZone: 'Asia/Karachi', hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
+  return new Intl.DateTimeFormat(locale(lang), { timeZone: 'Asia/Karachi', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso));
 }

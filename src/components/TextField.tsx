@@ -23,11 +23,11 @@ export function TextField({ label, hint, size = 'md', right, className, id, ...r
       <div className="relative">
         <input
           id={inputId}
-          dir="auto"
+          dir={rest.value ? 'auto' : undefined}
           aria-describedby={hint ? `${inputId}-hint` : undefined}
           className={cx(
             'w-full rounded-button border-[1.5px] border-line bg-surface px-4 font-semibold text-ink shadow-card',
-            'placeholder:font-normal placeholder:text-inkSoft/70',
+            'placeholder:font-normal placeholder:text-inkSoft/90',
             'focus:border-primary focus:outline focus:outline-[3px] focus:outline-accent',
             size === 'lg' ? 'min-h-tapLg text-title' : 'min-h-tap text-body',
             right ? 'pe-16' : undefined,

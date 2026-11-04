@@ -14,14 +14,14 @@ export function SearchBar({ value, onChange, placeholder }: Props) {
         type="text"
         inputMode="search"
         enterKeyHint="search"
-        dir="auto"
+        dir={value ? 'auto' : undefined}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={t('searchLabel')}
         className={
           'min-h-tap w-full rounded-button border-[1.5px] border-line bg-surface pe-14 ps-14 text-body font-semibold text-ink shadow-card ' +
-          'placeholder:font-normal placeholder:text-inkSoft/70 focus:border-primary focus:outline focus:outline-[3px] focus:outline-accent'
+          'placeholder:font-normal placeholder:text-inkSoft/90 focus:border-primary focus:outline focus:outline-[3px] focus:outline-accent'
         }
       />
       {value && <IconButton icon="close" label={t('searchClear')} className="absolute end-0 top-0" onClick={() => onChange('')} />}

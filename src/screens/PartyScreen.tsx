@@ -144,7 +144,7 @@ function SoonTile({ icon, label }: { icon: IconName; label: string }) {
     <button
       type="button"
       disabled
-      className="flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-card border-[1.5px] border-dashed border-line bg-surface p-2 text-center opacity-60"
+      className="flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-card border-[1.5px] border-dashed border-line bg-surface p-2 text-center opacity-80"
     >
       <Icon name={icon} size={28} className="text-inkSoft" />
       <span className="text-label font-bold leading-tight text-ink">{label}</span>

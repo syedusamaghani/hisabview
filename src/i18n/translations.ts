@@ -39,8 +39,8 @@ export const text = {
   // Empty state
   emptyTitle: { ro: 'Abhi koi entry nahi', ur: 'ابھی کوئی اندراج نہیں' },
   emptyBody: {
-    ro: 'Pehli entry bolkar ya likh kar shuru karein',
-    ur: 'پہلا اندراج بول کر یا لکھ کر شروع کریں',
+    ro: 'Neeche Diye ya Mile dabakar pehli entry likhein',
+    ur: 'نیچے دیے یا ملے دبا کر پہلا اندراج لکھیں',
   },
   emptyButton: { ro: 'Pehli entry likhein', ur: 'پہلا اندراج لکھیں' },
 
