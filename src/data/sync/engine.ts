@@ -7,6 +7,7 @@
 //        change that is still waiting on this phone, and never un-cancelling an entry
 import { liveQuery } from 'dexie';
 import type { Table } from 'dexie';
+import { outbox } from '../../lib/outbox';
 import { attachShop, requireUser } from '../context';
 import { db } from '../db';
 import { applyEntryChange, recomputeStat, statsRepo } from '../statsRepo';
@@ -233,6 +234,41 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     return running;
   }
 
+  // Feedback and error reports waiting in the outbox go to our tables when there is internet and a login.
+  // Sent with ignore-duplicates, so a lost answer never makes a report twice.
+  async function flushOutbox(): Promise<void> {
+    if (outbox.size() === 0) return;
+    const remote = await getRemote();
+    if (!remote) return;
+    let userId: string;
+    try {
+      userId = requireUser();
+    } catch {
+      return; // not logged in: they wait
+    }
+    for (const table of ['feedback', 'error_log'] as const) {
+      const items = outbox.all().filter((i) => i.table === table);
+      if (items.length === 0) continue;
+      const rows = items.map((i) => ({ ...i.row, id: i.id, user_id: userId }));
+      try {
+        await remote.upsert(table, rows, { ignoreDuplicates: true });
+        outbox.remove(items.map((i) => i.id));
+      } catch (e) {
+        if (!(e instanceof RemoteError) || e.kind !== 'rejected') return; // no internet: keep them
+        // The server refused something: find the bad ones, drop only those (a refused report can never succeed)
+        for (const [n, row] of rows.entries()) {
+          try {
+            await remote.upsert(table, [row], { ignoreDuplicates: true });
+            outbox.remove([items[n].id]);
+          } catch (inner) {
+            if (inner instanceof RemoteError && inner.kind === 'rejected') outbox.remove([items[n].id]);
+            else return;
+          }
+        }
+      }
+    }
+  }
+
   // New phone, same login: bring everything back from the server. Called before onboarding so a
   // second shop is never made by mistake.
   async function restore(): Promise<RestoreResult> {
@@ -270,6 +306,7 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
       if (stopped) return;
       const due = forcePull || Date.now() - lastPull > PULL_EVERY_MS;
       const result = await syncNow({ pull: due });
+      await flushOutbox().catch(() => undefined);
       if (stopped) return;
       if (result === 'ok' && due) lastPull = Date.now();
       failures = result === 'offline' ? failures + 1 : 0;
@@ -310,5 +347,5 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     };
   }
 
-  return { syncNow, restore, start, blockedCount: () => blocked.size };
+  return { syncNow, restore, start, flushOutbox, blockedCount: () => blocked.size };
 }

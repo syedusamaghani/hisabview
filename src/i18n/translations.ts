@@ -356,6 +356,84 @@ export const text = {
   },
   installSettings: { ro: 'App install karein', ur: 'ایپ انسٹال کریں' },
 
+  // Privacy policy (the page at /privacy, readable without logging in)
+  privacyLink: { ro: 'Privacy Policy', ur: 'رازداری کی پالیسی' },
+  privacyTitle: { ro: 'Privacy Policy (raazdaari ki policy)', ur: 'رازداری کی پالیسی' },
+  privacyUpdated: { ro: 'Aakhri tabdeeli: 4 November 2026', ur: 'آخری تبدیلی: 4 نومبر 2026' },
+  privacyIntro: {
+    ro: 'HisabView chhoti dukaanon ke liye udhaar khata hai. Yahan seedhe lafzon mein likha hai ke hum kya jankari lete hain, kyun, aur aap ke kya haq hain.',
+    ur: 'حساب ویو چھوٹی دکانوں کے لیے ادھار کھاتا ہے۔ یہاں سیدھے لفظوں میں لکھا ہے کہ ہم کیا معلومات لیتے ہیں، کیوں، اور آپ کے کیا حق ہیں۔',
+  },
+  privacy1T: { ro: '1. Hum kya jankari lete hain', ur: 'ہم کیا معلومات لیتے ہیں' },
+  privacy1B: {
+    ro: 'Google login se aap ka email aur naam (sirf login ke liye). Aap ki dukaan ka naam. Aap ke customers ke naam, pehchaan (jaise "chai wala"), aur phone number agar aap likhein. Aap ki entries: raqam, tareekh, note. Bol kar likhne par jo jumla likha gaya (text).',
+    ur: 'گوگل لاگ ان سے آپ کا ای میل اور نام (صرف لاگ ان کے لیے)۔ آپ کی دکان کا نام۔ آپ کے کسٹمرز کے نام، پہچان (جیسے "چائے والا")، اور فون نمبر اگر آپ لکھیں۔ آپ کے اندراج: رقم، تاریخ، نوٹ۔ بول کر لکھنے پر جو جملہ لکھا گیا (ٹیکسٹ)۔',
+  },
+  privacy2T: { ro: '2. Ye jankari kahan rehti hai', ur: 'یہ معلومات کہاں رہتی ہیں' },
+  privacy2B: {
+    ro: 'Pehle aap ke apne phone mein. Phir backup ke liye Supabase (internet ka database) mein, taake phone kho jaye to hisaab wapas aa sake. Har dukaan sirf apna hisaab dekh sakti hai, doosri dukaan ka nahi.',
+    ur: 'پہلے آپ کے اپنے فون میں۔ پھر بیک اپ کے لیے سپابیس (انٹرنیٹ کے ڈیٹابیس) میں، تاکہ فون کھو جائے تو حساب واپس آ سکے۔ ہر دکان صرف اپنا حساب دیکھ سکتی ہے، دوسری دکان کا نہیں۔',
+  },
+  privacy3T: { ro: '3. Aap ki awaaz', ur: 'آپ کی آواز' },
+  privacy3B: {
+    ro: 'Bol kar likhne par aap ke phone ka browser (Chrome) aap ki awaaz ko likhai mein badalne ke liye Google ki service ko bhejta hai, is liye internet chahiye. HisabView awaaz record ya save nahi karta, sirf wo text rakhta hai jo aap confirm karte hain.',
+    ur: 'بول کر لکھنے پر آپ کے فون کا براؤزر (کروم) آپ کی آواز کو لکھائی میں بدلنے کے لیے گوگل کی سروس کو بھیجتا ہے، اس لیے انٹرنیٹ چاہیے۔ حساب ویو آواز ریکارڈ یا محفوظ نہیں کرتا، صرف وہ ٹیکسٹ رکھتا ہے جو آپ تصدیق کرتے ہیں۔',
+  },
+  privacy4T: { ro: '4. WhatsApp', ur: 'واٹس ایپ' },
+  privacy4B: {
+    ro: 'Jab aap "Yaad dilao" ya "Hisaab bhejo" dabate hain, to sirf aap ke apne WhatsApp mein message tayyar hota hai. Bhejna aap ke haath mein hai. HisabView khud koi message nahi bhejta.',
+    ur: 'جب آپ "یاد دلاؤ" یا "حساب بھیجو" دباتے ہیں تو صرف آپ کے اپنے واٹس ایپ میں پیغام تیار ہوتا ہے۔ بھیجنا آپ کے ہاتھ میں ہے۔ حساب ویو خود کوئی پیغام نہیں بھیجتا۔',
+  },
+  privacy5T: { ro: '5. Kis ke saath share hota hai', ur: 'کس کے ساتھ شیئر ہوتا ہے' },
+  privacy5B: {
+    ro: 'Hum aap ki jankari bechte nahi, kisi ko dete nahi, aur ads nahi dikhate. Sirf ye service dene wale: Google (login aur awaaz ki likhai), Supabase (backup database), Cloudflare (website chalane ke liye). HisabView ka Google ki jankari ka istemal sirf login ke liye hai.',
+    ur: 'ہم آپ کی معلومات بیچتے نہیں، کسی کو دیتے نہیں، اور اشتہار نہیں دکھاتے۔ صرف یہ سروس دینے والے: گوگل (لاگ ان اور آواز کی لکھائی)، سپابیس (بیک اپ ڈیٹابیس)، کلاؤڈفلیئر (ویب سائٹ چلانے کے لیے)۔ حساب ویو کا گوگل کی معلومات کا استعمال صرف لاگ ان کے لیے ہے۔',
+  },
+  privacy6T: { ro: '6. Hifazat', ur: 'حفاظت' },
+  privacy6B: {
+    ro: 'Sara rabta HTTPS (mehfooz connection) se hota hai. Hisaab ki entries kabhi mitai nahi jatin, sirf "cancel" hoti hain aur history mein rehti hain, taake jhagre mein saboot rahe. Phir bhi koi system 100% mehfooz nahi hota.',
+    ur: 'سارا رابطہ HTTPS (محفوظ کنکشن) سے ہوتا ہے۔ حساب کے اندراج کبھی مٹائے نہیں جاتے، صرف "منسوخ" ہوتے ہیں اور ہسٹری میں رہتے ہیں، تاکہ جھگڑے میں ثبوت رہے۔ پھر بھی کوئی نظام سو فیصد محفوظ نہیں ہوتا۔',
+  },
+  privacy7T: { ro: '7. Aap ke haq', ur: 'آپ کے حق' },
+  privacy7B: {
+    ro: 'Aap apna hisaab kabhi bhi app mein dekh sakte hain. Agar aap chahte hain ke aap ka poora hisaab aur account hamesha ke liye mita diya jaye, to hamein likhein (neeche rabta dekhein). Hum aap ki darkhwast par sab kuch mita dete hain.',
+    ur: 'آپ اپنا حساب کبھی بھی ایپ میں دیکھ سکتے ہیں۔ اگر آپ چاہتے ہیں کہ آپ کا پورا حساب اور اکاؤنٹ ہمیشہ کے لیے مٹا دیا جائے تو ہمیں لکھیں (نیچے رابطہ دیکھیں)۔ ہم آپ کی درخواست پر سب کچھ مٹا دیتے ہیں۔',
+  },
+  privacy8T: { ro: '8. Customers ki jankari', ur: 'کسٹمرز کی معلومات' },
+  privacy8B: {
+    ro: 'Aap apne customers ke naam aur phone number khud likhte hain. Wo sirf aap ke hisaab ke liye hain. Hum unhein kisi aur kaam mein istemal nahi karte, na unhein message bhejte hain.',
+    ur: 'آپ اپنے کسٹمرز کے نام اور فون نمبر خود لکھتے ہیں۔ وہ صرف آپ کے حساب کے لیے ہیں۔ ہم انہیں کسی اور کام میں استعمال نہیں کرتے، نہ انہیں پیغام بھیجتے ہیں۔',
+  },
+  privacy9T: { ro: '9. Bachche', ur: 'بچے' },
+  privacy9B: {
+    ro: 'HisabView dukandaron ke liye hai, bachchon ke liye nahi.',
+    ur: 'حساب ویو دکانداروں کے لیے ہے، بچوں کے لیے نہیں۔',
+  },
+  privacy10T: { ro: '10. Tabdeeli aur rabta', ur: 'تبدیلی اور رابطہ' },
+  privacy10B: {
+    ro: 'Ye policy badal sakti hai; naya waqt upar likha hoga. Sawal ya mitwane ki darkhwast ke liye app ke Settings mein "Hamein batayein" dabayein',
+    ur: 'یہ پالیسی بدل سکتی ہے؛ نیا وقت اوپر لکھا ہوگا۔ سوال یا مٹانے کی درخواست کے لیے ایپ کی سیٹنگز میں "ہمیں بتائیں" دبائیں',
+  },
+  privacyEmail: { ro: 'ya email karein:', ur: 'یا ای میل کریں:' },
+
+  // Feedback ("Hamein batayein") and the "something broke" screen
+  feedbackTitle: { ro: 'Hamein batayein', ur: 'ہمیں بتائیں' },
+  feedbackHint: { ro: 'Koi masla hai ya kya behtar ho sakta hai? Likh dein.', ur: 'کوئی مسئلہ ہے یا کیا بہتر ہو سکتا ہے؟ لکھ دیں۔' },
+  kindProblem: { ro: 'Masla hai', ur: 'مسئلہ ہے' },
+  kindIdea: { ro: 'Idea hai', ur: 'آئیڈیا ہے' },
+  kindThanks: { ro: 'Shukriya', ur: 'شکریہ' },
+  feedbackPlaceholder: { ro: 'Yahan likhein...', ur: 'یہاں لکھیں...' },
+  feedbackSend: { ro: 'Bhejein', ur: 'بھیجیں' },
+  feedbackSent: { ro: 'Shukriya! Aap ka paigham mil gaya.', ur: 'شکریہ! آپ کا پیغام مل گیا۔' },
+  feedbackQueued: { ro: 'Internet aate hi chala jayega.', ur: 'انٹرنیٹ آتے ہی چلا جائے گا۔' },
+  versionLabel: { ro: 'Version', ur: 'ورژن' },
+  errTitle: { ro: 'Kuch gadbad ho gayi', ur: 'کچھ گڑبڑ ہو گئی' },
+  errBody: {
+    ro: 'Maaf kijiye. Aap ka hisaab phone mein mehfooz hai. App dobara kholein.',
+    ur: 'معاف کیجیے۔ آپ کا حساب فون میں محفوظ ہے۔ ایپ دوبارہ کھولیں۔',
+  },
+  errReload: { ro: 'Dobara kholein', ur: 'دوبارہ کھولیں' },
+
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },
   langUr: { ro: 'اردو', ur: 'اردو' },

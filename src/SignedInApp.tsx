@@ -4,14 +4,16 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { ScreenHeader } from './components/ScreenHeader';
 import { attachShop, shopsRepo, sync, useLive } from './data';
 import { useT } from './i18n/i18n';
-import { usePath } from './lib/router';
+import { goBack, usePath } from './lib/router';
 import { AddPartyScreen } from './screens/AddPartyScreen';
 import { CustomersScreen } from './screens/CustomersScreen';
 import { DoneScreen } from './screens/DoneScreen';
+import { FeedbackScreen } from './screens/FeedbackScreen';
 import { EntryScreen } from './screens/EntryScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { OldBalancesScreen } from './screens/OldBalancesScreen';
 import { PartyScreen } from './screens/PartyScreen';
+import { PrivacyScreen } from './screens/PrivacyScreen';
 import { PickPartyScreen } from './screens/PickPartyScreen';
 import { RestoreScreen } from './screens/RestoreScreen';
 import { RemindScreen } from './screens/RemindScreen';
@@ -93,7 +95,9 @@ export default function SignedInApp() {
   if (stage === 'done') return <DoneScreen shopName={shop?.shop_name ?? ''} onOld={() => setStage('old')} onSkip={() => setStage('home')} />;
   if (stage === 'old') return <OldBalancesScreen onFinish={() => setStage('home')} />;
 
-  // Home and the customer screens, chosen by the page address
+  // Home and the customer screens, chosen by the page address. A new screen fades in softly (150 ms,
+  // opacity only, so the bars fixed to the bottom do not move; off for "reduce motion").
+  const screen = (() => {
   if (path === '/party/new') return <AddPartyScreen />;
   if (path === '/customers') return <CustomersScreen />;
   if (path === '/voice') {
@@ -103,6 +107,8 @@ export default function SignedInApp() {
       </Suspense>
     );
   }
+  if (path === '/feedback') return <FeedbackScreen />;
+  if (path === '/privacy') return <PrivacyScreen onBack={() => goBack('/settings')} />;
   if (path === '/today') return <TodayScreen />;
   if (path === '/today/sale') return <EntryScreen kind="cash_sale" />;
   if (path === '/today/kharcha') return <EntryScreen kind="kharcha" />;
@@ -115,4 +121,10 @@ export default function SignedInApp() {
     return match[2] ? <EntryScreen partyId={match[1]} kind={match[2] as 'diye' | 'mile'} /> : <PartyScreen partyId={match[1]} />;
   }
   return <HomeScreen shopName={shop?.shop_name ?? t('appName')} />;
+  })();
+  return (
+    <div key={path} className="animate-fade">
+      {screen}
+    </div>
+  );
 }

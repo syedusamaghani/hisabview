@@ -19,12 +19,14 @@ export default {
         jaliSoft: jali('rgba(74, 42, 20, 0.05)'),
       },
       keyframes: {
+        fade: { from: { opacity: '0' }, to: { opacity: '1' } },
         pop: { from: { transform: 'scale(0.6)', opacity: '0' }, to: { transform: 'scale(1)', opacity: '1' } },
         tick: { from: { strokeDashoffset: '16' }, to: { strokeDashoffset: '0' } },
         slideUp: { from: { transform: 'translateY(16px)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
         listen: { from: { transform: 'scale(1)', opacity: '0.7' }, to: { transform: 'scale(1.5)', opacity: '0' } },
       },
       animation: {
+        fade: `fade ${motion.fast} ease-out both`,
         pop: `pop ${motion.base} ease-out both`,
         tick: `tick ${motion.slow} ease-out ${motion.fast} both`,
         slideUp: `slideUp ${motion.base} ease-out both`,

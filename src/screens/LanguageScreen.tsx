@@ -1,3 +1,4 @@
+import { Logo } from '../components/Logo';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useT } from '../i18n/i18n';
 import { text, type Lang } from '../i18n/translations';
@@ -17,6 +18,7 @@ export function LanguageScreen() {
     <main className="mx-auto min-h-screen max-w-app">
       <ScreenHeader title="HisabView" />
       <div className="flex flex-col gap-4 px-gutter pt-6">
+        <Logo size={84} className="mx-auto" />
         <div className="text-center">
           <h2 className="latin text-title font-extrabold text-ink">{text.langTitle.ro}</h2>
           <p lang="ur" dir="rtl" className="mt-1 font-urdu text-title font-extrabold text-ink">{text.langTitle.ur}</p>
@@ -31,6 +33,12 @@ export function LanguageScreen() {
           <span className="font-urdu text-[40px] font-bold leading-tight text-primary">{text.langUr.ur}</span>
           <span className="font-urdu text-body text-inkSoft">{text.langUrSample.ur}</span>
         </button>
+
+        {/* Both languages: the person has not chosen yet. A plain link, so it opens without any login. */}
+        <a href="/privacy" className="latin flex min-h-tap items-center justify-center gap-3 text-label font-bold text-primary underline">
+          <span>{text.privacyLink.ro}</span>
+          <span lang="ur" className="font-urdu">{text.privacyLink.ur}</span>
+        </a>
       </div>
     </main>
   );

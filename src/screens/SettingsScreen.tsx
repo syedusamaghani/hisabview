@@ -10,6 +10,8 @@ import { TextField } from '../components/TextField';
 import { describeSync, shopsRepo, sync, useSyncState, type Language, type Shop } from '../data';
 import { useT } from '../i18n/i18n';
 import { formatDay, formatTime } from '../lib/dates';
+import { APP_VERSION } from '../lib/report';
+import { navigate } from '../lib/router';
 import { installAskLater, promptInstall, useInstall } from '../lib/install';
 import { useAuth } from '../state/auth';
 import { usePrivacy } from '../state/privacy';
@@ -126,6 +128,15 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           </BigButton>
         )}
 
+        <BigButton full variant="ghost" icon="chat" onClick={() => navigate('/feedback')}>{t('feedbackTitle')}</BigButton>
+        <button
+          type="button"
+          onClick={() => navigate('/privacy')}
+          className="min-h-tap rounded-button text-body font-bold text-primary underline focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-accent"
+        >
+          {t('privacyLink')}
+        </button>
+
         {loggingOut ? (
           <Card tone="soft" className="flex flex-col gap-3">
             <p className="text-body font-bold">{t('logoutAsk')}</p>
@@ -135,6 +146,9 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
         ) : (
           <BigButton full variant="ghost" onClick={() => setLoggingOut(true)}>{t('logout')}</BigButton>
         )}
+        <p className="text-center text-caption text-inkSoft">
+          {t('versionLabel')} <bdi>{APP_VERSION}</bdi>
+        </p>
       </div>
 
       <BottomNav active="settings" />

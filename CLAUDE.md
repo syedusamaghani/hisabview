@@ -126,6 +126,16 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Install: `src/lib/install.ts` catches the browser's install offer at start; `InstallCard` on Home appears after the first entry ("Baad mein" = not again for a week); Settings has "App install karein"; iPhone gets the two Safari steps.
 - Test tools live outside the repo (scratchpad): sync.mjs (two pretend phones + a pretend Supabase), perf.mjs (slow CPU, big khata), offline.mjs (production build, no internet).
 
+## Launch prep (built in chunk 5)
+- Privacy policy: public page at /privacy (works without login; src/screens/PrivacyScreen.tsx; words in translations.ts, keys privacy*). Linked from the language screen, the login screen and Settings. The optional contact email comes from `VITE_CONTACT_EMAIL` (Cloudflare build variable). Do not invent facts in it: change it whenever data handling changes.
+- Feedback: Settings > "Hamein batayein" (FeedbackScreen): masla / idea / shukriya + a few words. Error tracking: no outside service. `src/lib/report.ts` catches uncaught errors and React render errors (ErrorBoundary shows "Kuch gadbad ho gayi", with the khata safe on the phone). Both go through `src/lib/outbox.ts` (kept on the phone, max 50) and are sent by the sync engine (`flushOutbox`, upsert with ignore-duplicates) into Supabase tables `feedback` and `error_log` (migration 0004; add-only for the app, read in the dashboard Table Editor). Reports contain what/where/version/phone only, never customers or entries. Max 10 per session, same error counted once.
+- App version (build date and time) is defined at build time (`__APP_VERSION__`), shown at the bottom of Settings and sent with every error report.
+- Icon and splash: a khata (ledger) with a marigold bookmark on chai brown (public/icon.svg, icon-192/512, icon-maskable-512 with safe zone, apple-touch-icon). `Logo` component is used on the language, login, splash and error screens. Manifest has shortcuts (press and hold the icon: Diye likhein / Mile likhein). public/_headers sets security headers and cache rules (sw.js and index.html never cached long).
+- Screens fade in (150 ms, opacity only, off for reduce motion) through the `animate-fade` wrapper in SignedInApp.
+- Backup and keep-alive: `.github/workflows/backup.yml` (Monday and Thursday) runs `scripts/backup.mjs`: reads every table with the service-role key (GitHub secret) and saves ONE file encrypted with AES-256-GCM (passphrase secret). The repository is PUBLIC, so a backup must never be saved unencrypted. Reading the database twice a week also stops the free Supabase pause.
+- Step-by-step for the founder: docs/LAUNCH_CHECKLIST.md (SQL 0003 and 0004, contact email, backup secrets, Google "Publish app" with home page and privacy links, final phone check). Possible cost: Google may refuse a workers.dev address as an authorized domain; then a custom domain is needed (about Rs 3,000-4,000 per year): ask the founder BEFORE buying.
+- Hidden test pages: /dev/components, /dev/voice, /dev/crash (breaks on purpose).
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).

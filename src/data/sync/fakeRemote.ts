@@ -5,13 +5,14 @@
 //  - the audit diary is add-only
 //  - "updated_at" is stamped by the server (like the trigger in migration 0003)
 // Not used by the app itself.
-import { RemoteError, type Remote, type RemoteRow, type SyncTable } from './remote';
+import { RemoteError, type LogTable, type Remote, type RemoteRow, type SyncTable } from './remote';
 
 export type FakeServer = Remote & {
   tables: Record<SyncTable, Map<string, RemoteRow>>;
+  logs: Record<LogTable, Map<string, RemoteRow>>; // feedback and error reports
   offline: boolean; // true = every call fails like a missing internet connection
   supportsUpdatedAt: boolean; // false = migration 0003 was not run
-  calls: { op: string; table?: SyncTable; rows?: number }[];
+  calls: { op: string; table?: SyncTable | LogTable; rows?: number }[];
   // the server refuses every row for which this is true (null = stop refusing)
   refuseRows: (predicate: ((table: SyncTable, row: RemoteRow) => boolean) | null) => void;
 };
@@ -20,12 +21,14 @@ const reject = (message: string, code: string) => new RemoteError('rejected', me
 
 export function createFakeServer(userId: string): FakeServer {
   const tables: Record<SyncTable, Map<string, RemoteRow>> = { shops: new Map(), parties: new Map(), entries: new Map(), audit_log: new Map() };
+  const logs: Record<LogTable, Map<string, RemoteRow>> = { feedback: new Map(), error_log: new Map() };
   let clock = Date.parse('2026-11-04T00:00:00Z');
   const stamp = () => new Date((clock += 1000)).toISOString().replace('Z', '+00:00'); // Postgres style
   let refuse: ((table: SyncTable, row: RemoteRow) => boolean) | null = null;
 
   const server: FakeServer = {
     tables,
+    logs,
     offline: false,
     supportsUpdatedAt: true,
     calls: [],
@@ -36,6 +39,22 @@ export function createFakeServer(userId: string): FakeServer {
     async upsert(table, rows, options) {
       server.calls.push({ op: 'upsert', table, rows: rows.length });
       if (server.offline) throw new RemoteError('network', 'Failed to fetch');
+      if (table === 'feedback' || table === 'error_log') {
+        // add-only tables: a person can add a row about themselves, nothing else
+        const staged = new Map(logs[table]);
+        for (const raw of rows) {
+          if (raw.user_id !== userId) throw reject('row violates row-level security policy', '42501');
+          if (refuse?.(table as never, raw)) throw reject('refused for the test', '23514');
+          if (staged.has(raw.id as string)) {
+            if (options?.ignoreDuplicates) continue;
+            throw reject('duplicate key', '23505');
+          }
+          if (table === 'feedback' && (!['problem', 'idea', 'thanks'].includes(raw.kind as string) || String(raw.message ?? '').trim().length === 0)) throw reject('check constraint', '23514');
+          staged.set(raw.id as string, { ...raw });
+        }
+        logs[table] = staged;
+        return;
+      }
       const staged = new Map(tables[table]);
       for (const raw of rows) {
         if (refuse?.(table, raw)) throw reject('refused for the test', '23514');

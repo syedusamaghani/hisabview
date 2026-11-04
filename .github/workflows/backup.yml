@@ -1,0 +1,45 @@
+# Weekly encrypted backup of the HisabView database. It also reads the database twice a week, which keeps
+# the free Supabase project from being paused for inactivity.
+# One-time setup (3 secrets): see docs/LAUNCH_CHECKLIST.md, step "Backup".
+name: Backup database
+
+on:
+  schedule:
+    - cron: '0 3 * * 1,4' # Monday and Thursday, 03:00 UTC (8 am in Karachi)
+  workflow_dispatch: {} # the "Run workflow" button, to try it by hand
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check the 3 secrets are set
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ] || [ -z "$PASS" ]; then
+            echo "Secrets are missing. Open docs/LAUNCH_CHECKLIST.md and follow the Backup step."
+            exit 1
+          fi
+      - name: Take the backup (encrypted)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: node scripts/backup.mjs
+      - name: Keep the file for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: hisabview-backup
+          path: backup-*.json.enc
+          retention-days: 90
+          if-no-files-found: error

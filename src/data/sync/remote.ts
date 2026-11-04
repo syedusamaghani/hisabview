@@ -3,6 +3,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type SyncTable = 'shops' | 'parties' | 'entries' | 'audit_log';
+// Messages to us (add-only tables): see supabase/migrations/0004_feedback_errors.sql
+export type LogTable = 'feedback' | 'error_log';
 export type RemoteRow = Record<string, unknown>;
 
 // What went wrong when talking to the server:
@@ -22,7 +24,7 @@ export class RemoteError extends Error {
 export interface Remote {
   // Adds the rows, or updates them when the id is already there (so sending twice is harmless).
   // ignoreDuplicates: leave an existing row alone (the audit diary is add-only).
-  upsert(table: SyncTable, rows: RemoteRow[], options?: { ignoreDuplicates?: boolean }): Promise<void>;
+  upsert(table: SyncTable | LogTable, rows: RemoteRow[], options?: { ignoreDuplicates?: boolean }): Promise<void>;
   fetchMyShop(userId: string): Promise<RemoteRow | null>;
   // Rows of one table for the shop. `since` = only what changed at or after that time (null = everything).
   // If the server cannot say what changed (migration 0003 not run), it simply returns everything.

@@ -117,6 +117,7 @@ const PATHS = {
     />
   ),
   cloud: <path d="M7 19a5 5 0 0 1-.9-9.920A6.500 6.500 0 0 1 18.700 9.600 4.700 4.700 0 0 1 17.500 19z" />,
+  chat: <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6.200L8 21v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />,
   stop: <rect x="5.500" y="5.500" width="13" height="13" rx="3" />,
 } satisfies Record<string, ReactNode>;
 

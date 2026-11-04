@@ -99,7 +99,10 @@ export function PartyScreen({ partyId }: { partyId: string }) {
 
         <h2 className="pt-2 text-title font-extrabold text-ink">{t('historyTitle')}</h2>
         {entries.length === 0 ? (
-          <p className="text-body text-inkSoft">{t('emptyTitle')}</p>
+          <Card tone="soft">
+            <p className="text-body font-extrabold text-ink">{t('emptyTitle')}</p>
+            <p className="text-body text-inkSoft">{t('emptyBody')}</p>
+          </Card>
         ) : (
           <ul className="flex flex-col gap-2">
             {entries.map((entry) => (
