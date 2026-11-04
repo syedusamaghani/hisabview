@@ -84,6 +84,15 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Settings: language (also saved on the shop, audited), hide amounts, shop name (audited), logout (asks first). Hidden customers can be brought back from the Customers tab.
 - Contact Picker only appears where the phone supports it (src/lib/contacts.ts).
 
+## Voice parser (built in chunk 2A, brain only, no screen yet)
+- Code: src/voice. Screens use ONLY `src/voice/index.ts`: `ruleParser.parse(text, parties, now?)` (may be async so a Claude parser can replace it) and `questionText(q, lang)`.
+- Answer is `{type:'entry', party|null, kind, amount, promise_date?, confidence, warnings?}` or `{type:'question', question, name?, options?, partial}`. `partial` keeps what was understood, so nothing is lost when a question is asked.
+- Question codes: amount, which_amount, kind, who, which_party, new_party. Their words are in translations.ts (q* keys). Order of asking: amount, then kind, then customer. One question only. Never a guess.
+- "ko" = the customer received (diye), "ne" + a plain give-word = the customer gave (mile). Conflicting words (for example "wapas" with "ko ... diye") ask the kind.
+- Spelling: names are compared by a vowel-free "sound shape" (src/voice/match.ts), so Aslam/Asslam/اسلم match. Exactly-spelled beats sounds-alike. One sound off is allowed only with the same first sound (Kamran is not Imran). Any unknown extra word counts as part of a new name, so the parser asks "Naya naam hai?".
+- Words it knows live in src/voice/vocabulary.ts (clashes throw at load). Tests: tests/voice-parser.test.ts; real shopkeeper recordings go in tests/real-sentences.test.ts.
+- Not understood yet: two entries in one sentence, "kal" meaning yesterday as a date, "dene hain" (to pay), goods words not in the small list (they trigger the new-name question), names that are also number or kind words (for example "Das").
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).

@@ -29,7 +29,7 @@ export function matchesQuery(person: Person, query: string): boolean {
 }
 
 // Number of single-letter changes between two words (so "ahmed" and "ahmad" = 1)
-function distance(a: string, b: string): number {
+export function distance(a: string, b: string): number {
   const row = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i++) {
     let diagonal = row[0];

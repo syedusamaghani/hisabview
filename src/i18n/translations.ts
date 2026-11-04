@@ -221,6 +221,14 @@ export const text = {
   },
   yesLogout: { ro: 'Haan, logout', ur: 'ہاں، لاگ آؤٹ' },
 
+  // Voice parser questions (shown when the spoken sentence is not clear)
+  qAmount: { ro: 'Kitni raqam?', ur: 'کتنی رقم؟' },
+  qWhichAmount: { ro: 'Kaunsi raqam?', ur: 'کون سی رقم؟' },
+  qKind: { ro: 'Diye ya Mile?', ur: 'دیے یا ملے؟' },
+  qWho: { ro: 'Kis ka hisaab?', ur: 'کس کا حساب؟' },
+  qWhichParty: { ro: 'Kaunsa {name}?', ur: 'کون سا {name}؟' },
+  qNewParty: { ro: 'Naya naam hai, add karoon?', ur: 'نیا نام ہے، شامل کروں؟' },
+
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },
   langUr: { ro: 'اردو', ur: 'اردو' },
