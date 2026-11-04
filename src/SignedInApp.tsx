@@ -13,8 +13,10 @@ import { HomeScreen } from './screens/HomeScreen';
 import { OldBalancesScreen } from './screens/OldBalancesScreen';
 import { PartyScreen } from './screens/PartyScreen';
 import { PickPartyScreen } from './screens/PickPartyScreen';
+import { RemindScreen } from './screens/RemindScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ShopNameScreen } from './screens/ShopNameScreen';
+import { TodayScreen } from './screens/TodayScreen';
 
 // The voice screen (and the parser behind it) is loaded only when the mic is tapped
 const VoiceScreen = lazy(() => import('./screens/VoiceScreen'));
@@ -63,11 +65,15 @@ export default function SignedInApp() {
       </Suspense>
     );
   }
+  if (path === '/today') return <TodayScreen />;
+  if (path === '/today/sale') return <EntryScreen kind="cash_sale" />;
+  if (path === '/today/kharcha') return <EntryScreen kind="kharcha" />;
   if (path === '/settings' && shop) return <SettingsScreen shop={shop} />;
   const pick = /^\/entry\/(diye|mile)$/.exec(path);
   if (pick) return <PickPartyScreen kind={pick[1] as 'diye' | 'mile'} />;
-  const match = /^\/party\/([^/]+)(?:\/(diye|mile))?$/.exec(path);
+  const match = /^\/party\/([^/]+)(?:\/(diye|mile|remind))?$/.exec(path);
   if (match) {
+    if (match[2] === 'remind') return <RemindScreen partyId={match[1]} />;
     return match[2] ? <EntryScreen partyId={match[1]} kind={match[2] as 'diye' | 'mile'} /> : <PartyScreen partyId={match[1]} />;
   }
   return <HomeScreen shopName={shop?.shop_name ?? t('appName')} />;

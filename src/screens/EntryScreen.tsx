@@ -11,17 +11,23 @@ import { SaveSuccess } from '../components/SaveSuccess';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { entriesRepo, partiesRepo, useLive } from '../data';
 import { useT } from '../i18n/i18n';
+import type { TextKey } from '../i18n/translations';
 import { partyBalance } from '../lib/balance';
 import { cx } from '../lib/cx';
 import { TextField } from '../components/TextField';
 import { finishFlow, goBack, navigate, setFlash } from '../lib/router';
 
-// Write a Diye (I gave) or Mile (I received) for one customer.
+export type EntryKind = 'diye' | 'mile' | 'cash_sale' | 'kharcha';
+
+const KIND_TEXT: Record<EntryKind, TextKey> = { diye: 'diye', mile: 'mile', cash_sale: 'saleLabel', kharcha: 'kharchaLabel' };
+
+// Write a Diye (I gave), Mile (I received), a cash Sale or a Kharcha (money spent).
+// Diye and Mile are for one customer (partyId). Sale and Kharcha have no customer.
 // Step 1: type the amount. Step 2: check it, then "Theek hai" saves it. Wapas lo comes after.
-export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' | 'mile' }) {
+export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKind }) {
   const { t } = useT();
   const data = useLive(
-    async () => ({ party: (await partiesRepo.get(partyId)) ?? null, entries: await entriesRepo.listForParty(partyId) }),
+    async () => (partyId ? { party: (await partiesRepo.get(partyId)) ?? null, entries: await entriesRepo.listForParty(partyId) } : { party: null, entries: [] }),
     [partyId],
   );
   // "Badlo" on the voice screen opens this with the spoken amount already typed (?amount=500)
@@ -36,10 +42,11 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
   const [note, setNote] = useState('');
   const [noteOpen, setNoteOpen] = useState(false);
 
-  const back = () => goBack(`/party/${partyId}`);
+  const home = partyId ? `/party/${partyId}` : '/today';
+  const back = () => goBack(home);
   if (data === undefined) return <main className="mx-auto min-h-screen max-w-app" />;
   const { party, entries } = data;
-  if (!party) {
+  if (partyId && !party) {
     return (
       <main className="mx-auto min-h-screen max-w-app">
         <ScreenHeader title={t('appName')} onBack={() => goBack('/')} />
@@ -48,15 +55,17 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
     );
   }
 
-  const out = kind === 'diye';
-  const newBalance = partyBalance(party, entries) + (out ? amount : -amount);
+  // Red = money went out (diye, kharcha). Green = money came in (mile, sale).
+  const out = kind === 'diye' || kind === 'kharcha';
+  const label = t(KIND_TEXT[kind]);
+  const newBalance = party ? partyBalance(party, entries) + (kind === 'diye' ? amount : kind === 'mile' ? -amount : 0) : 0;
 
   const save = async () => {
     if (saving) return;
     setSaving(true);
     setFailed(false);
     try {
-      const entry = await entriesRepo.create({ kind, party_id: party.id, amount, note });
+      const entry = await entriesRepo.create({ kind, party_id: party?.id ?? null, amount, note });
       setFlash({ kind: 'undoEntry', entryId: entry.id });
       setSaved(true);
     } catch {
@@ -71,10 +80,12 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
         <ScreenHeader title={t('confirmQuestion')} onBack={() => setStep('amount')} />
         <div className="px-gutter pt-5">
           <Card className="flex flex-col items-center gap-3 py-6 text-center">
-            <div className="min-w-0">
-              <p dir="auto" className="truncate text-title font-extrabold">{party.name}</p>
-              {party.identifier && <p dir="auto" className="truncate text-label text-inkSoft">{party.identifier}</p>}
-            </div>
+            {party && (
+              <div className="min-w-0">
+                <p dir="auto" className="truncate text-title font-extrabold">{party.name}</p>
+                {party.identifier && <p dir="auto" className="truncate text-label text-inkSoft">{party.identifier}</p>}
+              </div>
+            )}
             <span
               className={cx(
                 'inline-flex items-center gap-1 rounded-full px-4 py-1 text-body font-extrabold',
@@ -82,13 +93,15 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
               )}
             >
               <Icon name={out ? 'up' : 'down'} size={22} />
-              {t(kind)}
+              {label}
             </span>
             <AmountText amount={amount} size="xl" tone={out ? 'out' : 'in'} reveal />
-            <div className="flex items-baseline gap-2 text-inkSoft">
-              <span className="text-label font-semibold">{t('newBalance')}:</span>
-              <AmountText amount={Math.abs(newBalance)} size="s" tone={newBalance > 0 ? 'out' : 'neutral'} room="140px" />
-            </div>
+            {party && (
+              <div className="flex items-baseline gap-2 text-inkSoft">
+                <span className="text-label font-semibold">{t('newBalance')}:</span>
+                <AmountText amount={Math.abs(newBalance)} size="s" tone={newBalance > 0 ? 'out' : 'neutral'} room="140px" />
+              </div>
+            )}
           </Card>
           <div className="mt-4">
             {noteOpen ? (
@@ -109,14 +122,14 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
             <BigButton size="lg" onClick={save} disabled={saving}>{t('theekHai')}</BigButton>
           </div>
         </BottomActionBar>
-        <SaveSuccess show={saved} label={t('saved')} duration={900} onDone={() => finishFlow(`/party/${partyId}`)} />
+        <SaveSuccess show={saved} label={t('saved')} duration={900} onDone={() => finishFlow(home)} />
       </main>
     );
   }
 
   return (
     <main className="mx-auto min-h-screen max-w-app pb-[var(--bar-h)]">
-      <ScreenHeader title={t(kind)} subtitle={party.name} onBack={back} />
+      <ScreenHeader title={label} subtitle={party?.name} onBack={back} />
       <div className="flex flex-col gap-4 px-gutter pt-5">
         <div className="text-center">
           <AmountText amount={amount} size="xl" tone={out ? 'out' : 'in'} reveal />

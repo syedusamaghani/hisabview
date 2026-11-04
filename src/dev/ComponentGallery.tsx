@@ -226,7 +226,7 @@ export default function ComponentGallery() {
         <div className="flex justify-center"><TickBadge /></div>
       </Section>
 
-      <Section title="Snackbar">
+      <Section title="Snackbar (with Wapas lo and WhatsApp)">
         <BigButton full variant="ghost" onClick={() => setSnack(true)}>{t('entryAdded')}</BigButton>
       </Section>
 
@@ -244,7 +244,7 @@ export default function ComponentGallery() {
         <p className="latin text-label text-inkSoft" dir="ltr">The bar at the bottom of this screen is the real component.</p>
       </Section>
 
-      <Snackbar open={snack} message={t('entryAdded')} actionLabel={t('wapasLo')} onClose={() => setSnack(false)} />
+      <Snackbar open={snack} message={t('entryAdded')} actionLabel={t('wapasLo')} secondaryLabel={t('waLabel')} onSecondary={() => undefined} onClose={() => setSnack(false)} />
       <SaveSuccess show={saved} label={t('saved')} onDone={() => setSaved(false)} />
 
       <BottomActionBar>

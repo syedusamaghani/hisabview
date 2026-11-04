@@ -9,7 +9,7 @@ import type { ListenProblem } from '../../voice/speech';
 
 // Something stopped the voice: no internet, no mic permission, nothing heard, or a phone that cannot do it.
 // Always a friendly sentence and a way to carry on by hand (Diye / Mile), never a dead end.
-export type Problem = ListenProblem | 'soon';
+export type Problem = ListenProblem;
 
 const MESSAGE: Record<Problem, TextKey> = {
   unsupported: 'voiceUnsupported',
@@ -18,7 +18,6 @@ const MESSAGE: Record<Problem, TextKey> = {
   no_speech: 'voiceNothing',
   bad_language: 'voiceError',
   other: 'voiceError',
-  soon: 'saleSoon',
 };
 
 type Props = { problem: Problem; onRetry: () => void; onManual: (kind: 'diye' | 'mile') => void; onBack: () => void };

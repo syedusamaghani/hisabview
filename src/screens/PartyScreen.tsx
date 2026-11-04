@@ -6,20 +6,22 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { Icon, type IconName } from '../components/Icon';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { entriesRepo, partiesRepo, useLive, type Entry, type Party } from '../data';
+import { entriesRepo, partiesRepo, shopsRepo, useLive, type Entry, type Party } from '../data';
 import { useT } from '../i18n/i18n';
 import { partyBalance } from '../lib/balance';
 import { formatDay, formatTime } from '../lib/dates';
 import { cx } from '../lib/cx';
+import { statementText } from '../lib/messages';
 import { beginFlow, goBack, navigate, setFlash } from '../lib/router';
+import { openWhatsApp, whatsappUrl } from '../lib/whatsapp';
 import { speakBalance, speakSupported, stopSpeaking } from '../voice/speak';
 import { useEntrySnack } from './useEntrySnack';
 
 // One customer: the big balance, what is coming soon, every entry (newest first), and Diye / Mile.
 export function PartyScreen({ partyId }: { partyId: string }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const data = useLive(
-    async () => ({ party: (await partiesRepo.get(partyId)) ?? null, entries: await entriesRepo.listForParty(partyId) }),
+    async () => ({ party: (await partiesRepo.get(partyId)) ?? null, entries: await entriesRepo.listForParty(partyId), shopName: (await shopsRepo.getMine())?.shop_name ?? '' }),
     [partyId],
   );
   const [openId, setOpenId] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
 
   if (data === undefined) return <main className="mx-auto min-h-screen max-w-app" />;
 
-  const { party, entries } = data;
+  const { party, entries, shopName } = data;
   if (!party) {
     return (
       <main className="mx-auto min-h-screen max-w-app">
@@ -49,6 +51,9 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   }
 
   const balance = partyBalance(party, entries);
+
+  // "Hisaab bhejo": the account in a few lines, ready in WhatsApp
+  const sendStatement = () => openWhatsApp(whatsappUrl(party.phone, statementText(lang, { name: party.name, shop: shopName }, entries, balance)));
 
   // "Sunao": the phone reads the balance aloud. Tap again to stop.
   const canSpeak = speakSupported();
@@ -87,9 +92,9 @@ export function PartyScreen({ partyId }: { partyId: string }) {
         </Card>
 
         <div className={canSpeak ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-2 gap-2'}>
-          <SoonTile icon="bell" label={t('remind')} />
-          <SoonTile icon="whatsapp" label={t('sendStatement')} />
-          {canSpeak && <ListenTile speaking={speaking} onClick={sunao} />}
+          <ActionTile icon="bell" label={t('remind')} onClick={() => navigate(`/party/${party.id}/remind`)} />
+          <ActionTile icon="whatsapp" label={t('sendStatement')} onClick={sendStatement} />
+          {canSpeak && <ActionTile icon={speaking ? 'stop' : 'speaker'} label={speaking ? t('ruko') : t('listen')} pressed={speaking} onClick={sunao} />}
         </div>
 
         <h2 className="pt-2 text-title font-extrabold text-ink">{t('historyTitle')}</h2>
@@ -154,38 +159,21 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   );
 }
 
-// The real "Sunao" button: reads the balance aloud, and becomes "Ruko" while it talks.
-function ListenTile({ speaking, onClick }: { speaking: boolean; onClick: () => void }) {
-  const { t } = useT();
+// One of the three helpers under the balance: Yaad dilao, Hisaab bhejo, Sunao. pressed = it is busy (Sunao talking).
+function ActionTile({ icon, label, onClick, pressed }: { icon: IconName; label: string; onClick: () => void; pressed?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={speaking}
+      aria-pressed={pressed}
       className={cx(
-        'flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-card border-[1.5px] p-2 text-center shadow-card transition-colors duration-fast',
+        'flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-card border-[1.5px] p-2 text-center shadow-card transition-colors duration-fast',
         'focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-accent',
-        speaking ? 'border-primary bg-primarySoft' : 'border-line bg-surface',
+        pressed ? 'border-primary bg-primarySoft' : 'border-line bg-surface',
       )}
     >
-      <Icon name={speaking ? 'stop' : 'speaker'} size={28} className="text-primary" />
-      <span className="text-label font-bold leading-tight text-ink">{speaking ? t('ruko') : t('listen')}</span>
-    </button>
-  );
-}
-
-// A place for a feature that is coming later. Clearly switched off, with a small "jald" tag.
-function SoonTile({ icon, label }: { icon: IconName; label: string }) {
-  const { t } = useT();
-  return (
-    <button
-      type="button"
-      disabled
-      className="flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-card border-[1.5px] border-dashed border-line bg-surface p-2 text-center opacity-80"
-    >
-      <Icon name={icon} size={28} className="text-inkSoft" />
+      <Icon name={icon} size={30} className="text-primary" />
       <span className="text-label font-bold leading-tight text-ink">{label}</span>
-      <span className="rounded-full bg-primarySoft px-2 text-caption font-bold text-primary">{t('soon')}</span>
     </button>
   );
 }

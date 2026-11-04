@@ -45,7 +45,6 @@ export default function VoiceScreen() {
     }
     const result = await ruleParser.parse(text, d.parties, new Date(), forced.current);
     if (result.type === 'question') setView({ name: 'question', question: result });
-    else if (result.kind === 'cash_sale' || result.kind === 'kharcha') setView({ name: 'problem', problem: 'soon' });
     else setView({ name: 'confirm', entry: result });
   }, []);
 
@@ -110,18 +109,20 @@ export default function VoiceScreen() {
 
   if (view.name === 'confirm' && data) {
     const entry = view.entry;
-    const party = data.parties.find((p) => p.id === entry.party?.id);
-    if (party && (entry.kind === 'diye' || entry.kind === 'mile')) {
-      const own = data.entries.filter((e) => e.party_id === party.id);
-      const balance = partyBalance(party, own) + (entry.kind === 'diye' ? entry.amount : -entry.amount);
+    // Diye and Mile belong to a customer. A sale or a kharcha belongs to nobody.
+    const withParty = entry.kind === 'diye' || entry.kind === 'mile';
+    const party = entry.party ? (data.parties.find((p) => p.id === entry.party?.id) ?? null) : null;
+    if (!withParty || party) {
+      const own = party ? data.entries.filter((e) => e.party_id === party.id) : [];
+      const balance = party ? partyBalance(party, own) + (entry.kind === 'diye' ? entry.amount : entry.kind === 'mile' ? -entry.amount : 0) : 0;
       const save = async () => {
         if (saving) return;
         setSaving(true);
         setFailed(false);
         try {
           const created = await entriesRepo.create({
-            kind: entry.kind as 'diye' | 'mile',
-            party_id: party.id,
+            kind: entry.kind,
+            party_id: party?.id ?? null,
             amount: entry.amount,
             transcript: transcript.current,
             source: 'voice',
@@ -134,6 +135,10 @@ export default function VoiceScreen() {
           setSaving(false);
         }
       };
+      // "Badlo": the normal screen with the spoken amount already typed
+      const changePath = party
+        ? `/party/${party.id}/${entry.kind}?amount=${entry.amount}`
+        : `/today/${entry.kind === 'cash_sale' ? 'sale' : 'kharcha'}?amount=${entry.amount}`;
       return (
         <ConfirmView
           entry={entry}
@@ -144,7 +149,7 @@ export default function VoiceScreen() {
           failed={failed}
           saved={saved}
           onSave={save}
-          onChange={() => navigate(`/party/${party.id}/${entry.kind}?amount=${entry.amount}`, { replace: true })}
+          onChange={() => navigate(changePath, { replace: true })}
           onBack={() => goBack('/')}
           onSavedDone={() => finishFlow('/')}
         />

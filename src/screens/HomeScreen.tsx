@@ -15,13 +15,15 @@ import { cx } from '../lib/cx';
 import { formatDay, formatTime } from '../lib/dates';
 import { beginFlow, navigate } from '../lib/router';
 import { todaySummary } from '../lib/today';
+import { todayText } from '../lib/messages';
+import { openWhatsApp, whatsappUrl } from '../lib/whatsapp';
 import { speechSupported } from '../voice/speech';
 import { useEntrySnack } from './useEntrySnack';
 
 // Home: what I will collect and must pay, today's summary, the latest entries,
 // and the big Diye / mic / Mile bar at the bottom.
 export function HomeScreen({ shopName }: { shopName: string }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { snackbar } = useEntrySnack();
 
   const data = useLive(
@@ -48,6 +50,10 @@ export function HomeScreen({ shopName }: { shopName: string }) {
 
   // No mic on a phone that cannot turn speech into text: just Diye and Mile
   const canSpeak = speechSupported();
+  // The summary of the day, typed in WhatsApp (the shopkeeper chooses who gets it)
+  const sendToday = () => {
+    if (view) openWhatsApp(whatsappUrl(null, todayText(lang, shopName, new Date(), view.today)));
+  };
   const openVoice = () => {
     beginFlow();
     navigate('/voice');
@@ -72,8 +78,16 @@ export function HomeScreen({ shopName }: { shopName: string }) {
         </div>
 
         <Card pattern className="flex flex-col gap-3">
-          <h2 className="text-body font-extrabold text-ink">{t('todayTitle')}</h2>
-          <div className="grid grid-cols-2 gap-3">
+          {/* The title opens the full Aaj ka hisaab page */}
+          <button
+            type="button"
+            onClick={() => navigate('/today')}
+            className="-m-1 flex min-h-tap items-center gap-2 rounded-button p-1 text-start focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-accent"
+          >
+            <h2 className="flex-1 text-body font-extrabold text-ink">{t('todayTitle')}</h2>
+            <Icon name="back" size={26} className="rotate-180 text-primary rtl:rotate-0" />
+          </button>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
             <div>
               <p className="text-label font-semibold text-inkSoft">{t('todayDiye')}</p>
               <AmountText amount={view?.today.diye ?? 0} tone="out" room="130px" />
@@ -82,11 +96,17 @@ export function HomeScreen({ shopName }: { shopName: string }) {
               <p className="text-label font-semibold text-inkSoft">{t('todayMile')}</p>
               <AmountText amount={view?.today.mile ?? 0} tone="in" room="130px" />
             </div>
+            <div>
+              <p className="text-label font-semibold text-inkSoft">{t('todaySale')}</p>
+              <AmountText amount={view?.today.sale ?? 0} tone="in" room="130px" />
+            </div>
+            <div>
+              <p className="text-label font-semibold text-inkSoft">{t('todayKharcha')}</p>
+              <AmountText amount={view?.today.kharcha ?? 0} tone="out" room="130px" />
+            </div>
           </div>
-          {/* WhatsApp comes in a later phase: clearly switched off for now */}
-          <BigButton full variant="ghost" icon="whatsapp" disabled>
+          <BigButton full variant="ghost" icon="whatsapp" disabled={!view} onClick={sendToday}>
             {t('sendStatement')}
-            <span className="rounded-full bg-primarySoft px-2 text-caption font-bold text-primary">{t('soon')}</span>
           </BigButton>
         </Card>
 

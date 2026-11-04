@@ -15,7 +15,7 @@ import type { ParsedEntry } from '../../voice';
 // "Theek hai" saves it. "Badlo" opens the normal screen with the amount already typed.
 type Props = {
   entry: ParsedEntry;
-  party: Party;
+  party: Party | null; // null for a sale or a kharcha
   transcript: string;
   balance: number; // balance after this entry
   saving: boolean;
@@ -29,7 +29,9 @@ type Props = {
 
 export function ConfirmView({ entry, party, transcript, balance, saving, failed, saved, onSave, onChange, onBack, onSavedDone }: Props) {
   const { t, lang } = useT();
-  const out = entry.kind === 'diye';
+  // Red = money went out (diye, kharcha). Green = money came in (mile, sale).
+  const out = entry.kind === 'diye' || entry.kind === 'kharcha';
+  const kindLabel = t(entry.kind === 'diye' ? 'diye' : entry.kind === 'mile' ? 'mile' : entry.kind === 'cash_sale' ? 'saleLabel' : 'kharchaLabel');
   const unsure = entry.confidence < 0.8;
   return (
     <main className="mx-auto min-h-screen max-w-app pb-[var(--bar-h)]">
@@ -47,10 +49,12 @@ export function ConfirmView({ entry, party, transcript, balance, saving, failed,
         )}
 
         <Card className="flex flex-col items-center gap-3 py-6 text-center">
-          <div className="min-w-0 max-w-full">
-            <p dir="auto" className="truncate text-title font-extrabold">{party.name}</p>
-            {party.identifier && <p dir="auto" className="truncate text-label text-inkSoft">{party.identifier}</p>}
-          </div>
+          {party && (
+            <div className="min-w-0 max-w-full">
+              <p dir="auto" className="truncate text-title font-extrabold">{party.name}</p>
+              {party.identifier && <p dir="auto" className="truncate text-label text-inkSoft">{party.identifier}</p>}
+            </div>
+          )}
           <span
             className={cx(
               'inline-flex items-center gap-1 rounded-full px-4 py-1 text-body font-extrabold',
@@ -58,13 +62,15 @@ export function ConfirmView({ entry, party, transcript, balance, saving, failed,
             )}
           >
             <Icon name={out ? 'up' : 'down'} size={22} />
-            {t(entry.kind === 'diye' ? 'diye' : 'mile')}
+            {kindLabel}
           </span>
           <AmountText amount={entry.amount} size="xl" tone={out ? 'out' : 'in'} reveal />
-          <div className="flex items-baseline gap-2 text-inkSoft">
-            <span className="text-label font-semibold">{t('newBalance')}:</span>
-            <AmountText amount={Math.abs(balance)} size="s" tone={balance > 0 ? 'out' : 'neutral'} room="140px" />
-          </div>
+          {party && (
+            <div className="flex items-baseline gap-2 text-inkSoft">
+              <span className="text-label font-semibold">{t('newBalance')}:</span>
+              <AmountText amount={Math.abs(balance)} size="s" tone={balance > 0 ? 'out' : 'neutral'} room="140px" />
+            </div>
+          )}
           {entry.promise_date && (
             <p className="text-body font-bold text-inkSoft">
               {t('promiseOn').replace('{day}', formatDay(`${entry.promise_date}T12:00:00+05:00`, lang))}

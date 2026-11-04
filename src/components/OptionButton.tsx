@@ -8,11 +8,12 @@ type Props = {
   subtitle?: string;
   right?: ReactNode;
   center?: boolean; // centre the title (for a plain amount)
+  wrap?: boolean; // let the small line under the title run over several lines (a message preview)
   onClick: () => void;
   className?: string;
 };
 
-export function OptionButton({ title, subtitle, right, center, onClick, className }: Props) {
+export function OptionButton({ title, subtitle, right, center, wrap, onClick, className }: Props) {
   return (
     <button
       type="button"
@@ -26,7 +27,7 @@ export function OptionButton({ title, subtitle, right, center, onClick, classNam
     >
       <span className={cx('min-w-0 flex-1', center && 'text-center')}>
         <span dir="auto" className="block truncate text-title font-extrabold text-ink">{title}</span>
-        {subtitle && <span dir="auto" className="block truncate text-label text-inkSoft">{subtitle}</span>}
+        {subtitle && <span dir="auto" className={cx('block text-label text-inkSoft', !wrap && 'truncate')}>{subtitle}</span>}
       </span>
       {right}
     </button>

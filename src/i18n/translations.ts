@@ -258,15 +258,61 @@ export const text = {
   promiseOn: { ro: 'Wada: {day}', ur: 'وعدہ: {day}' },
   yesAddParty: { ro: 'Haan, add karo', ur: 'ہاں، شامل کرو' },
   anotherCustomer: { ro: 'Koi aur customer', ur: 'کوئی اور کسٹمر' },
-  saleSoon: {
-    ro: 'Sale aur kharcha likhna jald aa raha hai. Abhi Diye ya Mile likhein.',
-    ur: 'سیل اور خرچہ لکھنا جلد آ رہا ہے۔ ابھی دیے یا ملے لکھیں۔',
-  },
 
   // "Sunao": the phone reads a balance aloud
   sayLene: { ro: '{name} se aap ko {amount} rupay lene hain.', ur: '{name} سے آپ کو {amount} روپے لینے ہیں۔' },
   sayDene: { ro: 'Aap ko {name} ko {amount} rupay dene hain.', ur: 'آپ کو {name} کو {amount} روپے دینے ہیں۔' },
   saySettled: { ro: '{name} ka hisaab barabar hai.', ur: '{name} کا حساب برابر ہے۔' },
+
+  // WhatsApp: Yaad dilao (reminder), receipt, statement, today's summary
+  waLabel: { ro: 'WhatsApp', ur: 'واٹس ایپ' },
+  toneSoft: { ro: 'Naram', ur: 'نرم' },
+  toneNormal: { ro: 'Normal', ur: 'عام' },
+  toneFirm: { ro: 'Sakht', ur: 'سخت' },
+  remindHint: {
+    ro: 'Tone chunein. WhatsApp khulega, bhejna aap ke haath mein hai.',
+    ur: 'انداز چنیں۔ واٹس ایپ کھلے گا، بھیجنا آپ کے ہاتھ میں ہے۔',
+  },
+  remindNone: { ro: 'Is customer ka koi udhaar baqi nahi.', ur: 'اس کسٹمر کا کوئی ادھار باقی نہیں۔' },
+  remindNoPhone: {
+    ro: 'Is customer ka number nahi hai. WhatsApp mein khud chun lein.',
+    ur: 'اس کسٹمر کا نمبر نہیں ہے۔ واٹس ایپ میں خود چن لیں۔',
+  },
+  msgSoft: {
+    ro: 'Assalam o alaikum {name}, umeed hai aap khairiyat se honge. {shop} ka {amount} aap ke zimme baqi hai. Jab suhoolat ho ada kar dijiye ga. Bohot shukriya.',
+    ur: 'السلام علیکم {name}، امید ہے آپ خیریت سے ہوں گے۔ {shop} کا {amount} آپ کے ذمے باقی ہے۔ جب سہولت ہو ادا کر دیجیے گا۔ بہت شکریہ۔',
+  },
+  msgNormal: {
+    ro: 'Assalam o alaikum {name}, {shop} mein aap ka {amount} baqi hai. Meherbani karke jald ada kar dein. Shukriya.',
+    ur: 'السلام علیکم {name}، {shop} میں آپ کا {amount} باقی ہے۔ مہربانی کر کے جلد ادا کر دیں۔ شکریہ۔',
+  },
+  msgFirm: {
+    ro: '{name}, {shop} mein aap ka {amount} kaafi dinon se baqi hai. Baraye meherbani aaj ya kal tak ada kar dein.',
+    ur: '{name}، {shop} میں آپ کا {amount} کافی دنوں سے باقی ہے۔ برائے مہربانی آج یا کل تک ادا کر دیں۔',
+  },
+  msgReceiptDiye: {
+    ro: 'Assalam o alaikum {name}, {shop} mein aap ka {amount} ka udhaar likha gaya. {balance}',
+    ur: 'السلام علیکم {name}، {shop} میں آپ کا {amount} کا ادھار لکھا گیا۔ {balance}',
+  },
+  msgReceiptMile: {
+    ro: 'Assalam o alaikum {name}, {shop} ko aap ke {amount} mile. Shukriya. {balance}',
+    ur: 'السلام علیکم {name}، {shop} کو آپ کے {amount} ملے۔ شکریہ۔ {balance}',
+  },
+  balOwes: { ro: 'Ab tak ka baqi hisaab: {amount}.', ur: 'اب تک کا باقی حساب: {amount}۔' },
+  balZero: { ro: 'Aap ka hisaab barabar hai.', ur: 'آپ کا حساب برابر ہے۔' },
+  balAdvance: { ro: 'Aap ke {amount} hamare paas jama hain.', ur: 'آپ کے {amount} ہمارے پاس جمع ہیں۔' },
+  msgStatementTitle: { ro: '{shop}: {name} ka hisaab', ur: '{shop}: {name} کا حساب' },
+  todayShareTitle: { ro: '{shop}: aaj ka hisaab ({day})', ur: '{shop}: آج کا حساب ({day})' },
+
+  // Aaj ka hisaab page, and writing a sale or a kharcha
+  todaySale: { ro: 'Aaj ki sale', ur: 'آج کی سیل' },
+  todayKharcha: { ro: 'Aaj ka kharcha', ur: 'آج کا خرچہ' },
+  todayEntries: { ro: 'Aaj ki entries', ur: 'آج کے اندراج' },
+  todayEmpty: { ro: 'Aaj abhi koi entry nahi', ur: 'آج ابھی کوئی اندراج نہیں' },
+  saleLabel: { ro: 'Sale', ur: 'سیل' },
+  kharchaLabel: { ro: 'Kharcha', ur: 'خرچہ' },
+  writeSale: { ro: 'Sale', ur: 'سیل' },
+  writeKharcha: { ro: 'Kharcha', ur: 'خرچہ' },
 
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },

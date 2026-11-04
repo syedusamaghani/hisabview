@@ -75,12 +75,12 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Screens live in src/screens. Tiny router in src/lib/router.ts (navigate, goBack, usePath, flash for "Wapas lo" between screens). No router library.
 - Home = totals + sticky search + party list (highest balance first). /party/new, /party/:id, /party/:id/diye, /party/:id/mile.
 - Old balances ("Purane hisaab") are 'opening' entries. "Wo mujhe dene hain" = customer (balance +), "Mujhe unhe dene hain" = supplier (balance -). Balance: src/lib/balance.ts. Positive = Lene hain (red). Negative = Dene hain (neutral ink, NOT green).
-- Disabled placeholders (Yaad dilao, Hisaab bhejo, Sunao) are real disabled buttons with a "jald" tag.
-- Main tabs (BottomNav): Home (/), Customers (/customers), Settings (/settings). Detail screens have their own bottom bar and no tabs. Home dock = Diye / mic / Mile above the tabs. Mic opens a "Voice jald" sheet until Phase 2.
+- Yaad dilao, Hisaab bhejo and Sunao on the customer page are real buttons now (see "WhatsApp and Aaj ka hisaab" below).
+- Main tabs (BottomNav): Home (/), Customers (/customers), Settings (/settings). Detail screens have their own bottom bar and no tabs. Home dock = Diye / mic / Mile above the tabs. Mic opens the voice screen (see "Voice screen").
 - Writing an entry: Home Diye/Mile -> /entry/:kind (pick customer, recent first) -> /party/:id/:kind (amount -> check card with optional note -> Theek hai). After saving we return to where the flow started (beginFlow/finishFlow in router.ts) with "Wapas lo" for 10 s (useEntrySnack). Wapas lo = cancel + audit.
 - Cancel from a customer's history: tap entry -> "Cancel karo" -> "Haan, cancel karo". Never deleted.
 - Hide amounts: eye on Home/Customers + switch in Settings, saved in localStorage, shows "Rs ***" plus a marigold banner. Typed amounts always show. New balance on the check card stays hidden.
-- "Aaj ka hisaab" uses Pakistan day (UTC+5). WhatsApp button there is disabled until Phase 3.
+- "Aaj ka hisaab" uses Pakistan day (UTC+5); see "WhatsApp and Aaj ka hisaab" below.
 - Settings: language (also saved on the shop, audited), hide amounts, shop name (audited), logout (asks first). Hidden customers can be brought back from the Customers tab.
 - Contact Picker only appears where the phone supports it (src/lib/contacts.ts).
 
@@ -99,10 +99,19 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Problems always end with Diye/Mile buttons (manual): unsupported (mic is hidden on Home), offline ("Voice ke liye internet chahiye, haath se likh lo"), mic permission denied, nothing heard, other.
 - Questions are big tappable cards, never a text box. The amount question uses the normal NumberKeypad. Answers go back to the parser as `forced` (amount/kind/party) and the same sentence is read again.
 - "Theek hai" saves with source 'voice' and the original transcript, promise_date if said; then SaveSuccess + 10 s "Wapas lo". "Badlo" opens /party/:id/:kind?amount=N (EntryScreen reads ?amount).
-- Sale and kharcha are understood but NOT saved yet (nothing shows them later): a "jald" message with Diye/Mile buttons.
+- Sale and kharcha are saved from the voice screen too (no customer; they show on /today).
 - "Sunao" on the customer page (src/voice/speak.ts): Urdu voice -> Urdu script sentence; otherwise English (India) voice reading Roman Urdu number words (src/lib/numberWords.ts). Tile is hidden if the phone cannot speak.
 - Hidden test page /dev/voice: raw text for each language setting + parser result + list of voices on the phone.
 - BigButton has an `accent` variant (marigold, for brown backgrounds). New components: ListeningMic, OptionButton (shown in /dev/components).
+
+## WhatsApp and Aaj ka hisaab (built in chunk 3)
+- No WhatsApp service: `src/lib/whatsapp.ts` makes a wa.me link (Pakistani numbers become 92...; no number = WhatsApp lets the shopkeeper choose). Opened straight from a tap with `openWhatsApp`. Nothing is sent until the shopkeeper presses send in WhatsApp.
+- All message words are in translations.ts (msg*, bal*, tone*), filled in by `src/lib/messages.ts`. Messages follow the app language. No accounting words.
+- Yaad dilao: tile on the customer page -> /party/:id/remind (RemindScreen). Three tones (Naram, Normal, Sakht), each a big card showing the message; one tap opens WhatsApp. Customer without a phone number shows a note and WhatsApp's own chooser. Nothing owed shows a friendly line.
+- Receipt: after saving a Diye or Mile the snackbar has "WhatsApp" next to "Wapas lo" (link prepared in useEntrySnack through src/screens/whatsappActions.ts). Sale and kharcha have no receipt. Tapping WhatsApp keeps Wapas lo available.
+- Hisaab bhejo (customer page): last 8 active entries, oldest first, plus the balance. On Home and /today the same button sends today's summary (no number).
+- Aaj ka hisaab: Home card shows four numbers (Aaj diye red, Aaj mile green, Aaj ki sale green, Aaj ka kharcha red); its title opens /today (TodayScreen) with every entry of the day (tap = cancel, never deleted), WhatsApp send, and buttons Sale / Kharcha. Totals in src/lib/today.ts (`todaySummary`, `todayEntries`). Sale and kharcha do NOT change any customer balance or the Lene/Dene totals.
+- Sale and Kharcha: EntryScreen without a customer (routes /today/sale, /today/kharcha), also saved from the voice screen (source 'voice', transcript kept). They show only on /today.
 
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.

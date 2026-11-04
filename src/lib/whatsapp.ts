@@ -1,0 +1,24 @@
+// WhatsApp without any WhatsApp service: a wa.me link opens the shopkeeper's own WhatsApp with the
+// message already typed. Nothing is sent until they press send there. No cost.
+
+// A Pakistani number in any style (0300-1234567, +92 300 1234567, 3001234567) -> "923001234567".
+// null = no usable number, so WhatsApp lets the shopkeeper choose who to send to.
+export function normalizePhone(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  let d = raw.replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('92') && d.length === 12) return d;
+  if (d.startsWith('0') && d.length === 11) return `92${d.slice(1)}`;
+  if (d.startsWith('3') && d.length === 10) return `92${d}`;
+  if (!d.startsWith('0') && d.length >= 11 && d.length <= 15) return d; // a number from another country
+  return null;
+}
+
+export function whatsappUrl(phone: string | null | undefined, text: string): string {
+  return `https://wa.me/${normalizePhone(phone) ?? ''}?text=${encodeURIComponent(text)}`;
+}
+
+// Must be called straight from a tap, or the phone may block the new window
+export function openWhatsApp(url: string) {
+  window.open(url, '_blank', 'noopener');
+}
