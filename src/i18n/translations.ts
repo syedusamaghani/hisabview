@@ -153,12 +153,12 @@ export const text = {
   remind: { ro: 'Yaad dilao', ur: 'یاد دلاؤ' },
   sendStatement: { ro: 'Hisaab bhejo', ur: 'حساب بھیجو' },
   listen: { ro: 'Sunao', ur: 'سناؤ' },
-  cancelEntry: { ro: 'Cancel karein', ur: 'منسوخ کریں' },
+  cancelEntry: { ro: 'Cancel karo', ur: 'منسوخ کرو' },
   cancelAsk: {
     ro: 'Ye entry cancel karein? Ye hisaab mein nahi ginti jayegi.',
     ur: 'یہ اندراج منسوخ کریں؟ یہ حساب میں نہیں گنا جائے گا۔',
   },
-  yesCancel: { ro: 'Haan, cancel karein', ur: 'ہاں، منسوخ کریں' },
+  yesCancel: { ro: 'Haan, cancel karo', ur: 'ہاں، منسوخ کرو' },
   no: { ro: 'Nahi', ur: 'نہیں' },
   entryCancelled: { ro: 'Entry cancel ho gayi', ur: 'اندراج منسوخ ہو گیا' },
   archive: { ro: 'Customer chhupayein', ur: 'کسٹمر چھپائیں' },
@@ -178,6 +178,48 @@ export const text = {
     ro: 'Kuch ghalat ho gaya. Dobara koshish karein.',
     ur: 'کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔',
   },
+
+  // Bottom navigation
+  navHome: { ro: 'Home', ur: 'ہوم' },
+  navCustomers: { ro: 'Customers', ur: 'کسٹمرز' },
+  navSettings: { ro: 'Settings', ur: 'سیٹنگز' },
+
+  // Home
+  todayTitle: { ro: 'Aaj ka hisaab', ur: 'آج کا حساب' },
+  todayDiye: { ro: 'Aaj diye', ur: 'آج دیے' },
+  todayMile: { ro: 'Aaj mile', ur: 'آج ملے' },
+  recentTitle: { ro: 'Haal ki entries', ur: 'حال کے اندراج' },
+  hiddenBanner: {
+    ro: 'Raqam chhupi hai. Dikhane ke liye dabayein',
+    ur: 'رقم چھپی ہے۔ دکھانے کے لیے دبائیں',
+  },
+  micSoonTitle: { ro: 'Voice jald aa raha hai', ur: 'آواز سے لکھنا جلد آ رہا ہے' },
+  micSoonBody: {
+    ro: 'Bolkar entry likhna bohat jald shuru hoga. Tab tak Diye ya Mile dabakar likhein.',
+    ur: 'بول کر اندراج لکھنا بہت جلد شروع ہوگا۔ تب تک دیے یا ملے دبا کر لکھیں۔',
+  },
+
+  // Choosing a customer for a new entry
+  pickWho: { ro: 'Kis ke saath?', ur: 'کس کے ساتھ؟' },
+  recentCustomers: { ro: 'Haal ke customers', ur: 'حال کے کسٹمرز' },
+  otherCustomers: { ro: 'Baaqi customers', ur: 'باقی کسٹمرز' },
+
+  // Note on an entry
+  addNote: { ro: 'Note likhein', ur: 'نوٹ لکھیں' },
+  noteLabel: { ro: 'Note (zaroori nahi)', ur: 'نوٹ (ضروری نہیں)' },
+  notePlaceholder: { ro: 'jaise: chawal 5 kilo', ur: 'جیسے: چاول 5 کلو' },
+
+  // Customers tab
+  archivedSection: { ro: 'Chhupe hue customers', ur: 'چھپے ہوئے کسٹمرز' },
+
+  // Settings
+  langSection: { ro: 'Zabaan', ur: 'زبان' },
+  cancelEdit: { ro: 'Rehne dein', ur: 'رہنے دیں' },
+  logoutAsk: {
+    ro: 'Logout karein? Aap ka hisaab is phone par mehfooz rahega.',
+    ur: 'لاگ آؤٹ کریں؟ آپ کا حساب اس فون پر محفوظ رہے گا۔',
+  },
+  yesLogout: { ro: 'Haan, logout', ur: 'ہاں، لاگ آؤٹ' },
 
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },

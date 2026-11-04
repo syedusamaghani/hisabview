@@ -13,6 +13,12 @@ import { contactPickerSupported, pickContact } from '../lib/contacts';
 import { similarParties } from '../lib/partyText';
 import { goBack, navigate } from '../lib/router';
 
+// Came here from "Diye / Mile"? Then after saving, go straight on to writing that entry.
+const thenKind = (): 'diye' | 'mile' | null => {
+  const then = new URLSearchParams(window.location.search).get('then');
+  return then === 'diye' || then === 'mile' ? then : null;
+};
+
 // Add a customer: name, pehchaan (to tell same names apart) and phone (optional).
 // If a similar name already exists, we show it and gently suggest a pehchaan.
 export function AddPartyScreen() {
@@ -117,7 +123,7 @@ export function AddPartyScreen() {
         </BigButton>
       </BottomActionBar>
 
-      <SaveSuccess show={savedId !== null} label={t('saved')} duration={900} onDone={() => savedId && navigate(`/party/${savedId}`, { replace: true })} />
+      <SaveSuccess show={savedId !== null} label={t('saved')} duration={900} onDone={() => savedId && navigate(`/party/${savedId}${thenKind() ? `/${thenKind()}` : ''}`, { replace: true })} />
     </main>
   );
 }

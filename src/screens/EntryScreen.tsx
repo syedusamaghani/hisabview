@@ -4,6 +4,7 @@ import { BigButton } from '../components/BigButton';
 import { BottomActionBar } from '../components/BottomActionBar';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
+import { Chip } from '../components/Chip';
 import { Icon } from '../components/Icon';
 import { NumberKeypad } from '../components/NumberKeypad';
 import { SaveSuccess } from '../components/SaveSuccess';
@@ -12,7 +13,8 @@ import { entriesRepo, partiesRepo, useLive } from '../data';
 import { useT } from '../i18n/i18n';
 import { partyBalance } from '../lib/balance';
 import { cx } from '../lib/cx';
-import { goBack, navigate, setFlash } from '../lib/router';
+import { TextField } from '../components/TextField';
+import { finishFlow, goBack, navigate, setFlash } from '../lib/router';
 
 // Write a Diye (I gave) or Mile (I received) for one customer.
 // Step 1: type the amount. Step 2: check it, then "Theek hai" saves it. Wapas lo comes after.
@@ -27,6 +29,8 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [note, setNote] = useState('');
+  const [noteOpen, setNoteOpen] = useState(false);
 
   const back = () => goBack(`/party/${partyId}`);
   if (data === undefined) return <main className="mx-auto min-h-screen max-w-app" />;
@@ -48,7 +52,7 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
     setSaving(true);
     setFailed(false);
     try {
-      const entry = await entriesRepo.create({ kind, party_id: party.id, amount });
+      const entry = await entriesRepo.create({ kind, party_id: party.id, amount, note });
       setFlash({ kind: 'undoEntry', entryId: entry.id });
       setSaved(true);
     } catch {
@@ -82,6 +86,13 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
               <AmountText amount={Math.abs(newBalance)} size="s" tone={newBalance > 0 ? 'out' : 'neutral'} room="140px" />
             </div>
           </Card>
+          <div className="mt-4">
+            {noteOpen ? (
+              <TextField label={t('noteLabel')} placeholder={t('notePlaceholder')} value={note} maxLength={300} autoFocus onChange={(e) => setNote(e.target.value)} />
+            ) : (
+              <Chip onClick={() => setNoteOpen(true)}>{t('addNote')}</Chip>
+            )}
+          </div>
           {failed && (
             <Card tone="soft" className="mt-4" role="alert">
               <p className="text-body font-bold">{t('errorGeneric')}</p>
@@ -94,7 +105,7 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
             <BigButton size="lg" onClick={save} disabled={saving}>{t('theekHai')}</BigButton>
           </div>
         </BottomActionBar>
-        <SaveSuccess show={saved} label={t('saved')} duration={900} onDone={back} />
+        <SaveSuccess show={saved} label={t('saved')} duration={900} onDone={() => finishFlow(`/party/${partyId}`)} />
       </main>
     );
   }

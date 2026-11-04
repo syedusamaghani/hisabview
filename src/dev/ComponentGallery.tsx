@@ -5,7 +5,11 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { AmountText } from '../components/AmountText';
 import { BigButton } from '../components/BigButton';
 import { BottomActionBar } from '../components/BottomActionBar';
+import { NavTabs, type Tab } from '../components/BottomNav';
 import { ChoiceCard } from '../components/ChoiceCard';
+import { HideBanner } from '../components/HideBanner';
+import { Sheet } from '../components/Sheet';
+import { SwitchRow } from '../components/SwitchRow';
 import { Chip } from '../components/Chip';
 import { PartyRow } from '../components/PartyRow';
 import { SearchBar } from '../components/SearchBar';
@@ -41,6 +45,9 @@ export default function ComponentGallery() {
   const [query, setQuery] = useState('');
   const [name, setName] = useState('');
   const [choice, setChoice] = useState<'a' | 'b'>('a');
+  const [tab, setTab] = useState<Tab>('home');
+  const [sheet, setSheet] = useState(false);
+  const [on, setOn] = useState(false);
 
   // Keep search engines away from this page
   useEffect(() => {
@@ -181,6 +188,23 @@ export default function ComponentGallery() {
         <PartyRow name="Muhammad Abdul Rehman Bakery Wala" identifier="Gali no 4, near masjid" balance={250000000} onClick={() => undefined} />
       </Section>
 
+      <Section title="NavTabs (the real bar is BottomNav)">
+        <Card><NavTabs active={tab} onSelect={setTab} /></Card>
+      </Section>
+
+      <Section title="SwitchRow, HideBanner (shows only while amounts are hidden)">
+        <Card><SwitchRow label={t('hideAmounts')} checked={on} onChange={setOn} /></Card>
+        <HideBanner />
+      </Section>
+
+      <Section title="Sheet">
+        <BigButton full variant="ghost" onClick={() => setSheet(true)}>{t('micSoonTitle')}</BigButton>
+        <Sheet open={sheet} onClose={() => setSheet(false)} title={t('micSoonTitle')}>
+          <p className="mb-4 text-center text-body text-inkSoft">{t('micSoonBody')}</p>
+          <BigButton full onClick={() => setSheet(false)}>{t('theekHai')}</BigButton>
+        </Sheet>
+      </Section>
+
       <Section title="TickBadge">
         <div className="flex justify-center"><TickBadge /></div>
       </Section>
@@ -207,10 +231,10 @@ export default function ComponentGallery() {
       <SaveSuccess show={saved} label={t('saved')} onDone={() => setSaved(false)} />
 
       <BottomActionBar>
-        <div className="grid grid-cols-[1fr_96px_1fr] items-center gap-3">
-          <BigButton size="lg" variant="diye" icon="note" className="px-2">{t('diye')}</BigButton>
+        <div className="grid grid-cols-[minmax(0,1fr)_96px_minmax(0,1fr)] items-center gap-3">
+          <BigButton size="lg" variant="diye" icon="note" className="!px-2">{t('diye')}</BigButton>
           <MicButton label={t('mic')} className="-mt-8 justify-self-center" />
-          <BigButton size="lg" variant="mile" icon="note" className="px-2">{t('mile')}</BigButton>
+          <BigButton size="lg" variant="mile" icon="note" className="!px-2">{t('mile')}</BigButton>
         </div>
       </BottomActionBar>
     </div>

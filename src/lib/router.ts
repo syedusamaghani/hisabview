@@ -22,6 +22,19 @@ export function goBack(fallback = '/') {
   else navigate(fallback, { replace: true });
 }
 
+// "Write an entry" takes a few screens. When it is saved we want to land where it started
+// (Home or the customer's page), not on the screen just before. beginFlow() remembers the start.
+let flowStart: number | null = null;
+export const beginFlow = () => {
+  flowStart = currentState().idx;
+};
+export function finishFlow(fallback: string) {
+  const back = flowStart === null ? 0 : currentState().idx - flowStart;
+  flowStart = null;
+  if (back > 0) window.history.go(-back);
+  else goBack(fallback);
+}
+
 // A short message for the NEXT screen to show, for example "Entry saved. Wapas lo?".
 // The screen that shows it takes it once.
 export type Flash = { kind: 'undoEntry'; entryId: string } | { kind: 'undoArchive'; partyId: string };

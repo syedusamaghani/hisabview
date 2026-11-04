@@ -55,7 +55,7 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 ## Design system in code (built in the "design system" chunk)
 - Tokens: src/design/tokens.ts (the only place for colours, spacing, radius, font sizes, shadows, motion). tailwind.config.ts reads it. Never type a hex colour or pixel size inside a component.
 - Text: src/i18n/translations.ts (add one line with both languages) and `const { t } = useT()` from src/i18n/i18n.tsx. Urdu sets dir="rtl" on the page. Use logical classes (ps-/pe-/ms-/me-, text-start) and `rtl:` variants; never left/right.
-- Components in src/components: BigButton, AmountText, Card, ScreenHeader, BottomActionBar, Snackbar, NumberKeypad, EmptyState, SaveSuccess (+TickBadge), Icon, IconButton (+HideAmountsButton), MicButton, TextField, SearchBar, ChoiceCard, Chip, PartyRow. Build screens only from these.
+- Components in src/components: BigButton, AmountText, Card, ScreenHeader, BottomActionBar, Snackbar, NumberKeypad, EmptyState, SaveSuccess (+TickBadge), Icon, IconButton (+HideAmountsButton), MicButton, TextField, SearchBar, ChoiceCard, Chip, PartyRow, BottomNav (+NavTabs), Sheet, SwitchRow, HideBanner. Build screens only from these.
 - Money: always <AmountText> (it hides itself when "hide amounts" is on and shrinks very big numbers to fit). Use reveal only where the shopkeeper types the amount.
 - Pages that use BottomActionBar add pb-[var(--bar-h)] so nothing hides behind it.
 - Dev gallery: /dev/components (hidden, lazy-loaded). Update it whenever a component changes.
@@ -76,6 +76,12 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Home = totals + sticky search + party list (highest balance first). /party/new, /party/:id, /party/:id/diye, /party/:id/mile.
 - Old balances ("Purane hisaab") are 'opening' entries. "Wo mujhe dene hain" = customer (balance +), "Mujhe unhe dene hain" = supplier (balance -). Balance: src/lib/balance.ts. Positive = Lene hain (red). Negative = Dene hain (neutral ink, NOT green).
 - Disabled placeholders (Yaad dilao, Hisaab bhejo, Sunao) are real disabled buttons with a "jald" tag.
+- Main tabs (BottomNav): Home (/), Customers (/customers), Settings (/settings). Detail screens have their own bottom bar and no tabs. Home dock = Diye / mic / Mile above the tabs. Mic opens a "Voice jald" sheet until Phase 2.
+- Writing an entry: Home Diye/Mile -> /entry/:kind (pick customer, recent first) -> /party/:id/:kind (amount -> check card with optional note -> Theek hai). After saving we return to where the flow started (beginFlow/finishFlow in router.ts) with "Wapas lo" for 10 s (useEntrySnack). Wapas lo = cancel + audit.
+- Cancel from a customer's history: tap entry -> "Cancel karo" -> "Haan, cancel karo". Never deleted.
+- Hide amounts: eye on Home/Customers + switch in Settings, saved in localStorage, shows "Rs ***" plus a marigold banner. Typed amounts always show. New balance on the check card stays hidden.
+- "Aaj ka hisaab" uses Pakistan day (UTC+5). WhatsApp button there is disabled until Phase 3.
+- Settings: language (also saved on the shop, audited), hide amounts, shop name (audited), logout (asks first). Hidden customers can be brought back from the Customers tab.
 - Contact Picker only appears where the phone supports it (src/lib/contacts.ts).
 
 ## Tech stack (zero running cost)

@@ -6,11 +6,14 @@ import { attachShop, shopsRepo, useLive } from './data';
 import { useT } from './i18n/i18n';
 import { usePath } from './lib/router';
 import { AddPartyScreen } from './screens/AddPartyScreen';
+import { CustomersScreen } from './screens/CustomersScreen';
 import { DoneScreen } from './screens/DoneScreen';
 import { EntryScreen } from './screens/EntryScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { OldBalancesScreen } from './screens/OldBalancesScreen';
 import { PartyScreen } from './screens/PartyScreen';
+import { PickPartyScreen } from './screens/PickPartyScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
 import { ShopNameScreen } from './screens/ShopNameScreen';
 
 // name -> done -> old (optional) -> home. A person who already has a shop goes straight to home.
@@ -49,6 +52,10 @@ export default function SignedInApp() {
 
   // Home and the customer screens, chosen by the page address
   if (path === '/party/new') return <AddPartyScreen />;
+  if (path === '/customers') return <CustomersScreen />;
+  if (path === '/settings' && shop) return <SettingsScreen shop={shop} />;
+  const pick = /^\/entry\/(diye|mile)$/.exec(path);
+  if (pick) return <PickPartyScreen kind={pick[1] as 'diye' | 'mile'} />;
   const match = /^\/party\/([^/]+)(?:\/(diye|mile))?$/.exec(path);
   if (match) {
     return match[2] ? <EntryScreen partyId={match[1]} kind={match[2] as 'diye' | 'mile'} /> : <PartyScreen partyId={match[1]} />;

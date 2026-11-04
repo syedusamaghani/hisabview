@@ -6,15 +6,13 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { Icon, type IconName } from '../components/Icon';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { Snackbar } from '../components/Snackbar';
 import { entriesRepo, partiesRepo, useLive, type Entry, type Party } from '../data';
 import { useT } from '../i18n/i18n';
 import { partyBalance } from '../lib/balance';
 import { formatDay, formatTime } from '../lib/dates';
 import { cx } from '../lib/cx';
-import { goBack, navigate, setFlash, takeFlash } from '../lib/router';
-
-type Snack = { message: 'entryAdded' | 'entryCancelled'; undoEntryId?: string };
+import { beginFlow, goBack, navigate, setFlash } from '../lib/router';
+import { useEntrySnack } from './useEntrySnack';
 
 // One customer: the big balance, what is coming soon, every entry (newest first), and Diye / Mile.
 export function PartyScreen({ partyId }: { partyId: string }) {
@@ -25,19 +23,13 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   );
   const [openId, setOpenId] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
-  const [snack, setSnack] = useState<Snack | null>(null);
+  const { snackbar, notify, hide } = useEntrySnack();
   const archiveRef = useRef<HTMLDivElement>(null);
 
   // The "are you sure?" box must never hide behind the bottom bar
   useEffect(() => {
     if (archiving) archiveRef.current?.scrollIntoView({ block: 'nearest' });
   }, [archiving]);
-
-  // "Entry likh di gayi / Wapas lo" after saving a Diye or Mile
-  useEffect(() => {
-    const flash = takeFlash();
-    if (flash?.kind === 'undoEntry') setSnack({ message: 'entryAdded', undoEntryId: flash.entryId });
-  }, []);
 
   if (data === undefined) return <main className="mx-auto min-h-screen max-w-app" />;
 
@@ -56,13 +48,13 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   const cancel = async (entry: Entry) => {
     setOpenId(null);
     await entriesRepo.cancel(entry.id);
-    setSnack({ message: 'entryCancelled' });
+    notify('entryCancelled');
   };
 
   const archive = async () => {
     await partiesRepo.archive(party.id);
     setFlash({ kind: 'undoArchive', partyId: party.id });
-    navigate('/', { replace: true });
+    navigate('/customers', { replace: true });
   };
 
   return (
@@ -95,7 +87,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
                 party={party}
                 open={openId === entry.id}
                 onToggle={() => {
-                  setSnack(null);
+                  hide();
                   setOpenId(openId === entry.id ? null : entry.id);
                 }}
                 onCancel={() => cancel(entry)}
@@ -117,7 +109,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
               variant="ghost"
               icon="archive"
               onClick={() => {
-                setSnack(null);
+                hide();
                 setArchiving(true);
               }}
             >
@@ -127,18 +119,18 @@ export function PartyScreen({ partyId }: { partyId: string }) {
         </div>
       </div>
 
-      <Snackbar
-        open={snack !== null}
-        message={snack ? t(snack.message) : ''}
-        actionLabel={snack?.undoEntryId ? t('wapasLo') : undefined}
-        onAction={() => snack?.undoEntryId && void cancel({ id: snack.undoEntryId } as Entry)}
-        onClose={() => setSnack(null)}
-      />
+      {snackbar}
 
       <BottomActionBar>
         <div className="grid grid-cols-2 gap-3">
-          <BigButton size="lg" variant="diye" icon="up" onClick={() => navigate(`/party/${party.id}/diye`)}>{t('diye')}</BigButton>
-          <BigButton size="lg" variant="mile" icon="down" onClick={() => navigate(`/party/${party.id}/mile`)}>{t('mile')}</BigButton>
+          <BigButton size="lg" variant="diye" icon="up" onClick={() => {
+              beginFlow();
+              navigate(`/party/${party.id}/diye`);
+            }}>{t('diye')}</BigButton>
+          <BigButton size="lg" variant="mile" icon="down" onClick={() => {
+              beginFlow();
+              navigate(`/party/${party.id}/mile`);
+            }}>{t('mile')}</BigButton>
         </div>
       </BottomActionBar>
     </main>
@@ -164,9 +156,11 @@ function SoonTile({ icon, label }: { icon: IconName; label: string }) {
 function HistoryRow({ entry, party, open, onToggle, onCancel }: { entry: Entry; party: Party; open: boolean; onToggle: () => void; onCancel: () => void }) {
   const { t, lang } = useT();
   const rowRef = useRef<HTMLLIElement>(null);
+  const [asking, setAsking] = useState(false);
   useEffect(() => {
     if (open) rowRef.current?.scrollIntoView({ block: 'nearest' });
-  }, [open]);
+    else setAsking(false);
+  }, [open, asking]);
   const cancelled = entry.status === 'cancelled';
   const opening = entry.kind === 'opening';
   const gave = entry.kind === 'diye' || (opening && party.type === 'customer');
@@ -195,6 +189,7 @@ function HistoryRow({ entry, party, open, onToggle, onCancel }: { entry: Entry; 
           <span className="whitespace-nowrap"><bdi>{formatTime(entry.created_at, lang)}</bdi></span>
           </span>
         {cancelled && <span className="block text-label font-bold text-inkSoft">{t('cancelledLabel')}</span>}
+        {entry.note && <span dir="auto" className="block truncate text-label text-inkSoft">{entry.note}</span>}
       </span>
       <AmountText amount={entry.amount} tone={tone} room="120px" className={cancelled ? 'line-through' : undefined} />
     </div>
@@ -211,9 +206,15 @@ function HistoryRow({ entry, party, open, onToggle, onCancel }: { entry: Entry; 
       )}
       {open && !cancelled && (
         <div className="flex flex-col gap-3 border-t-[1.5px] border-line p-3">
-          <p className="text-body text-inkSoft">{t('cancelAsk')}</p>
-          <BigButton full onClick={onCancel}>{t('yesCancel')}</BigButton>
-          <BigButton full variant="ghost" onClick={onToggle}>{t('no')}</BigButton>
+          {asking ? (
+            <>
+              <p className="text-body text-inkSoft">{t('cancelAsk')}</p>
+              <BigButton full onClick={onCancel}>{t('yesCancel')}</BigButton>
+              <BigButton full variant="ghost" onClick={onToggle}>{t('no')}</BigButton>
+            </>
+          ) : (
+            <BigButton full variant="ghost" onClick={() => setAsking(true)}>{t('cancelEntry')}</BigButton>
+          )}
         </div>
       )}
     </li>

@@ -77,6 +77,17 @@ export const partiesRepo = {
     return party && party.shop_id === requireShop() ? party : undefined;
   },
 
+  // Everyone in this shop, hidden people too (to show a name next to an old entry)
+  async listAll(): Promise<Party[]> {
+    return db.parties.where('shop_id').equals(requireShop()).toArray();
+  },
+
+  // People that were hidden (archived), A to Z
+  async listArchived(): Promise<Party[]> {
+    const all = await db.parties.where('shop_id').equals(requireShop()).toArray();
+    return all.filter((p) => p.archived).sort((a, b) => a.name.localeCompare(b.name));
+  },
+
   // Everyone in this shop who is not archived, A to Z
   async listActive(): Promise<Party[]> {
     const all = await db.parties.where('shop_id').equals(requireShop()).toArray();
