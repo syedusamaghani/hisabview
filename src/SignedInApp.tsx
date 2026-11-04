@@ -2,7 +2,7 @@
 // screens (language, login) stay small and fast.
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { ScreenHeader } from './components/ScreenHeader';
-import { attachShop, shopsRepo, useLive } from './data';
+import { attachShop, shopsRepo, sync, useLive } from './data';
 import { useT } from './i18n/i18n';
 import { usePath } from './lib/router';
 import { AddPartyScreen } from './screens/AddPartyScreen';
@@ -13,6 +13,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { OldBalancesScreen } from './screens/OldBalancesScreen';
 import { PartyScreen } from './screens/PartyScreen';
 import { PickPartyScreen } from './screens/PickPartyScreen';
+import { RestoreScreen } from './screens/RestoreScreen';
 import { RemindScreen } from './screens/RemindScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ShopNameScreen } from './screens/ShopNameScreen';
@@ -21,8 +22,10 @@ import { TodayScreen } from './screens/TodayScreen';
 // The voice screen (and the parser behind it) is loaded only when the mic is tapped
 const VoiceScreen = lazy(() => import('./screens/VoiceScreen'));
 
-// name -> done -> old (optional) -> home. A person who already has a shop goes straight to home.
-type Stage = 'name' | 'done' | 'old' | 'home';
+// restoring -> (name -> done -> old (optional)) -> home.
+// A person who already has a shop on this phone goes straight to home. A login with no shop on this
+// phone first asks the internet: its khata may be there (new phone), and then it is brought back.
+type Stage = 'restoring' | 'restoreFailed' | 'name' | 'done' | 'old' | 'home';
 
 export default function SignedInApp() {
   const { t } = useT();
@@ -30,6 +33,7 @@ export default function SignedInApp() {
   const found = useLive(async () => ({ shop: (await shopsRepo.getMine()) ?? null }), []);
   const [stage, setStage] = useState<Stage | null>(null);
   const [attachedShop, setAttachedShop] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!found) return;
@@ -37,12 +41,46 @@ export default function SignedInApp() {
       attachShop(found.shop.id);
       setAttachedShop(found.shop.id);
     }
-    // Decided once, when we first learn whether this person already has a shop
-    setStage((current) => current ?? (found.shop ? 'home' : 'name'));
+    // Decided once, when we first learn whether this person already has a shop here
+    setStage((current) => {
+      if (found.shop) return current === null || current === 'restoring' || current === 'restoreFailed' ? 'home' : current;
+      return current ?? 'restoring';
+    });
   }, [found]);
+
+  // No shop on this phone: look on the internet before asking for a shop name
+  useEffect(() => {
+    if (stage !== 'restoring') return;
+    let alive = true;
+    void sync.restore().then((result) => {
+      if (!alive) return;
+      if (result === 'none') setStage('name');
+      else if (result !== 'restored') setStage('restoreFailed'); // 'restored': the shop appears and the effect above moves on
+    });
+    return () => {
+      alive = false;
+    };
+  }, [stage, attempt]);
+
+  // Keep the khata backed up while the app is open
+  useEffect(() => {
+    if (!attachedShop) return;
+    return sync.start();
+  }, [attachedShop]);
 
   const shop = found?.shop;
 
+  if (stage === 'restoring' || stage === 'restoreFailed') {
+    return (
+      <RestoreScreen
+        failed={stage === 'restoreFailed'}
+        onRetry={() => {
+          setStage('restoring');
+          setAttempt((n) => n + 1);
+        }}
+      />
+    );
+  }
   if (stage === null || (stage !== 'name' && (!shop || attachedShop !== shop.id))) {
     return (
       <main className="mx-auto min-h-screen max-w-app">

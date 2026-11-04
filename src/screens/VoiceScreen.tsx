@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { entriesRepo, partiesRepo, useLive } from '../data';
-import { balancesByParty, partyBalance } from '../lib/balance';
+import { entriesRepo, partiesRepo, statsRepo, useLive } from '../data';
 import { finishFlow, goBack, navigate, setFlash } from '../lib/router';
-import { splitByRecent } from '../lib/recent';
+import { splitByLastContact } from '../lib/recent';
 import { ruleParser, type Forced, type ParseQuestion, type ParsedEntry } from '../voice';
 import { listen, preferredLangs, rememberLang, type Listener } from '../voice/speech';
 import { ConfirmView } from './voice/ConfirmView';
@@ -20,7 +19,7 @@ type View =
 // Speak an entry: listen -> understand -> check card -> Theek hai.
 // If the sentence is not clear the app asks ONE question with big answers to tap.
 export default function VoiceScreen() {
-  const data = useLive(async () => ({ parties: await partiesRepo.listActive(), entries: await entriesRepo.listAll() }), []);
+  const data = useLive(async () => ({ parties: await partiesRepo.listActive(), stats: await statsRepo.all() }), []);
   const dataRef = useRef(data);
   dataRef.current = data;
 
@@ -92,8 +91,11 @@ export default function VoiceScreen() {
   }, [start]);
 
   const parties = data?.parties ?? [];
-  const balances = useMemo(() => (data ? balancesByParty(data.parties, data.entries) : {}), [data]);
-  const recent = useMemo(() => (data ? splitByRecent(data.parties, data.entries, 5).recent : []), [data]);
+  const balances = useMemo(() => Object.fromEntries(Object.values(data?.stats ?? {}).map((s) => [s.party_id, s.balance])), [data]);
+  const recent = useMemo(
+    () => (data ? splitByLastContact(data.parties, Object.fromEntries(Object.values(data.stats).map((s) => [s.party_id, s.last_at])), 5).recent : []),
+    [data],
+  );
 
   const answer = (next: Forced) => {
     forced.current = { ...forced.current, ...next };
@@ -113,8 +115,7 @@ export default function VoiceScreen() {
     const withParty = entry.kind === 'diye' || entry.kind === 'mile';
     const party = entry.party ? (data.parties.find((p) => p.id === entry.party?.id) ?? null) : null;
     if (!withParty || party) {
-      const own = party ? data.entries.filter((e) => e.party_id === party.id) : [];
-      const balance = party ? partyBalance(party, own) + (entry.kind === 'diye' ? entry.amount : entry.kind === 'mile' ? -entry.amount : 0) : 0;
+      const balance = party ? (data.stats[party.id]?.balance ?? 0) + (entry.kind === 'diye' ? entry.amount : entry.kind === 'mile' ? -entry.amount : 0) : 0;
       const save = async () => {
         if (saving) return;
         setSaving(true);

@@ -9,11 +9,11 @@ import { PartyRow } from '../components/PartyRow';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SearchBar } from '../components/SearchBar';
 import { Snackbar } from '../components/Snackbar';
-import { entriesRepo, partiesRepo, useLive } from '../data';
+import { partiesRepo, statsRepo, useLive } from '../data';
 import { useT } from '../i18n/i18n';
-import { balancesByParty } from '../lib/balance';
-import { matchesQuery } from '../lib/partyText';
+import { buildSearch } from '../lib/partyText';
 import { navigate, takeFlash } from '../lib/router';
+import { useLimit } from './useLimit';
 
 // Everyone in the khata: highest balance first, with a sticky search bar.
 // Hidden (archived) customers are kept in a list at the bottom, and can be brought back.
@@ -29,19 +29,20 @@ export function CustomersScreen() {
   }, []);
 
   const data = useLive(
-    async () => ({ parties: await partiesRepo.listActive(), archived: await partiesRepo.listArchived(), entries: await entriesRepo.listAll() }),
+    async () => ({ parties: await partiesRepo.listActive(), archived: await partiesRepo.listArchived(), stats: await statsRepo.all() }),
     [],
   );
 
   const rows = useMemo(() => {
     if (!data) return [];
-    const balances = balancesByParty(data.parties, data.entries);
     return data.parties
-      .map((party) => ({ party, balance: balances[party.id] }))
+      .map((party) => ({ party, balance: data.stats[party.id]?.balance ?? 0 }))
       .sort((a, b) => b.balance - a.balance || a.party.name.localeCompare(b.party.name));
   }, [data]);
 
-  const shown = rows.filter((r) => matchesQuery(r.party, query));
+  const search = useMemo(() => buildSearch(rows, (r) => r.party), [rows]);
+  const found = useMemo(() => search(query), [search, query]);
+  const { shown, more } = useLimit(found);
   const noParties = data !== undefined && rows.length === 0;
 
   return (
@@ -59,7 +60,7 @@ export function CustomersScreen() {
       )}
 
       {noParties && <EmptyState title={t('noPartiesTitle')} body={t('noPartiesBody')} />}
-      {data && !noParties && shown.length === 0 && <EmptyState title={t('noResultsTitle')} body={t('noResultsBody')} />}
+      {data && !noParties && found.length === 0 && <EmptyState title={t('noResultsTitle')} body={t('noResultsBody')} />}
 
       <ul className="flex flex-col gap-3 px-gutter">
         {shown.map(({ party, balance }) => (
@@ -68,6 +69,7 @@ export function CustomersScreen() {
           </li>
         ))}
       </ul>
+      {more && <div className="px-gutter pt-3">{more}</div>}
 
       {data && data.archived.length > 0 && (
         <section className="flex flex-col gap-3 px-gutter pt-8">

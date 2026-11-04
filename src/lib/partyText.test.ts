@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchesQuery, normalizeText, similarParties } from './partyText';
+import { matchesQuery, normalizeText, similarParties, buildSearch } from './partyText';
 
 const p = (name: string, identifier: string | null = null, phone: string | null = null) => ({ name, identifier, phone });
 
@@ -54,5 +54,23 @@ describe('similarParties', () => {
   });
   it('says nothing for one letter', () => {
     expect(names('A')).toEqual([]);
+  });
+});
+
+describe('buildSearch', () => {
+  const people = [
+    { name: 'Ali', identifier: 'chai wala', phone: '0300-1234567' },
+    { name: 'Bilal', identifier: 'gali 3', phone: null },
+    { name: 'اسلم', identifier: null, phone: null },
+  ];
+  it('gives the same answers as matchesQuery for any typed text', () => {
+    const search = buildSearch(people, (p) => p);
+    for (const q of ['', 'ali', 'CHAI', 'gali 3', 'wala ali', '1234', '0300 123', 'اس', 'zzz', '  bil  ']) {
+      expect(search(q)).toEqual(people.filter((p) => matchesQuery(p, q)));
+    }
+  });
+  it('works on wrapped items (a row with a balance)', () => {
+    const rows = people.map((party, i) => ({ party, balance: i }));
+    expect(buildSearch(rows, (r) => r.party)('bilal').map((r) => r.balance)).toEqual([1]);
   });
 });

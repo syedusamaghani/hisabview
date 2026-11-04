@@ -11,7 +11,16 @@ export function splitByRecent<T extends P>(parties: readonly T[], entries: reado
     if (e.party_id === null || e.status === 'draft') continue;
     if (!last[e.party_id] || e.created_at > last[e.party_id]) last[e.party_id] = e.created_at;
   }
-  const used = parties.filter((p) => last[p.id]).sort((a, b) => last[b.id].localeCompare(last[a.id]));
+  return splitByLastContact(parties, last, limit);
+}
+
+// The same, when the time of each person's newest entry is already known (party_stats keeps it)
+export function splitByLastContact<T extends P>(
+  parties: readonly T[],
+  last: Readonly<Record<string, string | null | undefined>>,
+  limit = 5,
+): { recent: T[]; others: T[] } {
+  const used = parties.filter((p) => last[p.id]).sort((a, b) => (last[b.id] as string).localeCompare(last[a.id] as string));
   const recent = used.slice(0, limit);
   const rest = [...used.slice(limit), ...parties.filter((p) => !last[p.id])];
   return { recent, others: rest.sort((a, b) => a.name.localeCompare(b.name)) };

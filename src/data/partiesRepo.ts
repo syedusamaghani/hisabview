@@ -3,6 +3,7 @@ import { requireShop } from './context';
 import { newId, nowIso } from './ids';
 import { snapshot, write } from './auditRepo';
 import { entriesRepo } from './entriesRepo';
+import { recomputeStat } from './statsRepo';
 import { MAX_AMOUNT, type Entry, type Party, type PartyType } from './types';
 
 export type NewParty = {
@@ -45,8 +46,9 @@ export const partiesRepo = {
     };
     check(party);
     // The person, the old-balance entry and both audit lines are saved together, or not at all
-    const opening = await db.transaction('rw', db.parties, db.entries, db.audit_log, async () => {
+    const opening = await db.transaction('rw', db.parties, db.entries, db.audit_log, db.party_stats, async () => {
       await db.parties.add(party);
+      await db.party_stats.put({ party_id: party.id, shop_id: party.shop_id, balance: party.opening_balance, last_at: null });
       await write('party', party.id, 'create', null, snapshot(party));
       if (!input.opening) return null;
       return entriesRepo.create({ kind: 'opening', party_id: party.id, amount: input.opening.amount });
@@ -56,7 +58,7 @@ export const partiesRepo = {
 
   // Also used to archive (hide) a person. People are never deleted.
   async update(id: string, changes: PartyChanges): Promise<Party> {
-    return db.transaction('rw', db.parties, db.audit_log, async () => {
+    return db.transaction('rw', db.parties, db.entries, db.audit_log, db.party_stats, async () => {
       const before = await db.parties.get(id);
       if (!before || before.shop_id !== requireShop()) throw new Error('Person not found');
       const after: Party = { ...before, ...changes, pending_sync: 1 };
@@ -64,6 +66,7 @@ export const partiesRepo = {
       check(after);
       await db.parties.put(after);
       await write('party', id, 'edit', snapshot(before), snapshot(after));
+      if (before.opening_balance !== after.opening_balance) await recomputeStat(after);
       return after;
     });
   },

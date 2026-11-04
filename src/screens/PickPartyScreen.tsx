@@ -5,27 +5,30 @@ import { EmptyState } from '../components/EmptyState';
 import { PartyRow } from '../components/PartyRow';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SearchBar } from '../components/SearchBar';
-import { entriesRepo, partiesRepo, useLive, type Party } from '../data';
+import { partiesRepo, statsRepo, useLive, type Party } from '../data';
 import { useT } from '../i18n/i18n';
-import { balancesByParty } from '../lib/balance';
-import { matchesQuery } from '../lib/partyText';
-import { splitByRecent } from '../lib/recent';
+import { buildSearch } from '../lib/partyText';
+import { splitByLastContact } from '../lib/recent';
 import { goBack, navigate } from '../lib/router';
+import { useLimit } from './useLimit';
 
 // Step 1 of writing an entry from Home: who is it for? People you dealt with lately come first.
 export function PickPartyScreen({ kind }: { kind: 'diye' | 'mile' }) {
   const { t } = useT();
   const [query, setQuery] = useState('');
-  const data = useLive(async () => ({ parties: await partiesRepo.listActive(), entries: await entriesRepo.listAll() }), []);
+  const data = useLive(async () => ({ parties: await partiesRepo.listActive(), stats: await statsRepo.all() }), []);
 
   const view = useMemo(() => {
     if (!data) return null;
-    const { recent, others } = splitByRecent(data.parties, data.entries);
-    return { recent, others, balances: balancesByParty(data.parties, data.entries) };
+    const { recent, others } = splitByLastContact(data.parties, Object.fromEntries(Object.values(data.stats).map((s) => [s.party_id, s.last_at])));
+    const balances = Object.fromEntries(Object.values(data.stats).map((s) => [s.party_id, s.balance]));
+    return { recent, others, balances, search: buildSearch([...recent, ...others], (x) => x) };
   }, [data]);
 
   const searching = query.trim().length > 0;
-  const results = view && searching ? [...view.recent, ...view.others].filter((p) => matchesQuery(p, query)) : [];
+  const results = useMemo(() => (view && searching ? view.search(query) : []), [view, searching, query]);
+  const limitedResults = useLimit(results);
+  const limitedOthers = useLimit(view?.others ?? []);
   const empty = data !== undefined && data.parties.length === 0;
 
   const row = (party: Party) => (
@@ -33,7 +36,7 @@ export function PickPartyScreen({ kind }: { kind: 'diye' | 'mile' }) {
       <PartyRow
         name={party.name}
         identifier={party.identifier}
-        balance={view!.balances[party.id]}
+        balance={view!.balances[party.id] ?? 0}
         onClick={() => navigate(`/party/${party.id}/${kind}`)}
       />
     </li>
@@ -53,7 +56,12 @@ export function PickPartyScreen({ kind }: { kind: 'diye' | 'mile' }) {
 
       {view && searching && results.length === 0 && <EmptyState title={t('noResultsTitle')} body={t('noResultsBody')} />}
 
-      {view && searching && <ul className="flex flex-col gap-3 px-gutter">{results.map(row)}</ul>}
+      {view && searching && (
+        <div className="flex flex-col gap-3 px-gutter">
+          <ul className="flex flex-col gap-3">{limitedResults.shown.map(row)}</ul>
+          {limitedResults.more}
+        </div>
+      )}
 
       {view && !searching && (
         <div className="flex flex-col gap-3 px-gutter">
@@ -66,7 +74,8 @@ export function PickPartyScreen({ kind }: { kind: 'diye' | 'mile' }) {
           {view.others.length > 0 && (
             <>
               {view.recent.length > 0 && <h2 className="pt-2 text-label font-bold text-inkSoft">{t('otherCustomers')}</h2>}
-              <ul className="flex flex-col gap-3">{view.others.map(row)}</ul>
+              <ul className="flex flex-col gap-3">{limitedOthers.shown.map(row)}</ul>
+              {limitedOthers.more}
             </>
           )}
         </div>

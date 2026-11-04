@@ -67,5 +67,13 @@ export type AuditRow = {
   pending_sync: PendingSync;
 };
 
+// A small summary kept for every customer, so screens do not have to add up thousands of entries.
+// It is derived data: it can always be rebuilt from the entries (statsRepo.rebuildAll), and it is
+// updated in the same transaction as every entry change. balance above 0 = they owe me.
+export type PartyStat = { party_id: string; shop_id: string; balance: number; last_at: string | null };
+
+// Small notes the sync engine keeps for itself (for example how far the last download got)
+export type SyncMeta = { key: string; value: string };
+
 // Money limit: 9 digits, the same as the number keypad and the database
 export const MAX_AMOUNT = 999_999_999;

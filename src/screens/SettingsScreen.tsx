@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SyncBadge } from '../components/SyncBadge';
 import { BigButton } from '../components/BigButton';
 import { BottomNav } from '../components/BottomNav';
 import { Card } from '../components/Card';
@@ -6,8 +7,10 @@ import { ChoiceCard } from '../components/ChoiceCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SwitchRow } from '../components/SwitchRow';
 import { TextField } from '../components/TextField';
-import { shopsRepo, type Language, type Shop } from '../data';
+import { describeSync, shopsRepo, sync, useSyncState, type Language, type Shop } from '../data';
 import { useT } from '../i18n/i18n';
+import { formatDay, formatTime } from '../lib/dates';
+import { installAskLater, promptInstall, useInstall } from '../lib/install';
 import { useAuth } from '../state/auth';
 import { usePrivacy } from '../state/privacy';
 
@@ -15,7 +18,10 @@ import { usePrivacy } from '../state/privacy';
 export function SettingsScreen({ shop }: { shop: Shop }) {
   const { t, lang, setLang } = useT();
   const { hidden, toggle } = usePrivacy();
-  const { signOut } = useAuth();
+  const { signOut, email } = useAuth();
+  const syncState = useSyncState();
+  const install = useInstall();
+  const [syncing, setSyncing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(shop.shop_name);
   const [failed, setFailed] = useState(false);
@@ -25,6 +31,13 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
     if (next === lang) return;
     setLang(next);
     void shopsRepo.update(shop.id, { language: next }); // remembered with the shop, and audited
+  };
+
+  // "Abhi save karo": send everything now and also check for changes from another phone
+  const saveNow = async () => {
+    setSyncing(true);
+    await sync.syncNow({ pull: true });
+    setSyncing(false);
   };
 
   const saveName = async () => {
@@ -74,6 +87,44 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
             </>
           )}
         </Card>
+
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-body font-extrabold text-ink">{t('backupTitle')}</h2>
+          <SyncBadge className="!text-inkSoft" />
+          <p className="text-label text-inkSoft">{t('backupBody')}</p>
+          {email && (
+            <p className="text-label text-inkSoft">
+              {t('backupAccount')}: <bdi className="font-bold text-ink">{email}</bdi>
+            </p>
+          )}
+          <p className="text-label text-inkSoft">
+            {syncState.lastSyncAt ? (
+              <>
+                {t('backupLast').split('{when}')[0]}
+                <bdi>{formatDay(syncState.lastSyncAt, lang)}</bdi> <bdi>{formatTime(syncState.lastSyncAt, lang)}</bdi>
+                {t('backupLast').split('{when}')[1]}
+              </>
+            ) : (
+              t('backupNever')
+            )}
+          </p>
+          {syncState.pending > 0 && <p className="text-label font-bold text-ink">{t('backupPending').replace('{n}', String(syncState.pending))}</p>}
+          {describeSync(syncState) === 'problem' && <p role="alert" className="text-label font-bold text-ink">{t('backupProblem')}</p>}
+          <BigButton full variant="ghost" icon="cloud" disabled={syncing} onClick={saveNow}>{t('backupNow')}</BigButton>
+        </Card>
+
+        {install.canPrompt && (
+          <BigButton
+            full
+            variant="ghost"
+            icon="plus"
+            onClick={async () => {
+              if ((await promptInstall()) === 'dismissed') installAskLater();
+            }}
+          >
+            {t('installSettings')}
+          </BigButton>
+        )}
 
         {loggingOut ? (
           <Card tone="soft" className="flex flex-col gap-3">

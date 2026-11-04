@@ -11,7 +11,7 @@ import { balancesByParty } from '../lib/balance';
 const USER = '00000000-0000-4000-8000-00000000000a';
 
 beforeEach(async () => {
-  await Promise.all([db.shops.clear(), db.parties.clear(), db.entries.clear(), db.audit_log.clear()]);
+  await Promise.all([db.shops.clear(), db.parties.clear(), db.entries.clear(), db.audit_log.clear(), db.party_stats.clear()]);
   setDataContext({ userId: USER, shopId: null });
 });
 

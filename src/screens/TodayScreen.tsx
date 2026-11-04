@@ -13,7 +13,7 @@ import { cx } from '../lib/cx';
 import { formatDay, formatTime } from '../lib/dates';
 import { todayText } from '../lib/messages';
 import { beginFlow, goBack, navigate } from '../lib/router';
-import { todayEntries, todaySummary } from '../lib/today';
+import { pakistanDayStart, todayEntries, todaySummary } from '../lib/today';
 import { openWhatsApp, whatsappUrl } from '../lib/whatsapp';
 import { useEntrySnack } from './useEntrySnack';
 
@@ -25,7 +25,7 @@ export function TodayScreen() {
   const [openId, setOpenId] = useState<string | null>(null);
   const data = useLive(
     async () => ({
-      entries: await entriesRepo.listAll(),
+      entries: await entriesRepo.listSince(pakistanDayStart(new Date()).toISOString()),
       parties: await partiesRepo.listAll(),
       shopName: (await shopsRepo.getMine())?.shop_name ?? '',
     }),

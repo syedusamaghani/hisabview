@@ -28,6 +28,22 @@ export function matchesQuery(person: Person, query: string): boolean {
   return words.every((w) => haystack.includes(w) || (digits(w).length >= 3 && phone.includes(digits(w))));
 }
 
+// For long lists: do the slow part (cleaning every name) once, then each typed letter is quick.
+// Gives the same answers as matchesQuery. `person` says how to find the name/identifier/phone of an item.
+export function buildSearch<T>(items: readonly T[], person: (item: T) => Person): (query: string) => T[] {
+  const prepared = items.map((item) => {
+    const p = person(item);
+    return { item, haystack: normalizeText(`${p.name} ${p.identifier ?? ''}`), phone: digits(p.phone ?? '') };
+  });
+  return (query) => {
+    const words = normalizeText(query).split(' ').filter(Boolean);
+    if (words.length === 0) return [...items];
+    return prepared
+      .filter(({ haystack, phone }) => words.every((w) => haystack.includes(w) || (digits(w).length >= 3 && phone.includes(digits(w)))))
+      .map(({ item }) => item);
+  };
+}
+
 // Number of single-letter changes between two words (so "ahmed" and "ahmad" = 1)
 export function distance(a: string, b: string): number {
   const row = Array.from({ length: b.length + 1 }, (_, i) => i);

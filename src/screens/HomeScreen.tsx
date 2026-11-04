@@ -4,17 +4,19 @@ import { BigButton } from '../components/BigButton';
 import { BottomNav } from '../components/BottomNav';
 import { Card } from '../components/Card';
 import { HideBanner } from '../components/HideBanner';
+import { InstallCard } from '../components/InstallCard';
+import { SyncBadge } from '../components/SyncBadge';
 import { HideAmountsButton } from '../components/IconButton';
 import { Icon } from '../components/Icon';
 import { MicButton } from '../components/MicButton';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { entriesRepo, partiesRepo, useLive, type Entry } from '../data';
+import { entriesRepo, partiesRepo, statsRepo, useLive, type Entry } from '../data';
 import { useT } from '../i18n/i18n';
-import { balancesByParty, totals } from '../lib/balance';
+import { totals } from '../lib/balance';
 import { cx } from '../lib/cx';
 import { formatDay, formatTime } from '../lib/dates';
 import { beginFlow, navigate } from '../lib/router';
-import { todaySummary } from '../lib/today';
+import { pakistanDayStart, todaySummary } from '../lib/today';
 import { todayText } from '../lib/messages';
 import { openWhatsApp, whatsappUrl } from '../lib/whatsapp';
 import { speechSupported } from '../voice/speech';
@@ -27,20 +29,23 @@ export function HomeScreen({ shopName }: { shopName: string }) {
   const { snackbar } = useEntrySnack();
 
   const data = useLive(
-    async () => ({ parties: await partiesRepo.listAll(), entries: await entriesRepo.listAll() }),
+    // Only what Home shows is read: the customers, their summaries, the 5 newest entries and today's entries.
+    // The whole history is never read here, so a khata with years of entries opens just as fast.
+    async () => ({
+      parties: await partiesRepo.listAll(),
+      stats: await statsRepo.all(),
+      recent: await entriesRepo.listRecentMoney(5),
+      today: await entriesRepo.listSince(pakistanDayStart(new Date()).toISOString()),
+    }),
     [],
   );
 
   const view = useMemo(() => {
     if (!data) return null;
-    const active = data.parties.filter((p) => !p.archived);
-    const sum = totals(balancesByParty(active, data.entries));
+    const balances: Record<string, number> = {};
+    for (const p of data.parties) if (!p.archived) balances[p.id] = data.stats[p.id]?.balance ?? 0;
     const names = new Map(data.parties.map((p) => [p.id, p.name]));
-    const recent = data.entries
-      .filter((e) => e.status === 'active' && (e.kind === 'diye' || e.kind === 'mile') && e.party_id)
-      .sort((a, b) => b.created_at.localeCompare(a.created_at))
-      .slice(0, 5);
-    return { sum, names, recent, today: todaySummary(data.entries) };
+    return { sum: totals(balances), names, recent: data.recent, today: todaySummary(data.today) };
   }, [data]);
 
   const start = (kind: 'diye' | 'mile') => {
@@ -61,10 +66,14 @@ export function HomeScreen({ shopName }: { shopName: string }) {
 
   return (
     <main className="mx-auto min-h-screen max-w-app pb-[calc(var(--bar-h)+24px)]">
-      <ScreenHeader title={shopName} subtitle={t('tagline')} right={<HideAmountsButton tone="onBrand" />} />
+      <ScreenHeader title={shopName} right={<HideAmountsButton tone="onBrand" />}>
+        <SyncBadge />
+      </ScreenHeader>
 
       <div className="flex flex-col gap-4 px-gutter pt-4">
         <HideBanner />
+        {/* Offered once the first entry is written, not before: first the work, then the install */}
+        {view && view.recent.length > 0 && <InstallCard />}
 
         <div className="grid grid-cols-2 gap-3">
           <Card>

@@ -13,7 +13,7 @@
 type BalanceEntry = { party_id: string | null; kind: string; amount: number; status: string };
 type BalanceParty = { type: string; opening_balance: number };
 
-function effect(entry: BalanceEntry, partyType: string): number {
+export function effect(entry: BalanceEntry, partyType: string): number {
   if (entry.status !== 'active') return 0;
   if (entry.kind === 'diye') return entry.amount;
   if (entry.kind === 'mile') return -entry.amount;

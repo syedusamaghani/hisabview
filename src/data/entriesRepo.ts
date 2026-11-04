@@ -2,6 +2,7 @@ import { db } from './db';
 import { requireShop, requireUser } from './context';
 import { newId, nowIso } from './ids';
 import { snapshot, write } from './auditRepo';
+import { applyEntryChange } from './statsRepo';
 import { MAX_AMOUNT, type Entry, type EntryKind, type EntrySource } from './types';
 
 export type NewEntry = {
@@ -34,26 +35,28 @@ export const entriesRepo = {
       cancelled_at: null,
       pending_sync: 1,
     };
-    await db.transaction('rw', db.entries, db.parties, db.audit_log, async () => {
-      if (entry.party_id) {
-        const party = await db.parties.get(entry.party_id);
-        if (!party || party.shop_id !== entry.shop_id) throw new Error('Person not found');
-      }
+    // The entry, its audit line and the customer's balance summary are saved together, or not at all
+    await db.transaction('rw', db.entries, db.parties, db.audit_log, db.party_stats, async () => {
+      const party = entry.party_id ? await db.parties.get(entry.party_id) : undefined;
+      if (entry.party_id && (!party || party.shop_id !== entry.shop_id)) throw new Error('Person not found');
       await db.entries.add(entry);
       await write('entry', entry.id, 'create', null, snapshot(entry));
+      if (party) await applyEntryChange(party, undefined, entry);
     });
     return entry;
   },
 
   // "Wapas lo" / cancel. The entry stays in the database, marked cancelled.
   async cancel(id: string): Promise<Entry> {
-    return db.transaction('rw', db.entries, db.audit_log, async () => {
+    return db.transaction('rw', db.entries, db.parties, db.audit_log, db.party_stats, async () => {
       const before = await db.entries.get(id);
       if (!before || before.shop_id !== requireShop()) throw new Error('Entry not found');
       if (before.status === 'cancelled') throw new Error('Entry is already cancelled');
       const after: Entry = { ...before, status: 'cancelled', cancelled_at: nowIso(), pending_sync: 1 };
       await db.entries.put(after);
       await write('entry', id, 'cancel', snapshot(before), snapshot(after));
+      const party = before.party_id ? await db.parties.get(before.party_id) : undefined;
+      if (party) await applyEntryChange(party, before, after);
       return after;
     });
   },
@@ -69,13 +72,30 @@ export const entriesRepo = {
     return rows.filter((e) => e.shop_id === requireShop()).sort((a, b) => b.created_at.localeCompare(a.created_at));
   },
 
-  // The latest entries of the whole shop, newest first
+  // The latest entries of the whole shop, newest first (reads from the newest end only, not everything)
   async listRecent(limit = 20): Promise<Entry[]> {
-    const rows = await db.entries.where('shop_id').equals(requireShop()).toArray();
-    return rows.sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, limit);
+    const shop = requireShop();
+    return db.entries.orderBy('created_at').reverse().filter((e) => e.shop_id === shop).limit(limit).toArray();
   },
 
-  // All entries of the shop. Used to work out balances.
+  // The latest Diye and Mile that count (not cancelled), newest first. For the Home list.
+  async listRecentMoney(limit = 5): Promise<Entry[]> {
+    const shop = requireShop();
+    return db.entries
+      .orderBy('created_at')
+      .reverse()
+      .filter((e) => e.shop_id === shop && e.status === 'active' && (e.kind === 'diye' || e.kind === 'mile') && e.party_id !== null)
+      .limit(limit)
+      .toArray();
+  },
+
+  // Entries made at or after this moment (for "Aaj ka hisaab": only today is read, not the whole khata)
+  async listSince(iso: string): Promise<Entry[]> {
+    const shop = requireShop();
+    return db.entries.where('created_at').aboveOrEqual(iso).filter((e) => e.shop_id === shop).toArray();
+  },
+
+  // All entries of the shop. Slow on a big khata: screens use statsRepo (balances) and listSince/listRecent instead.
   async listAll(): Promise<Entry[]> {
     return db.entries.where('shop_id').equals(requireShop()).toArray();
   },

@@ -2,6 +2,7 @@ import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { App } from './App';
+import { initInstall } from './lib/install';
 import { LangProvider } from './i18n/i18n';
 import { AuthProvider } from './state/auth';
 import { PrivacyProvider } from './state/privacy';
@@ -13,6 +14,9 @@ const VoiceTest = lazy(() => import('./dev/VoiceTest'));
 const devPath = window.location.pathname.replace(/\/$/, '');
 const showGallery = devPath === '/dev/components';
 const showVoiceTest = devPath === '/dev/voice';
+
+// Catch the browser's "install" offer early; it fires only once
+initInstall();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

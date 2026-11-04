@@ -130,6 +130,7 @@ export const text = {
 
   // Home and party list
   newCustomer: { ro: 'Naya customer', ur: 'نیا کسٹمر' },
+  showMore: { ro: 'Aur dikhao ({n})', ur: 'مزید دکھاؤ ({n})' },
   searchPlaceholder: { ro: 'Naam, pehchaan ya phone', ur: 'نام، پہچان یا فون' },
   searchLabel: { ro: 'Dhoondein', ur: 'ڈھونڈیں' },
   searchClear: { ro: 'Saaf karein', ur: 'صاف کریں' },
@@ -313,6 +314,47 @@ export const text = {
   kharchaLabel: { ro: 'Kharcha', ur: 'خرچہ' },
   writeSale: { ro: 'Sale', ur: 'سیل' },
   writeKharcha: { ro: 'Kharcha', ur: 'خرچہ' },
+
+  // Sync (backup to the internet), restore on a new phone
+  syncSynced: { ro: 'Save ho gaya', ur: 'محفوظ ہو گیا' },
+  syncQueued: { ro: 'Internet aate hi save hoga', ur: 'انٹرنیٹ آتے ہی محفوظ ہوگا' },
+  syncSaving: { ro: 'Save ho raha hai...', ur: 'محفوظ ہو رہا ہے...' },
+  syncProblem: { ro: 'Kuch entries server par save nahi hui', ur: 'کچھ اندراج سرور پر محفوظ نہیں ہوئے' },
+  backupTitle: { ro: 'Hisaab ka backup', ur: 'حساب کا بیک اپ' },
+  backupBody: {
+    ro: 'Aap ka hisaab internet par bhi mehfooz hota hai. Phone kho jaye to naye phone par isi Google account se login karein, sab wapas aa jayega.',
+    ur: 'آپ کا حساب انٹرنیٹ پر بھی محفوظ ہوتا ہے۔ فون کھو جائے تو نئے فون پر اسی گوگل اکاؤنٹ سے لاگ ان کریں، سب واپس آ جائے گا۔',
+  },
+  backupAccount: { ro: 'Google account', ur: 'گوگل اکاؤنٹ' },
+  backupLast: { ro: 'Aakhri baar mehfooz: {when}', ur: 'آخری بار محفوظ: {when}' },
+  backupNever: { ro: 'Abhi tak internet par save nahi hua', ur: 'ابھی تک انٹرنیٹ پر محفوظ نہیں ہوا' },
+  backupPending: { ro: '{n} cheezein internet ka intezar kar rahi hain', ur: '{n} چیزیں انٹرنیٹ کا انتظار کر رہی ہیں' },
+  backupNow: { ro: 'Abhi save karo', ur: 'ابھی محفوظ کریں' },
+  backupProblem: {
+    ro: 'Server ne kuch entries qubool nahi kin. Wo aap ke phone par mehfooz hain.',
+    ur: 'سرور نے کچھ اندراج قبول نہیں کیے۔ وہ آپ کے فون پر محفوظ ہیں۔',
+  },
+  restoreTitle: { ro: 'Aap ka hisaab wapas la rahe hain...', ur: 'آپ کا حساب واپس لا رہے ہیں...' },
+  restoreWait: { ro: 'Thora intezar karein', ur: 'تھوڑا انتظار کریں' },
+  restoreFailed: {
+    ro: 'Hisaab wapas nahi aa saka. Internet check karke dobara koshish karein.',
+    ur: 'حساب واپس نہیں آ سکا۔ انٹرنیٹ دیکھ کر دوبارہ کوشش کریں۔',
+  },
+  restoreRetry: { ro: 'Dobara koshish karein', ur: 'دوبارہ کوشش کریں' },
+
+  // Install the app on the phone
+  installTitle: { ro: 'App ko phone mein rakh lein', ur: 'ایپ کو فون میں رکھ لیں' },
+  installBody: {
+    ro: 'Home screen par icon aa jayega, aur internet ke bina bhi khulegi.',
+    ur: 'ہوم اسکرین پر آئیکن آ جائے گا، اور انٹرنیٹ کے بغیر بھی کھلے گی۔',
+  },
+  installButton: { ro: 'Install karein', ur: 'انسٹال کریں' },
+  installLater: { ro: 'Baad mein', ur: 'بعد میں' },
+  installIos: {
+    ro: 'Safari mein neeche Share dabayein, phir "Add to Home Screen" chunein.',
+    ur: 'سفاری میں نیچے شیئر دبائیں، پھر "Add to Home Screen" چنیں۔',
+  },
+  installSettings: { ro: 'App install karein', ur: 'ایپ انسٹال کریں' },
 
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },

@@ -65,7 +65,7 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - SQL lives in supabase/migrations (0001 tables, 0002 security). Run in Supabase SQL Editor in order. Money = whole rupees (bigint, 1 to 999,999,999). No DELETE rule exists on any table. A saved entry can only be cancelled (a database trigger freezes amount, person, kind, date). audit_log is add-only.
 - "Badlo" on an entry = cancel the old one and add a new one (both audited). Opening amount lives in parties.opening_balance; the 'opening' entry kind is reserved and does not change balances.
 - Phone database: src/data (Dexie). Screens use ONLY `src/data/index.ts` repositories: shopsRepo, partiesRepo, entriesRepo, auditRepo. Never import Dexie or Supabase in a screen.
-- Every phone row has pending_sync (1 = not yet sent to the server). The sync engine is Phase 4.
+- Every phone row has pending_sync (1 = not yet sent to the server). The sync engine (src/data/sync) sends them; see "Sync, backup and speed" below.
 - Each create/edit/cancel saves its audit row in the SAME Dexie transaction.
 - Who is logged in: src/state/auth.tsx (Google only) fills src/data/context.ts. Supabase is lazy-loaded (src/lib/supabase.ts) to keep the first screen small.
 - Balance: src/lib/balance.ts (pure). balance = opening + diye - mile, active entries only. Tests: `npm test`.
@@ -113,10 +113,23 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Aaj ka hisaab: Home card shows four numbers (Aaj diye red, Aaj mile green, Aaj ki sale green, Aaj ka kharcha red); its title opens /today (TodayScreen) with every entry of the day (tap = cancel, never deleted), WhatsApp send, and buttons Sale / Kharcha. Totals in src/lib/today.ts (`todaySummary`, `todayEntries`). Sale and kharcha do NOT change any customer balance or the Lene/Dene totals.
 - Sale and Kharcha: EntryScreen without a customer (routes /today/sale, /today/kharcha), also saved from the voice screen (source 'voice', transcript kept). They show only on /today.
 
+## Sync, backup and speed (built in chunk 4)
+- The phone is the boss: every change is saved in Dexie first (pending_sync = 1). `src/data/sync` sends it to Supabase when there is internet. Sending twice is harmless (upsert by id; the audit diary uses ignore-duplicates). Nothing is ever deleted.
+- Files: remote.ts (the `Remote` interface + the Supabase adapter; errors are network / auth / rejected), mapping.ts, engine.ts (push, pull, restore, start), status.ts (state for the UI), fakeRemote.ts (a pretend server that follows our real database rules, tests only).
+- Push order: shop, customers, entries, diary. A row that changed while travelling stays pending. If the server refuses a row (rule broken) only that row is parked ("blocked", shown in Settings); the rest still go. Offline failures retry later (timer with back-off, the browser "online" event, and when the app comes back to the screen).
+- Pull: at app start and every 5 minutes. Changes waiting on this phone are never overwritten. Cancelled is final (a cancelled entry is never brought back). The diary is add-only. Times from the server are turned into the same ISO format as on the phone.
+- Migration `supabase/migrations/0003_sync.sql` (run in Supabase SQL Editor after 0001 and 0002) adds `updated_at` so a phone downloads only what changed. The app also works WITHOUT it (downloads everything once per session).
+- New phone, same Google login: SignedInApp stage 'restoring' asks the server BEFORE asking for a shop name (so a second shop is never made). Success brings back the shop, customers, entries and diary; no internet shows a retry screen. If two phones each made a shop before ever syncing, the server's shop wins and this phone's customers/entries move into it (nothing lost).
+- Status line on Home ("Save ho gaya" / "Internet aate hi save hoga" / "Save ho raha hai..." / problem) = `SyncBadge`; Settings has a Backup card with "Abhi save karo". The Home tagline was replaced by the badge.
+- `party_stats` (Dexie v3): per customer {balance, last_at}, updated in the SAME transaction as every entry/customer change (entriesRepo, partiesRepo, sync merges). It is derived data and can always be rebuilt (`statsRepo.rebuildAll`, checked by `statsRepo.verify`, both used in tests). Screens read balances and "recent customers" from it, never by adding up all entries. Upgrading an old phone builds it once.
+- Big khata rules: Home reads only customers + summaries + 5 newest entries + today's entries (index ranges); long customer lists draw 60 at a time with "Aur dikhao" (`useLimit`) and search uses a prepared index (`buildSearch`). Measured on the production build with a 12x slower CPU, 1,000 customers and 20,000 entries: every step under 1.7 s. Never use `entriesRepo.listAll()` in a screen.
+- Install: `src/lib/install.ts` catches the browser's install offer at start; `InstallCard` on Home appears after the first entry ("Baad mein" = not again for a week); Settings has "App install karein"; iPhone gets the two Safari steps.
+- Test tools live outside the repo (scratchpad): sync.mjs (two pretend phones + a pretend Supabase), perf.mjs (slow CPU, big khata), offline.mjs (production build, no internet).
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).
-- Local-first data: IndexedDB via Dexie. All writes go to Dexie first. Client-generated UUIDs. Server sync via a queue (Phase 4).
+- Local-first data: IndexedDB via Dexie. All writes go to Dexie first. Client-generated UUIDs. Server sync via pending_sync flags (src/data/sync).
 - Supabase (Postgres + Auth). Google sign-in only. Row Level Security: each shop sees only its own data.
 - Hosting: Cloudflare Pages.
 - Voice in: Web Speech API ('ur-PK', fallback 'en-IN'/'en-US'). Hide mic if unsupported.
