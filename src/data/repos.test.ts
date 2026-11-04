@@ -15,9 +15,10 @@ beforeEach(async () => {
   setDataContext({ userId: USER, shopId: null });
 });
 
-async function startShop() {
+// withOpening = Ali already owed Rs 1,000 before the app
+async function startShop(withOpening = false) {
   const shop = await shopsRepo.create({ shop_name: 'Ahmed General Store', language: 'ro' });
-  const ali = await partiesRepo.create({ name: 'Ali', identifier: 'Gali no 4', opening_balance: 1000 });
+  const { party: ali } = await partiesRepo.create({ name: 'Ali', identifier: 'Gali no 4', opening: withOpening ? { amount: 1000, direction: 'theyOweMe' } : undefined });
   return { shop, ali };
 }
 
@@ -116,18 +117,54 @@ describe('parties', () => {
   it('rejects a wrong opening amount', async () => {
     await startShop();
     await expect(partiesRepo.create({ name: 'Zeeshan', opening_balance: 12.5 })).rejects.toThrow();
+    await expect(partiesRepo.create({ name: 'Zeeshan', opening: { amount: 0, direction: 'theyOweMe' } })).rejects.toThrow();
+    expect(await db.parties.count()).toBe(1); // only Ali from startShop: a failed save leaves nothing behind
   });
 });
 
 describe('balance from saved data', () => {
   it('counts only active entries', async () => {
-    const { ali } = await startShop();
+    const { ali } = await startShop(true);
     await entriesRepo.create({ kind: 'diye', party_id: ali.id, amount: 2500 });
     const wrong = await entriesRepo.create({ kind: 'diye', party_id: ali.id, amount: 9000 });
     await entriesRepo.create({ kind: 'mile', party_id: ali.id, amount: 1000 });
     await entriesRepo.cancel(wrong.id);
     const balances = balancesByParty(await partiesRepo.listActive(), await entriesRepo.listAll());
-    expect(balances[ali.id]).toBe(1000 + 2500 - 1000);
+    expect(balances[ali.id]).toBe(1000 + 2500 - 1000); // opening 1,000 + diye 2,500 - mile 1,000, wrong 9,000 cancelled
+  });
+});
+
+describe('purane hisaab (opening balances)', () => {
+  it('saves the person and an opening entry together, with audit lines', async () => {
+    await startShop();
+    const { party, opening } = await partiesRepo.create({ name: 'Bilal', identifier: 'Rickshaw', opening: { amount: 3500, direction: 'theyOweMe' } });
+    expect(party.type).toBe('customer');
+    expect(opening).toMatchObject({ kind: 'opening', amount: 3500, party_id: party.id, status: 'active', pending_sync: 1 });
+    expect((await auditRepo.listFor(party.id)).map((l) => l.action)).toEqual(['create']);
+    expect((await auditRepo.listFor(opening!.id)).map((l) => l.action)).toEqual(['create']);
+  });
+
+  it('makes a supplier when I owe them, and the balance is negative', async () => {
+    await startShop();
+    const { party } = await partiesRepo.create({ name: 'Dealer Shahid', opening: { amount: 9000, direction: 'iOweThem' } });
+    expect(party.type).toBe('supplier');
+    const balances = balancesByParty(await partiesRepo.listActive(), await entriesRepo.listAll());
+    expect(balances[party.id]).toBe(-9000);
+  });
+
+  it('cancelling the opening entry removes it from the balance but keeps the row', async () => {
+    await startShop();
+    const { party, opening } = await partiesRepo.create({ name: 'Sana', opening: { amount: 500, direction: 'theyOweMe' } });
+    await entriesRepo.cancel(opening!.id);
+    const balances = balancesByParty(await partiesRepo.listActive(), await entriesRepo.listAll());
+    expect(balances[party.id]).toBe(0);
+    expect(await db.entries.get(opening!.id)).toBeDefined();
+  });
+
+  it('works without an opening amount (a plain new customer)', async () => {
+    await startShop();
+    const { opening } = await partiesRepo.create({ name: 'Kamran' });
+    expect(opening).toBeNull();
   });
 });
 

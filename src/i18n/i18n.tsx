@@ -6,18 +6,20 @@ import { text, isRtl, type Lang, type TextKey } from './translations';
 
 const STORAGE_KEY = 'hv_lang';
 
-function readSavedLang(): Lang {
+// null = the person has never chosen a language (first launch)
+function readSavedLang(): Lang | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'ro' || saved === 'ur') return saved;
   } catch {
     // Storage can be blocked. Roman Urdu is the default.
   }
-  return 'ro';
+  return null;
 }
 
 type LangContext = {
   lang: Lang;
+  langChosen: boolean; // false on the very first launch, so the app asks for a language
   setLang: (lang: Lang) => void;
   t: (key: TextKey) => string;
 };
@@ -25,7 +27,8 @@ type LangContext = {
 const Ctx = createContext<LangContext | null>(null);
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(readSavedLang);
+  const [saved, setSaved] = useState<Lang | null>(readSavedLang);
+  const lang: Lang = saved ?? 'ro';
 
   // Urdu is right-to-left. This flips the whole page (the layout mirrors by itself).
   useLayoutEffect(() => {
@@ -34,7 +37,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   const setLang = useCallback((next: Lang) => {
-    setLangState(next);
+    setSaved(next);
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
@@ -43,7 +46,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback((key: TextKey) => text[key][lang], [lang]);
-  const value = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t]);
+  const value = useMemo(() => ({ lang, langChosen: saved !== null, setLang, t }), [lang, saved, setLang, t]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

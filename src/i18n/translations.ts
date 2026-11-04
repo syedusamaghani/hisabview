@@ -62,6 +62,123 @@ export const text = {
   signedInAs: { ro: 'Login hain', ur: 'لاگ اِن ہیں' },
   logout: { ro: 'Logout karein', ur: 'لاگ آؤٹ کریں' },
 
+  // First launch: language choice (shown in both languages at once)
+  langTitle: { ro: 'Apni zabaan chunein', ur: 'اپنی زبان چنیں' },
+  langRoSample: { ro: 'Dukaan ka hisaab', ur: 'Dukaan ka hisaab' },
+  langUrSample: { ro: 'دکان کا حساب', ur: 'دکان کا حساب' },
+
+  // Shop name
+  shopNameTitle: { ro: 'Aap ki dukaan ka naam kya hai?', ur: 'آپ کی دکان کا نام کیا ہے؟' },
+  shopNameBody: {
+    ro: 'Sirf ek naam likhein, baqi sab hum sambhal lenge',
+    ur: 'صرف ایک نام لکھیں، باقی سب ہم سنبھال لیں گے',
+  },
+  shopNameLabel: { ro: 'Dukaan ka naam', ur: 'دکان کا نام' },
+  shopNamePlaceholder: { ro: 'jaise: Ahmed General Store', ur: 'جیسے: احمد جنرل اسٹور' },
+  next: { ro: 'Aage', ur: 'آگے' },
+  later: { ro: 'Baad mein', ur: 'بعد میں' },
+  allDone: { ro: 'Ho gaya', ur: 'ہو گیا' },
+
+  // Done
+  doneTitle: { ro: 'Mubarak ho! Dukaan tayyar hai', ur: 'مبارک ہو! دکان تیار ہے' },
+  doneBody: {
+    ro: 'Chahein to purane hisaab abhi likh lein, ya baad mein bhi likh sakte hain.',
+    ur: 'چاہیں تو پرانے حساب ابھی لکھ لیں، یا بعد میں بھی لکھ سکتے ہیں۔',
+  },
+  oldStart: { ro: 'Purane hisaab likhein', ur: 'پرانے حساب لکھیں' },
+
+  // Purane hisaab (old balances)
+  oldTitle: { ro: 'Purane hisaab', ur: 'پرانے حساب' },
+  oldBody: {
+    ro: 'Kis ka kitna baqi hai? Sirf naam aur raqam likhein.',
+    ur: 'کس کا کتنا باقی ہے؟ صرف نام اور رقم لکھیں۔',
+  },
+  pickContact: { ro: 'Contact se chunein', ur: 'رابطے سے چنیں' },
+  amountLabel: { ro: 'Kitni raqam?', ur: 'کتنی رقم؟' },
+  theyOweMe: { ro: 'Wo mujhe dene hain', ur: 'انہوں نے مجھے دینے ہیں' },
+  iOweThem: { ro: 'Mujhe unhe dene hain', ur: 'مجھے انہیں دینے ہیں' },
+  whoOwesLabel: { ro: 'Kaun kis ko dega?', ur: 'کون کس کو دے گا؟' },
+  addPerson: { ro: 'Jodein', ur: 'جوڑیں' },
+  addedSoFar: { ro: 'Ab tak jode gaye', ur: 'اب تک شامل کیے' },
+  openingLabel: { ro: 'Purana hisaab', ur: 'پرانا حساب' },
+
+  // Person form
+  nameLabel: { ro: 'Naam', ur: 'نام' },
+  namePlaceholder: { ro: 'jaise: Ali', ur: 'جیسے: علی' },
+  identifierLabel: { ro: 'Pehchaan (zaroori nahi)', ur: 'پہچان (ضروری نہیں)' },
+  identifierPlaceholder: { ro: 'jaise: chai wala, gali 3', ur: 'جیسے: چائے والا، گلی 3' },
+  identifierHelp: {
+    ro: 'Ek hi naam ke kai log hon to pehchaan se alag nazar aate hain',
+    ur: 'ایک ہی نام کے کئی لوگ ہوں تو پہچان سے الگ نظر آتے ہیں',
+  },
+  example1: { ro: 'chai wala', ur: 'چائے والا' },
+  example2: { ro: 'gali 3', ur: 'گلی 3' },
+  example3: { ro: 'bakery wali', ur: 'بیکری والی' },
+  example4: { ro: 'rickshaw', ur: 'رکشہ' },
+  phoneLabel: { ro: 'Phone (zaroori nahi)', ur: 'فون (ضروری نہیں)' },
+  phonePlaceholder: { ro: '03xx xxxxxxx', ur: '03xx xxxxxxx' },
+  similarTitle: { ro: 'Is naam ke log pehle se hain', ur: 'اس نام کے لوگ پہلے سے ہیں' },
+  similarHintNoId: {
+    ro: 'Pehchaan likh dein taake dono alag nazar aayein',
+    ur: 'پہچان لکھ دیں تاکہ دونوں الگ نظر آئیں',
+  },
+  similarHintWithId: {
+    ro: 'Theek hai, pehchaan se ye alag nazar aayega',
+    ur: 'ٹھیک ہے، پہچان سے یہ الگ نظر آئے گا',
+  },
+  save: { ro: 'Save karein', ur: 'محفوظ کریں' },
+
+  // Home and party list
+  newCustomer: { ro: 'Naya customer', ur: 'نیا کسٹمر' },
+  searchPlaceholder: { ro: 'Naam, pehchaan ya phone', ur: 'نام، پہچان یا فون' },
+  searchLabel: { ro: 'Dhoondein', ur: 'ڈھونڈیں' },
+  searchClear: { ro: 'Saaf karein', ur: 'صاف کریں' },
+  noResultsTitle: { ro: 'Koi nahi mila', ur: 'کوئی نہیں ملا' },
+  noResultsBody: {
+    ro: 'Naam kisi aur tarah likh kar dekhein, ya naya customer jodein',
+    ur: 'نام کسی اور طرح لکھ کر دیکھیں، یا نیا کسٹمر شامل کریں',
+  },
+  noPartiesTitle: { ro: 'Abhi koi customer nahi', ur: 'ابھی کوئی کسٹمر نہیں' },
+  noPartiesBody: {
+    ro: 'Pehla customer jod kar khata shuru karein',
+    ur: 'پہلا کسٹمر شامل کر کے کھاتا شروع کریں',
+  },
+  noPartiesButton: { ro: 'Pehla customer jodein', ur: 'پہلا کسٹمر شامل کریں' },
+  settled: { ro: 'Hisaab saaf', ur: 'حساب صاف' },
+
+  // Customer page
+  historyTitle: { ro: 'Hisaab ki list', ur: 'حساب کی فہرست' },
+  cancelledLabel: { ro: 'Cancel hui', ur: 'منسوخ ہوئی' },
+  soon: { ro: 'jald', ur: 'جلد' },
+  remind: { ro: 'Yaad dilao', ur: 'یاد دلاؤ' },
+  sendStatement: { ro: 'Hisaab bhejo', ur: 'حساب بھیجو' },
+  listen: { ro: 'Sunao', ur: 'سناؤ' },
+  cancelEntry: { ro: 'Cancel karein', ur: 'منسوخ کریں' },
+  cancelAsk: {
+    ro: 'Ye entry cancel karein? Ye hisaab mein nahi ginti jayegi.',
+    ur: 'یہ اندراج منسوخ کریں؟ یہ حساب میں نہیں گنا جائے گا۔',
+  },
+  yesCancel: { ro: 'Haan, cancel karein', ur: 'ہاں، منسوخ کریں' },
+  no: { ro: 'Nahi', ur: 'نہیں' },
+  entryCancelled: { ro: 'Entry cancel ho gayi', ur: 'اندراج منسوخ ہو گیا' },
+  archive: { ro: 'Customer chhupayein', ur: 'کسٹمر چھپائیں' },
+  archiveAsk: {
+    ro: 'Chhupa dein? Hisaab mehfooz rahega, bas list mein nahi dikhega.',
+    ur: 'چھپا دیں؟ حساب محفوظ رہے گا، بس فہرست میں نہیں دکھے گا۔',
+  },
+  yesArchive: { ro: 'Haan, chhupayein', ur: 'ہاں، چھپائیں' },
+  archivedDone: { ro: 'Customer chhupa diya', ur: 'کسٹمر چھپا دیا گیا' },
+  partyNotFound: { ro: 'Ye customer nahi mila', ur: 'یہ کسٹمر نہیں ملا' },
+  goHome: { ro: 'Pehli screen par jayein', ur: 'پہلی اسکرین پر جائیں' },
+
+  // Diye / Mile entry
+  confirmQuestion: { ro: 'Kya ye theek hai?', ur: 'کیا یہ ٹھیک ہے؟' },
+  newBalance: { ro: 'Naya hisaab', ur: 'نیا حساب' },
+  errorGeneric: {
+    ro: 'Kuch ghalat ho gaya. Dobara koshish karein.',
+    ur: 'کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔',
+  },
+
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },
   langUr: { ro: 'اردو', ur: 'اردو' },

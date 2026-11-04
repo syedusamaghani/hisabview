@@ -5,13 +5,18 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { AmountText } from '../components/AmountText';
 import { BigButton } from '../components/BigButton';
 import { BottomActionBar } from '../components/BottomActionBar';
+import { ChoiceCard } from '../components/ChoiceCard';
+import { Chip } from '../components/Chip';
+import { PartyRow } from '../components/PartyRow';
+import { SearchBar } from '../components/SearchBar';
+import { TextField } from '../components/TextField';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { HideAmountsButton } from '../components/IconButton';
 import { ICON_NAMES, Icon } from '../components/Icon';
 import { MicButton } from '../components/MicButton';
 import { NumberKeypad } from '../components/NumberKeypad';
-import { SaveSuccess } from '../components/SaveSuccess';
+import { SaveSuccess, TickBadge } from '../components/SaveSuccess';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Snackbar } from '../components/Snackbar';
 import { useT } from '../i18n/i18n';
@@ -33,6 +38,9 @@ export default function ComponentGallery() {
   const [snack, setSnack] = useState(false);
   const [saved, setSaved] = useState(false);
   const [listening, setListening] = useState(false);
+  const [query, setQuery] = useState('');
+  const [name, setName] = useState('');
+  const [choice, setChoice] = useState<'a' | 'b'>('a');
 
   // Keep search engines away from this page
   useEffect(() => {
@@ -146,6 +154,35 @@ export default function ComponentGallery() {
           <MicButton label={t('listening')} listening={listening} onClick={() => setListening((v) => !v)} />
         </div>
         <p className="text-center text-body text-inkSoft">{listening ? t('listening') : t('mic')}</p>
+      </Section>
+
+      <Section title="TextField: normal, large, with hint">
+        <TextField label={t('nameLabel')} placeholder={t('namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} />
+        <TextField label={t('amountLabel')} placeholder="0" inputMode="numeric" dir="ltr" size="lg" />
+        <TextField label={t('identifierLabel')} placeholder={t('identifierPlaceholder')} hint={t('identifierHelp')} />
+      </Section>
+
+      <Section title="SearchBar, Chip, ChoiceCard">
+        <SearchBar value={query} onChange={setQuery} placeholder={t('searchPlaceholder')} />
+        <div className="flex flex-wrap gap-2">
+          <Chip>{t('example1')}</Chip>
+          <Chip>{t('example2')}</Chip>
+        </div>
+        <div role="radiogroup" aria-label={t('whoOwesLabel')} className="flex flex-col gap-3">
+          <ChoiceCard title={t('theyOweMe')} icon="up" selected={choice === 'a'} onSelect={() => setChoice('a')} />
+          <ChoiceCard title={t('iOweThem')} icon="down" selected={choice === 'b'} onSelect={() => setChoice('b')} />
+        </div>
+      </Section>
+
+      <Section title="PartyRow: owes me, I owe, settled">
+        <PartyRow name="Ali" identifier="chai wala" balance={84500} onClick={() => undefined} />
+        <PartyRow name="Dealer Shahid" identifier={null} balance={-12000} onClick={() => undefined} />
+        <PartyRow name="Ali" identifier="gali 3" balance={0} onClick={() => undefined} />
+        <PartyRow name="Muhammad Abdul Rehman Bakery Wala" identifier="Gali no 4, near masjid" balance={250000000} onClick={() => undefined} />
+      </Section>
+
+      <Section title="TickBadge">
+        <div className="flex justify-center"><TickBadge /></div>
       </Section>
 
       <Section title="Snackbar">

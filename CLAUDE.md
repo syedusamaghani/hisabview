@@ -55,7 +55,7 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 ## Design system in code (built in the "design system" chunk)
 - Tokens: src/design/tokens.ts (the only place for colours, spacing, radius, font sizes, shadows, motion). tailwind.config.ts reads it. Never type a hex colour or pixel size inside a component.
 - Text: src/i18n/translations.ts (add one line with both languages) and `const { t } = useT()` from src/i18n/i18n.tsx. Urdu sets dir="rtl" on the page. Use logical classes (ps-/pe-/ms-/me-, text-start) and `rtl:` variants; never left/right.
-- Components in src/components: BigButton, AmountText, Card, ScreenHeader, BottomActionBar, Snackbar, NumberKeypad, EmptyState, SaveSuccess, Icon, IconButton (+HideAmountsButton), MicButton. Build screens only from these.
+- Components in src/components: BigButton, AmountText, Card, ScreenHeader, BottomActionBar, Snackbar, NumberKeypad, EmptyState, SaveSuccess (+TickBadge), Icon, IconButton (+HideAmountsButton), MicButton, TextField, SearchBar, ChoiceCard, Chip, PartyRow. Build screens only from these.
 - Money: always <AmountText> (it hides itself when "hide amounts" is on and shrinks very big numbers to fit). Use reveal only where the shopkeeper types the amount.
 - Pages that use BottomActionBar add pb-[var(--bar-h)] so nothing hides behind it.
 - Dev gallery: /dev/components (hidden, lazy-loaded). Update it whenever a component changes.
@@ -69,6 +69,14 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Each create/edit/cancel saves its audit row in the SAME Dexie transaction.
 - Who is logged in: src/state/auth.tsx (Google only) fills src/data/context.ts. Supabase is lazy-loaded (src/lib/supabase.ts) to keep the first screen small.
 - Balance: src/lib/balance.ts (pure). balance = opening + diye - mile, active entries only. Tests: `npm test`.
+
+## Screens and flow (built in the "onboarding" and "parties" chunks)
+- src/App.tsx: language (first launch only, two big cards) -> Google login -> lazy SignedInApp (src/SignedInApp.tsx): shop name -> done -> optional "Purane hisaab" -> Home. A person with a shop goes straight to Home.
+- Screens live in src/screens. Tiny router in src/lib/router.ts (navigate, goBack, usePath, flash for "Wapas lo" between screens). No router library.
+- Home = totals + sticky search + party list (highest balance first). /party/new, /party/:id, /party/:id/diye, /party/:id/mile.
+- Old balances ("Purane hisaab") are 'opening' entries. "Wo mujhe dene hain" = customer (balance +), "Mujhe unhe dene hain" = supplier (balance -). Balance: src/lib/balance.ts. Positive = Lene hain (red). Negative = Dene hain (neutral ink, NOT green).
+- Disabled placeholders (Yaad dilao, Hisaab bhejo, Sunao) are real disabled buttons with a "jald" tag.
+- Contact Picker only appears where the phone supports it (src/lib/contacts.ts).
 
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.

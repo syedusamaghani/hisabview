@@ -2,7 +2,8 @@ import { db } from './db';
 import { requireShop } from './context';
 import { newId, nowIso } from './ids';
 import { snapshot, write } from './auditRepo';
-import { MAX_AMOUNT, type Party, type PartyType } from './types';
+import { entriesRepo } from './entriesRepo';
+import { MAX_AMOUNT, type Entry, type Party, type PartyType } from './types';
 
 export type NewParty = {
   name: string;
@@ -10,8 +11,12 @@ export type NewParty = {
   phone?: string | null;
   type?: PartyType;
   credit_limit?: number | null;
-  opening_balance?: number; // what they already owed before the app
+  opening_balance?: number; // older way to store the starting amount. New code leaves it out.
 };
+
+// An old balance from before the app ("Purane hisaab"). It is saved as an 'opening' entry.
+//  theyOweMe -> a customer (Lene hain)     iOweThem -> a supplier (Dene hain)
+export type OpeningBalance = { amount: number; direction: 'theyOweMe' | 'iOweThem' };
 
 export type PartyChanges = Partial<Pick<Party, 'name' | 'identifier' | 'phone' | 'credit_limit' | 'opening_balance' | 'archived'>>;
 
@@ -24,14 +29,14 @@ function check(p: Pick<Party, 'name' | 'opening_balance' | 'credit_limit'>) {
 }
 
 export const partiesRepo = {
-  async create(input: NewParty): Promise<Party> {
+  async create(input: NewParty & { opening?: OpeningBalance }): Promise<{ party: Party; opening: Entry | null }> {
     const party: Party = {
       id: newId(),
       shop_id: requireShop(),
       name: input.name.trim(),
       identifier: input.identifier?.trim() || null,
       phone: input.phone?.trim() || null,
-      type: input.type ?? 'customer',
+      type: input.opening ? (input.opening.direction === 'iOweThem' ? 'supplier' : 'customer') : (input.type ?? 'customer'),
       credit_limit: input.credit_limit ?? null,
       opening_balance: input.opening_balance ?? 0,
       created_at: nowIso(),
@@ -39,11 +44,14 @@ export const partiesRepo = {
       pending_sync: 1,
     };
     check(party);
-    await db.transaction('rw', db.parties, db.audit_log, async () => {
+    // The person, the old-balance entry and both audit lines are saved together, or not at all
+    const opening = await db.transaction('rw', db.parties, db.entries, db.audit_log, async () => {
       await db.parties.add(party);
       await write('party', party.id, 'create', null, snapshot(party));
+      if (!input.opening) return null;
+      return entriesRepo.create({ kind: 'opening', party_id: party.id, amount: input.opening.amount });
     });
-    return party;
+    return { party, opening };
   },
 
   // Also used to archive (hide) a person. People are never deleted.

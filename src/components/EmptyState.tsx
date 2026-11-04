@@ -5,8 +5,8 @@ import { BigButton } from './BigButton';
 type Props = {
   title: string;
   body: string;
-  buttonLabel: string;
-  onButton: () => void;
+  buttonLabel?: string; // leave out when the screen already has its main button at the bottom
+  onButton?: () => void;
   art?: ReactNode; // replace the default picture
 };
 
@@ -32,9 +32,11 @@ export function EmptyState({ title, body, buttonLabel, onButton, art }: Props) {
       {art ?? <KhataArt />}
       <h2 className="text-title font-extrabold text-ink">{title}</h2>
       <p className="max-w-[28ch] text-body text-inkSoft">{body}</p>
-      <BigButton onClick={onButton} icon="plus">
-        {buttonLabel}
-      </BigButton>
+      {buttonLabel && (
+        <BigButton onClick={onButton} icon="plus">
+          {buttonLabel}
+        </BigButton>
+      )}
     </div>
   );
 }

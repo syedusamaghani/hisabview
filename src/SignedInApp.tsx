@@ -1,0 +1,57 @@
+// Everything a logged-in person sees. It is loaded only after login (lazy), so the first
+// screens (language, login) stay small and fast.
+import { useEffect, useState } from 'react';
+import { ScreenHeader } from './components/ScreenHeader';
+import { attachShop, shopsRepo, useLive } from './data';
+import { useT } from './i18n/i18n';
+import { usePath } from './lib/router';
+import { AddPartyScreen } from './screens/AddPartyScreen';
+import { DoneScreen } from './screens/DoneScreen';
+import { EntryScreen } from './screens/EntryScreen';
+import { HomeScreen } from './screens/HomeScreen';
+import { OldBalancesScreen } from './screens/OldBalancesScreen';
+import { PartyScreen } from './screens/PartyScreen';
+import { ShopNameScreen } from './screens/ShopNameScreen';
+
+// name -> done -> old (optional) -> home. A person who already has a shop goes straight to home.
+type Stage = 'name' | 'done' | 'old' | 'home';
+
+export default function SignedInApp() {
+  const { t } = useT();
+  const path = usePath();
+  const found = useLive(async () => ({ shop: (await shopsRepo.getMine()) ?? null }), []);
+  const [stage, setStage] = useState<Stage | null>(null);
+  const [attachedShop, setAttachedShop] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!found) return;
+    if (found.shop) {
+      attachShop(found.shop.id);
+      setAttachedShop(found.shop.id);
+    }
+    // Decided once, when we first learn whether this person already has a shop
+    setStage((current) => current ?? (found.shop ? 'home' : 'name'));
+  }, [found]);
+
+  const shop = found?.shop;
+
+  if (stage === null || (stage !== 'name' && (!shop || attachedShop !== shop.id))) {
+    return (
+      <main className="mx-auto min-h-screen max-w-app">
+        <ScreenHeader title={t('appName')} subtitle={t('tagline')} />
+      </main>
+    );
+  }
+
+  if (stage === 'name') return <ShopNameScreen onCreated={() => setStage('done')} />;
+  if (stage === 'done') return <DoneScreen shopName={shop?.shop_name ?? ''} onOld={() => setStage('old')} onSkip={() => setStage('home')} />;
+  if (stage === 'old') return <OldBalancesScreen onFinish={() => setStage('home')} />;
+
+  // Home and the customer screens, chosen by the page address
+  if (path === '/party/new') return <AddPartyScreen />;
+  const match = /^\/party\/([^/]+)(?:\/(diye|mile))?$/.exec(path);
+  if (match) {
+    return match[2] ? <EntryScreen partyId={match[1]} kind={match[2] as 'diye' | 'mile'} /> : <PartyScreen partyId={match[1]} />;
+  }
+  return <HomeScreen shopName={shop?.shop_name ?? t('appName')} />;
+}
