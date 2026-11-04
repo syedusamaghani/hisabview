@@ -12,6 +12,7 @@ import { partyBalance } from '../lib/balance';
 import { formatDay, formatTime } from '../lib/dates';
 import { cx } from '../lib/cx';
 import { beginFlow, goBack, navigate, setFlash } from '../lib/router';
+import { speakBalance, speakSupported, stopSpeaking } from '../voice/speak';
 import { useEntrySnack } from './useEntrySnack';
 
 // One customer: the big balance, what is coming soon, every entry (newest first), and Diye / Mile.
@@ -23,8 +24,12 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   );
   const [openId, setOpenId] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const { snackbar, notify, hide } = useEntrySnack();
   const archiveRef = useRef<HTMLDivElement>(null);
+
+  // Stop talking when the screen is left
+  useEffect(() => () => stopSpeaking(), []);
 
   // The "are you sure?" box must never hide behind the bottom bar
   useEffect(() => {
@@ -44,6 +49,18 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   }
 
   const balance = partyBalance(party, entries);
+
+  // "Sunao": the phone reads the balance aloud. Tap again to stop.
+  const canSpeak = speakSupported();
+  const sunao = () => {
+    if (speaking) {
+      stopSpeaking();
+      setSpeaking(false);
+      return;
+    }
+    setSpeaking(true);
+    speakBalance(party.name, balance, () => setSpeaking(false));
+  };
 
   const cancel = async (entry: Entry) => {
     setOpenId(null);
@@ -69,10 +86,10 @@ export function PartyScreen({ partyId }: { partyId: string }) {
           <AmountText amount={Math.abs(balance)} size="xl" tone={balance > 0 ? 'out' : 'neutral'} />
         </Card>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className={canSpeak ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-2 gap-2'}>
           <SoonTile icon="bell" label={t('remind')} />
           <SoonTile icon="whatsapp" label={t('sendStatement')} />
-          <SoonTile icon="speaker" label={t('listen')} />
+          {canSpeak && <ListenTile speaking={speaking} onClick={sunao} />}
         </div>
 
         <h2 className="pt-2 text-title font-extrabold text-ink">{t('historyTitle')}</h2>
@@ -134,6 +151,26 @@ export function PartyScreen({ partyId }: { partyId: string }) {
         </div>
       </BottomActionBar>
     </main>
+  );
+}
+
+// The real "Sunao" button: reads the balance aloud, and becomes "Ruko" while it talks.
+function ListenTile({ speaking, onClick }: { speaking: boolean; onClick: () => void }) {
+  const { t } = useT();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={speaking}
+      className={cx(
+        'flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-card border-[1.5px] p-2 text-center shadow-card transition-colors duration-fast',
+        'focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-accent',
+        speaking ? 'border-primary bg-primarySoft' : 'border-line bg-surface',
+      )}
+    >
+      <Icon name={speaking ? 'stop' : 'speaker'} size={28} className="text-primary" />
+      <span className="text-label font-bold leading-tight text-ink">{speaking ? t('ruko') : t('listen')}</span>
+    </button>
   );
 }
 

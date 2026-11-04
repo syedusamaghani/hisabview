@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { AmountText } from '../components/AmountText';
 import { BigButton } from '../components/BigButton';
 import { BottomNav } from '../components/BottomNav';
@@ -8,7 +8,6 @@ import { HideAmountsButton } from '../components/IconButton';
 import { Icon } from '../components/Icon';
 import { MicButton } from '../components/MicButton';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { Sheet } from '../components/Sheet';
 import { entriesRepo, partiesRepo, useLive, type Entry } from '../data';
 import { useT } from '../i18n/i18n';
 import { balancesByParty, totals } from '../lib/balance';
@@ -16,13 +15,13 @@ import { cx } from '../lib/cx';
 import { formatDay, formatTime } from '../lib/dates';
 import { beginFlow, navigate } from '../lib/router';
 import { todaySummary } from '../lib/today';
+import { speechSupported } from '../voice/speech';
 import { useEntrySnack } from './useEntrySnack';
 
 // Home: what I will collect and must pay, today's summary, the latest entries,
 // and the big Diye / mic / Mile bar at the bottom.
 export function HomeScreen({ shopName }: { shopName: string }) {
   const { t } = useT();
-  const [micOpen, setMicOpen] = useState(false);
   const { snackbar } = useEntrySnack();
 
   const data = useLive(
@@ -45,6 +44,13 @@ export function HomeScreen({ shopName }: { shopName: string }) {
   const start = (kind: 'diye' | 'mile') => {
     beginFlow();
     navigate(`/entry/${kind}`);
+  };
+
+  // No mic on a phone that cannot turn speech into text: just Diye and Mile
+  const canSpeak = speechSupported();
+  const openVoice = () => {
+    beginFlow();
+    navigate('/voice');
   };
 
   return (
@@ -103,22 +109,12 @@ export function HomeScreen({ shopName }: { shopName: string }) {
         ))}
       </ul>
 
-      <Sheet open={micOpen} onClose={() => setMicOpen(false)} title={t('micSoonTitle')}>
-        <div className="flex flex-col items-center gap-4 text-center">
-          <span className="grid size-mic place-items-center rounded-full bg-accent text-accentInk">
-            <Icon name="mic" size={40} />
-          </span>
-          <p className="text-body text-inkSoft">{t('micSoonBody')}</p>
-          <BigButton full onClick={() => setMicOpen(false)}>{t('theekHai')}</BigButton>
-        </div>
-      </Sheet>
-
       {snackbar}
 
       <BottomNav active="home">
-        <div className="grid grid-cols-[minmax(0,1fr)_96px_minmax(0,1fr)] items-center gap-3">
+        <div className={canSpeak ? 'grid grid-cols-[minmax(0,1fr)_96px_minmax(0,1fr)] items-center gap-3' : 'grid grid-cols-2 gap-3'}>
           <BigButton size="lg" variant="diye" icon="up" className="!px-2" onClick={() => start('diye')}>{t('diye')}</BigButton>
-          <MicButton label={t('mic')} className="-mt-9 justify-self-center" onClick={() => setMicOpen(true)} />
+          {canSpeak && <MicButton label={t('mic')} className="-mt-9 justify-self-center" onClick={openVoice} />}
           <BigButton size="lg" variant="mile" icon="down" className="!px-2" onClick={() => start('mile')}>{t('mile')}</BigButton>
         </div>
       </BottomNav>

@@ -93,6 +93,17 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Words it knows live in src/voice/vocabulary.ts (clashes throw at load). Tests: tests/voice-parser.test.ts; real shopkeeper recordings go in tests/real-sentences.test.ts.
 - Not understood yet: two entries in one sentence, "kal" meaning yesterday as a date, "dene hain" (to pay), goods words not in the small list (they trigger the new-name question), names that are also number or kind words (for example "Das").
 
+## Voice screen (built in chunk 2B)
+- Home mic -> beginFlow() -> /voice (src/screens/VoiceScreen.tsx, lazy-loaded so the parser costs nothing until the mic is tapped). Views in src/screens/voice: ListeningView (brown, big ListeningMic with 3 rings, live transcript, "Ruko"), ConfirmView, QuestionView, ProblemView.
+- Speech to text: src/voice/speech.ts `listen()` (Web Speech API). Language order 'ur-PK', 'en-IN', 'en-US'; the one that worked last is remembered (hv_voice_lang); only "language-not-supported" moves to the next. Auto-stops 1.6 s after the last word, gives up after 8 s of silence.
+- Problems always end with Diye/Mile buttons (manual): unsupported (mic is hidden on Home), offline ("Voice ke liye internet chahiye, haath se likh lo"), mic permission denied, nothing heard, other.
+- Questions are big tappable cards, never a text box. The amount question uses the normal NumberKeypad. Answers go back to the parser as `forced` (amount/kind/party) and the same sentence is read again.
+- "Theek hai" saves with source 'voice' and the original transcript, promise_date if said; then SaveSuccess + 10 s "Wapas lo". "Badlo" opens /party/:id/:kind?amount=N (EntryScreen reads ?amount).
+- Sale and kharcha are understood but NOT saved yet (nothing shows them later): a "jald" message with Diye/Mile buttons.
+- "Sunao" on the customer page (src/voice/speak.ts): Urdu voice -> Urdu script sentence; otherwise English (India) voice reading Roman Urdu number words (src/lib/numberWords.ts). Tile is hidden if the phone cannot speak.
+- Hidden test page /dev/voice: raw text for each language setting + parser result + list of voices on the phone.
+- BigButton has an `accent` variant (marigold, for brown backgrounds). New components: ListeningMic, OptionButton (shown in /dev/components).
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).

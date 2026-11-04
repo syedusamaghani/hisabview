@@ -1,23 +1,23 @@
 // The rule-based voice parser: no internet, no cost, runs on the phone.
 // Order of questions when something is missing: amount, then kind, then customer. Never a guess.
-import { detectKind } from './kind';
+import { detectKind, type KindFound } from './kind';
 import { findDay } from './dates';
-import { identifierPairs, matchParty, type Candidate } from './match';
-import { chooseAmount, findRuns } from './numbers';
+import { identifierPairs, matchParty, type Candidate, type Matched } from './match';
+import { chooseAmount, findRuns, type AmountChoice } from './numbers';
 import { tokenize } from './tokens';
-import type { EntryParser, ParseQuestion, ParseResult, ParsedKind, ParserParty, Known, Warning } from './types';
+import type { EntryParser, Forced, ParseQuestion, ParseResult, ParsedKind, ParserParty, Known, Warning } from './types';
 
 const rupees = (n: number) => `Rs ${n.toLocaleString('en-US')}`;
 
 // "chai wala" -> "Chai Wala" (Urdu script is left as it is)
 const titleCase = (words: string[]) => words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-export function parseEntry(text: string, parties: readonly ParserParty[], now: Date = new Date()): ParseResult {
+export function parseEntry(text: string, parties: readonly ParserParty[], now: Date = new Date(), forced: Forced = {}): ParseResult {
   const tokens = tokenize(text, identifierPairs(parties));
   const day = findDay(tokens, now);
   const runs = findRuns(tokens, day.used);
-  const amount = chooseAmount(runs);
-  const kind = detectKind(tokens);
+  const amount: AmountChoice = forced.amount ? { kind: 'one', value: forced.amount, weak: false } : chooseAmount(runs);
+  const kind: KindFound = forced.kind ? { kind: 'one', value: forced.kind, viaNe: false } : detectKind(tokens);
 
   // The words left over are the customer: not numbers, not kind words, not "ko", "bhai", ...
   const inRun = new Set<number>();
@@ -30,7 +30,11 @@ export function parseEntry(text: string, parties: readonly ParserParty[], now: D
   const nameWords = tokens.filter((t, i) => !inRun.has(i) && !day.used.has(i) && t.tag === null).map((t) => t.text);
 
   const needsParty = kind.kind !== 'one' || kind.value === 'diye' || kind.value === 'mile';
-  const match = needsParty && nameWords.length > 0 ? matchParty(said, parties) : null;
+  const match: Matched | null = forced.party
+    ? { kind: 'one', candidate: { party: forced.party, score: 99, tier: 0 } }
+    : needsParty && nameWords.length > 0
+      ? matchParty(said, parties)
+      : null;
 
   // What we already know, kept inside any question so nothing is lost
   const partial: Known = {};
@@ -54,7 +58,7 @@ export function parseEntry(text: string, parties: readonly ParserParty[], now: D
   let party: ParserParty | null = null;
   let chosen: Candidate | null = null;
   if (kind.value === 'diye' || kind.value === 'mile') {
-    if (nameWords.length === 0) return ask({ question: 'who' });
+    if (!forced.party && nameWords.length === 0) return ask({ question: 'who' });
     if (!match || match.kind === 'none') return ask({ question: 'new_party', name: titleCase(said) });
     if (match.kind === 'many') {
       const shown = match.candidates.slice(0, 5);
@@ -108,5 +112,5 @@ export function parseEntry(text: string, parties: readonly ParserParty[], now: D
 }
 
 export const ruleParser: EntryParser = {
-  parse: (text, parties, now) => parseEntry(text, parties, now),
+  parse: (text, parties, now, forced) => parseEntry(text, parties, now, forced),
 };

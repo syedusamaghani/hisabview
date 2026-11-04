@@ -18,7 +18,9 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { HideAmountsButton } from '../components/IconButton';
 import { ICON_NAMES, Icon } from '../components/Icon';
+import { ListeningMic } from '../components/ListeningMic';
 import { MicButton } from '../components/MicButton';
+import { OptionButton } from '../components/OptionButton';
 import { NumberKeypad } from '../components/NumberKeypad';
 import { SaveSuccess, TickBadge } from '../components/SaveSuccess';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -75,6 +77,9 @@ export default function ComponentGallery() {
         <BigButton full variant="diye" icon="up">{t('diye')}</BigButton>
         <BigButton full variant="mile" icon="down">{t('mile')}</BigButton>
         <BigButton full variant="ghost" icon="edit">{t('badlo')}</BigButton>
+        <div className="rounded-card bg-primary p-3">
+          <BigButton full variant="accent" icon="stop">{t('ruko')}</BigButton>
+        </div>
       </Section>
 
       <Section title="BigButton: large, pressed, disabled">
@@ -161,6 +166,18 @@ export default function ComponentGallery() {
           <MicButton label={t('listening')} listening={listening} onClick={() => setListening((v) => !v)} />
         </div>
         <p className="text-center text-body text-inkSoft">{listening ? t('listening') : t('mic')}</p>
+      </Section>
+
+      <Section title="ListeningMic (voice screen): listening and still">
+        <div className="flex items-center justify-around rounded-card bg-primary p-8">
+          <ListeningMic active label={t('listening')} />
+          <ListeningMic active={false} label={t('mic')} />
+        </div>
+      </Section>
+
+      <Section title="OptionButton: an answer to tap">
+        <OptionButton center title={<AmountText amount={500} size="l" tone="out" reveal />} onClick={() => undefined} />
+        <OptionButton title={t('anotherCustomer')} subtitle={t('writeByHand')} onClick={() => undefined} />
       </Section>
 
       <Section title="TextField: normal, large, with hint">

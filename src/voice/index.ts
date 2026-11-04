@@ -3,6 +3,7 @@ export { ruleParser, parseEntry } from './ruleParser';
 export { questionText } from './questions';
 export type {
   EntryParser,
+  Forced,
   ParseResult,
   ParsedEntry,
   ParseQuestion,

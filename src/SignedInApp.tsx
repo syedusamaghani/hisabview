@@ -1,6 +1,6 @@
 // Everything a logged-in person sees. It is loaded only after login (lazy), so the first
 // screens (language, login) stay small and fast.
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { ScreenHeader } from './components/ScreenHeader';
 import { attachShop, shopsRepo, useLive } from './data';
 import { useT } from './i18n/i18n';
@@ -15,6 +15,9 @@ import { PartyScreen } from './screens/PartyScreen';
 import { PickPartyScreen } from './screens/PickPartyScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ShopNameScreen } from './screens/ShopNameScreen';
+
+// The voice screen (and the parser behind it) is loaded only when the mic is tapped
+const VoiceScreen = lazy(() => import('./screens/VoiceScreen'));
 
 // name -> done -> old (optional) -> home. A person who already has a shop goes straight to home.
 type Stage = 'name' | 'done' | 'old' | 'home';
@@ -53,6 +56,13 @@ export default function SignedInApp() {
   // Home and the customer screens, chosen by the page address
   if (path === '/party/new') return <AddPartyScreen />;
   if (path === '/customers') return <CustomersScreen />;
+  if (path === '/voice') {
+    return (
+      <Suspense fallback={<main className="mx-auto min-h-screen max-w-app bg-primary" />}>
+        <VoiceScreen />
+      </Suspense>
+    );
+  }
   if (path === '/settings' && shop) return <SettingsScreen shop={shop} />;
   const pick = /^\/entry\/(diye|mile)$/.exec(path);
   if (pick) return <PickPartyScreen kind={pick[1] as 'diye' | 'mile'} />;

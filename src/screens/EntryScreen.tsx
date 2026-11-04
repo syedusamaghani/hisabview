@@ -24,7 +24,11 @@ export function EntryScreen({ partyId, kind }: { partyId: string; kind: 'diye' |
     async () => ({ party: (await partiesRepo.get(partyId)) ?? null, entries: await entriesRepo.listForParty(partyId) }),
     [partyId],
   );
-  const [amount, setAmount] = useState(0);
+  // "Badlo" on the voice screen opens this with the spoken amount already typed (?amount=500)
+  const [amount, setAmount] = useState(() => {
+    const typed = Number(new URLSearchParams(window.location.search).get('amount'));
+    return Number.isInteger(typed) && typed > 0 && typed <= 999_999_999 ? typed : 0;
+  });
   const [step, setStep] = useState<'amount' | 'confirm'>('amount');
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);

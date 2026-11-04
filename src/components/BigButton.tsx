@@ -5,8 +5,9 @@ import { Icon, type IconName } from './Icon';
 // The main button of the app. Always at least 56px tall. Has a pressed state.
 //  primary = brown (Theek hai, Save)    diye = red (money out)
 //  mile    = green (money in)           ghost   = outlined (Badlo, Cancel)
+//  accent  = marigold (for use on a brown background, for example "Ruko" on the voice screen)
 
-type Variant = 'primary' | 'diye' | 'mile' | 'ghost';
+type Variant = 'primary' | 'diye' | 'mile' | 'ghost' | 'accent';
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;
@@ -27,6 +28,7 @@ const variants: Record<Variant, string> = {
   diye: 'bg-moneyOut text-white shadow-btn active:shadow-btnPressed',
   mile: 'bg-moneyIn text-white shadow-btn active:shadow-btnPressed',
   ghost: 'bg-surface text-primary ring-2 ring-inset ring-primary',
+  accent: 'bg-accent text-accentInk shadow-btn active:shadow-btnPressed',
 };
 
 export function BigButton({ variant = 'primary', size = 'md', icon, full, className, type = 'button', children, ...rest }: Props) {

@@ -26,6 +26,7 @@ export const spacing = {
   tap: '56px', // smallest allowed tap target
   tapLg: '68px', // big action buttons (Diye / Mile)
   mic: '88px',
+  micXL: '128px', // the big mic on the voice screen
   gutter: '16px', // side padding of every screen
 };
 

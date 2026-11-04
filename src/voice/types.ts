@@ -49,7 +49,10 @@ export type Warning = 'day_ignored' | 'weak_amount' | 'fuzzy_name';
 
 export type ParseResult = ParsedEntry | ParseQuestion;
 
+// Answers the shopkeeper already gave to a question, so the same sentence can be read again with them
+export type Forced = { amount?: number; kind?: ParsedKind; party?: ParserParty };
+
 export interface EntryParser {
   // `now` is only for tests; it defaults to the current time
-  parse(text: string, parties: readonly ParserParty[], now?: Date): ParseResult | Promise<ParseResult>;
+  parse(text: string, parties: readonly ParserParty[], now?: Date, forced?: Forced): ParseResult | Promise<ParseResult>;
 }

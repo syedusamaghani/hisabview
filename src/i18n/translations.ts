@@ -229,6 +229,45 @@ export const text = {
   qWhichParty: { ro: 'Kaunsa {name}?', ur: 'کون سا {name}؟' },
   qNewParty: { ro: 'Naya naam hai, add karoon?', ur: 'نیا نام ہے، شامل کروں؟' },
 
+  // Voice screen
+  voiceTitle: { ro: 'Bol kar likhein', ur: 'بول کر لکھیں' },
+  voiceHint: { ro: 'Jaise: "Aslam ko 500 diye"', ur: 'جیسے: "اسلم کو 500 دیے"' },
+  ruko: { ro: 'Ruko', ur: 'رکو' },
+  heard: { ro: 'Aap ne kaha', ur: 'آپ نے کہا' },
+  understood: { ro: 'Ab tak samjha', ur: 'اب تک سمجھا' },
+  voiceRetry: { ro: 'Dobara bolein', ur: 'دوبارہ بولیں' },
+  writeByHand: { ro: 'Haath se likhein', ur: 'ہاتھ سے لکھیں' },
+  voiceNothing: { ro: 'Kuch suna nahi. Dobara bolein.', ur: 'کچھ سنائی نہیں دیا۔ دوبارہ بولیں۔' },
+  voiceOffline: {
+    ro: 'Voice ke liye internet chahiye, haath se likh lo',
+    ur: 'آواز کے لیے انٹرنیٹ چاہیے، ہاتھ سے لکھ لو',
+  },
+  voiceDenied: {
+    ro: 'Mic ki ijazat nahi mili. Browser mein mic allow karein, ya haath se likh lo.',
+    ur: 'مائیک کی اجازت نہیں ملی۔ براؤزر میں مائیک کی اجازت دیں، یا ہاتھ سے لکھ لو۔',
+  },
+  voiceUnsupported: {
+    ro: 'Is phone par bol kar likhna nahi chalta. Haath se likh lo.',
+    ur: 'اس فون پر بول کر لکھنا نہیں چلتا۔ ہاتھ سے لکھ لو۔',
+  },
+  voiceError: {
+    ro: 'Voice mein masla aaya. Dobara koshish karein ya haath se likh lo.',
+    ur: 'آواز میں مسئلہ آیا۔ دوبارہ کوشش کریں یا ہاتھ سے لکھ لو۔',
+  },
+  checkCarefully: { ro: 'Zara dhyan se dekh lein', ur: 'ذرا دھیان سے دیکھ لیں' },
+  promiseOn: { ro: 'Wada: {day}', ur: 'وعدہ: {day}' },
+  yesAddParty: { ro: 'Haan, add karo', ur: 'ہاں، شامل کرو' },
+  anotherCustomer: { ro: 'Koi aur customer', ur: 'کوئی اور کسٹمر' },
+  saleSoon: {
+    ro: 'Sale aur kharcha likhna jald aa raha hai. Abhi Diye ya Mile likhein.',
+    ur: 'سیل اور خرچہ لکھنا جلد آ رہا ہے۔ ابھی دیے یا ملے لکھیں۔',
+  },
+
+  // "Sunao": the phone reads a balance aloud
+  sayLene: { ro: '{name} se aap ko {amount} rupay lene hain.', ur: '{name} سے آپ کو {amount} روپے لینے ہیں۔' },
+  sayDene: { ro: 'Aap ko {name} ko {amount} rupay dene hain.', ur: 'آپ کو {name} کو {amount} روپے دینے ہیں۔' },
+  saySettled: { ro: '{name} ka hisaab barabar hai.', ur: '{name} کا حساب برابر ہے۔' },
+
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },
   langUr: { ro: 'اردو', ur: 'اردو' },
