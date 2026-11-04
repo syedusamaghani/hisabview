@@ -99,7 +99,7 @@ Customer read-only balance link, promise-date reminders, draft entries ("Jaldi n
 - Phase 2: Voice (parser + voice screen)
 - Phase 3: WhatsApp + Aaj ka hisaab
 - Phase 4: Offline sync + install prompt + speed
-- Phase 5: Polish + launch prep
+- Phase 5: Polish + launch prep. MUST include before launch: a privacy policy page + homepage link, then press "Publish app" in Google Auth Platform > Audience (until then only listed Test users can log in, max 100). Also decide Supabase free-plan pause (1 week idle) and backups.
 
 ## Working rules
 - Secrets in environment variables only. Never commit them. .gitignore from day one.
