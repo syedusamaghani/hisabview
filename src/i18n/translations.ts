@@ -278,6 +278,13 @@ export const text = {
     ur: 'انداز چنیں۔ واٹس ایپ کھلے گا، بھیجنا آپ کے ہاتھ میں ہے۔',
   },
   remindNone: { ro: 'Is customer ka koi udhaar baqi nahi.', ur: 'اس کسٹمر کا کوئی ادھار باقی نہیں۔' },
+  existingCustomer: { ro: 'Ye purana customer hai', ur: 'یہ پرانا کسٹمر ہے' },
+  learnedTitle: { ro: 'Awaaz ki yaad', ur: 'آواز کی یاد' },
+  learnedBody: {
+    ro: 'App ne {n} galat suni hui baatein yaad ki hain (jaise Sahib = Saeed), taake agli baar sahi customer khud mile. Ye sirf aap ke phone par hain.',
+    ur: 'ایپ نے {n} غلط سنی ہوئی باتیں یاد کی ہیں (جیسے صاحب = سعید)، تاکہ اگلی بار صحیح کسٹمر خود ملے۔ یہ صرف آپ کے فون پر ہیں۔',
+  },
+  learnedClear: { ro: 'Sab bhool jao', ur: 'سب بھول جاؤ' },
   typeInstead: { ro: 'Likh kar batayein', ur: 'لکھ کر بتائیں' },
   typeLabel: { ro: 'Kya hua? Likh dein', ur: 'کیا ہوا؟ لکھ دیں' },
   typePlaceholder: { ro: 'Jaise: Saeed ne 500 udhar liye', ur: 'جیسے: سعید نے 500 ادھار لیے' },

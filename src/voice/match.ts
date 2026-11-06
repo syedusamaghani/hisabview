@@ -115,6 +115,27 @@ export function matchParty(said: string[], parties: readonly ParserParty[]): Mat
   return { kind: 'one', candidate: top };
 }
 
+// A mis-heard name the shopkeeper corrected before ("sahib" -> Saeed): the same words, in a row, in the sentence.
+// A customer who really is called that is never overridden by it.
+export type AliasHit = { party: ParserParty; start: number; end: number; text: string };
+
+export function findAlias(tokenTexts: readonly string[], parties: readonly ParserParty[]): AliasHit | null {
+  const realNames = new Set(parties.map((p) => normalizeText(p.name)));
+  let best: AliasHit | null = null;
+  for (const party of parties) {
+    for (const alias of party.aliases ?? []) {
+      const w = words(alias);
+      if (w.length === 0 || realNames.has(w.join(' '))) continue;
+      for (let i = 0; i + w.length <= tokenTexts.length; i++) {
+        if (w.every((x, k) => tokenTexts[i + k] === x) && (!best || w.length > best.end - best.start)) {
+          best = { party, start: i, end: i + w.length, text: w.join(' ') };
+        }
+      }
+    }
+  }
+  return best;
+}
+
 // "Word 3" pairs of every pehchaan, so "gali 3" is not mistaken for an amount
 export function identifierPairs(parties: readonly ParserParty[]): Set<string> {
   const out = new Set<string>();

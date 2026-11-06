@@ -14,6 +14,7 @@ import { APP_VERSION } from '../lib/report';
 import { navigate } from '../lib/router';
 import { installAskLater, promptInstall, useInstall } from '../lib/install';
 import { useAuth } from '../state/auth';
+import { clearAliases, countAliases } from '../voice/aliasStore';
 import { usePrivacy } from '../state/privacy';
 
 // Settings: language, hide amounts, shop name, logout.
@@ -28,6 +29,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
   const [name, setName] = useState(shop.shop_name);
   const [failed, setFailed] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [learned, setLearned] = useState(() => countAliases()); // wrong spellings the voice reader learned from corrections
 
   const chooseLang = (next: Language) => {
     if (next === lang) return;
@@ -89,6 +91,23 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
             </>
           )}
         </Card>
+
+        {learned > 0 && (
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-body font-extrabold text-ink">{t('learnedTitle')}</h2>
+            <p className="text-label text-inkSoft">{t('learnedBody').replace('{n}', String(learned))}</p>
+            <BigButton
+              full
+              variant="ghost"
+              onClick={() => {
+                clearAliases();
+                setLearned(0);
+              }}
+            >
+              {t('learnedClear')}
+            </BigButton>
+          </Card>
+        )}
 
         <Card className="flex flex-col gap-3">
           <h2 className="text-body font-extrabold text-ink">{t('backupTitle')}</h2>

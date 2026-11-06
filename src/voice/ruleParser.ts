@@ -2,7 +2,7 @@
 // Order of questions when something is missing: amount, then kind, then customer. Never a guess.
 import { detectKind, type KindFound } from './kind';
 import { findDay } from './dates';
-import { identifierPairs, matchParty, type Candidate, type Matched } from './match';
+import { findAlias, identifierPairs, matchParty, type Candidate, type Matched } from './match';
 import { chooseAmount, findRuns, type AmountChoice } from './numbers';
 import { tokenize } from './tokens';
 import type { EntryParser, Forced, ParseQuestion, ParseResult, ParsedKind, ParserParty, Known, Warning } from './types';
@@ -30,17 +30,30 @@ export function parseEntry(text: string, parties: readonly ParserParty[], now: D
   runs.forEach((r) => {
     for (let i = r.start; i < r.end; i++) inRun.add(i);
   });
+  // A name the phone mis-heard before and the shopkeeper corrected ("sahib" = Saeed), if it is the whole name said
+  let alias = forced.party ? null : findAlias(tokens.map((t) => t.text), parties);
+  const aliasWords = new Set<number>();
+  if (alias) for (let i = alias.start; i < alias.end; i++) aliasWords.add(i);
+  const free = (t: (typeof tokens)[number], i: number) => !inRun.has(i) && !day.used.has(i) && !aliasWords.has(i) && t.tag === null;
+  // Another unknown word next to it means a different name: then the normal matching decides
+  if (alias && tokens.some(free)) {
+    alias = null;
+    aliasWords.clear();
+  }
   const said = tokens
-    .filter((t, i) => !inRun.has(i) && !day.used.has(i) && (t.tag === null || (t.tag.t === 'word' && t.tag.v === 'wala')))
+    .filter((t, i) => !inRun.has(i) && !day.used.has(i) && !aliasWords.has(i) && (t.tag === null || (t.tag.t === 'word' && t.tag.v === 'wala')))
     .map((t) => t.text);
-  const nameWords = tokens.filter((t, i) => !inRun.has(i) && !day.used.has(i) && t.tag === null).map((t) => t.text);
+  const nameWords = tokens.filter(free).map((t) => t.text);
 
   const needsParty = kind.kind !== 'one' || kind.value === 'diye' || kind.value === 'mile';
   const match: Matched | null = forced.party
     ? { kind: 'one', candidate: { party: forced.party, score: 99, tier: 0 } }
-    : needsParty && nameWords.length > 0
-      ? matchParty(said, parties)
-      : null;
+    : alias && needsParty
+      ? { kind: 'one', candidate: { party: alias.party, score: 50, tier: 0 } }
+      : needsParty && nameWords.length > 0
+        ? matchParty(said, parties)
+        : null;
+  const heardName = alias ? alias.text : nameWords.join(' ');
 
   // Settle the whole balance: they owe us (+) so we receive it (mile); we owe them (-) so we give it (diye).
   // Needs the balance to be known; with a balance of zero there is nothing to settle.
@@ -74,7 +87,7 @@ export function parseEntry(text: string, parties: readonly ParserParty[], now: D
   let party: ParserParty | null = null;
   let chosen: Candidate | null = null;
   if (kind.value === 'diye' || kind.value === 'mile') {
-    if (!forced.party && nameWords.length === 0) return ask({ question: 'who' });
+    if (!forced.party && !alias && nameWords.length === 0) return ask({ question: 'who' });
     if (!match || match.kind === 'none') return ask({ question: 'new_party', name: titleCase(said) });
     if (match.kind === 'many') {
       const shown = match.candidates.slice(0, 5);
@@ -123,6 +136,7 @@ export function parseEntry(text: string, parties: readonly ParserParty[], now: D
     confidence: Math.round(confidence * 100) / 100,
   };
   if (promise_date) result.promise_date = promise_date;
+  if (party && heardName) result.heard_name = heardName;
   if (warnings.length) result.warnings = warnings;
   return result;
 }

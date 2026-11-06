@@ -4,7 +4,9 @@
 // Only what the parser needs to know about a customer (a real Party fits this)
 // balance (optional) = what the customer owes now (positive) or what we owe them (negative).
 // It is only used for "hisaab clear karo", which needs to know how much that is.
-export type ParserParty = { id: string; name: string; identifier: string | null; balance?: number };
+// aliases (optional) = ways the phone has mis-heard this customer's name before, which the shopkeeper
+// corrected ("sahib" for Saeed). They are normal words, already cleaned (see lib/partyText normalizeText).
+export type ParserParty = { id: string; name: string; identifier: string | null; balance?: number; aliases?: string[] };
 
 export type ParsedKind = 'diye' | 'mile' | 'cash_sale' | 'kharcha';
 
@@ -23,6 +25,7 @@ export type ParsedEntry = {
   kind: ParsedKind;
   amount: number;
   promise_date?: string;
+  heard_name?: string; // the name words as the phone wrote them, if any name was said (the screen learns from corrections)
   confidence: number; // 0 to 1. Below about 0.7 the screen should look extra carefully
   warnings?: Warning[];
 };

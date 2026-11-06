@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { entriesRepo, partiesRepo, statsRepo, useLive } from '../data';
 import { finishFlow, goBack, navigate, setFlash } from '../lib/router';
 import { splitByLastContact } from '../lib/recent';
-import { ruleParser, type Forced, type ParseQuestion, type ParsedEntry } from '../voice';
+import { learnAlias, ruleParser, withAliases, type Forced, type ParseQuestion, type ParsedEntry } from '../voice';
 import { listen, preferredLangs, rememberLang, type Listener } from '../voice/speech';
 import { ConfirmView } from './voice/ConfirmView';
 import { ListeningView } from './voice/ListeningView';
@@ -32,6 +32,7 @@ export default function VoiceScreen() {
   const [saved, setSaved] = useState(false);
 
   const transcript = useRef('');
+  const heardName = useRef(''); // the name words as the phone first wrote them
   const forced = useRef<Forced>({});
   const pending = useRef<string | null>(null);
   const listener = useRef<Listener | null>(null);
@@ -45,8 +46,14 @@ export default function VoiceScreen() {
       return;
     }
     // The balance goes along so "hisaab clear karo" knows how much to settle
-    const people = d.parties.map((p) => ({ id: p.id, name: p.name, identifier: p.identifier, balance: d.stats[p.id]?.balance ?? 0 }));
+    // and the spellings the phone got wrong before (corrected by the shopkeeper), so it can find the person
+    const people = withAliases(d.parties.map((p) => ({ id: p.id, name: p.name, identifier: p.identifier, balance: d.stats[p.id]?.balance ?? 0 })));
     const result = await ruleParser.parse(text, people, new Date(), forced.current);
+    // Remember the name as the phone heard it. If the shopkeeper then corrects the person and saves, we learn from it.
+    if (!heardName.current) {
+      if (result.type === 'entry') heardName.current = result.heard_name ?? '';
+      else if (result.question === 'new_party' || result.question === 'which_party') heardName.current = result.name ?? '';
+    }
     if (result.type === 'question') setView({ name: 'question', question: result });
     else setView({ name: 'confirm', entry: result });
   }, []);
@@ -63,6 +70,7 @@ export default function VoiceScreen() {
     listener.current?.abort();
     forced.current = {};
     transcript.current = '';
+    heardName.current = '';
     setHeard('');
     setFailed(false);
     setView({ name: 'listening' });
@@ -118,6 +126,7 @@ export default function VoiceScreen() {
   };
   const typed = (text: string) => {
     forced.current = {};
+    heardName.current = '';
     transcript.current = text;
     setHeard(text);
     setView({ name: 'working' });
@@ -153,6 +162,8 @@ export default function VoiceScreen() {
             promise_date: entry.promise_date ?? null,
           });
           setFlash({ kind: 'undoEntry', entryId: created.id });
+          // The phone heard one name and a different customer was saved: remember it for next time
+          if (party) learnAlias(heardName.current, party, data.parties);
           setSaved(true);
         } catch {
           setFailed(true);
@@ -217,6 +228,7 @@ export default function VoiceScreen() {
             setView({ name: 'problem', problem: 'other' });
           }
         }}
+        onPickExisting={() => setView({ name: 'question', question: { type: 'question', question: 'who', partial: q.partial } })}
         onNoParty={() => (q.partial.kind ? manual(q.partial.kind as 'diye' | 'mile') : goBack('/'))}
         onOtherParty={() => manual((q.partial.kind as 'diye' | 'mile' | undefined) ?? 'diye')}
         onRetry={start}

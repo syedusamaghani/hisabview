@@ -12,7 +12,7 @@ import { TextField } from '../../components/TextField';
 import type { Party } from '../../data';
 import { useT } from '../../i18n/i18n';
 import { formatRs } from '../../lib/money';
-import { matchesQuery, normalizeText } from '../../lib/partyText';
+import { matchesQuery, normalizeText, similarParties } from '../../lib/partyText';
 import { questionText, type ParseQuestion, type ParsedKind } from '../../voice';
 
 // One short question with big answers to tap. There is no typing box:
@@ -27,6 +27,7 @@ type Props = {
   onSettleAll: (amount: number, kind: 'diye' | 'mile') => void; // the whole balance of the customer
   onParty: (party: Party) => void;
   onAddParty: (name: string) => void; // the name, as typed or corrected by the person
+  onPickExisting: () => void; // "this is an existing customer": the search list
   onNoParty: () => void;
   onOtherParty: () => void;
   onRetry: () => void;
@@ -45,6 +46,7 @@ export function QuestionView(p: Props) {
   // What this customer owes now (or we owe them): for the "Poora hisaab" button on the amount question
   const settleBalance = q.question === 'amount' && q.partial.party ? (p.balances[q.partial.party.id] ?? 0) : 0;
   const byId = new Map(p.parties.map((x) => [x.id, x]));
+  const similarNames = q.question === 'new_party' ? similarParties(newName, p.parties).slice(0, 3) : [];
   const findText = find.trim();
   const found = findText ? p.parties.filter((x) => matchesQuery(x, findText)).slice(0, 8) : p.recent;
   const sameNameExists = p.parties.some((x) => normalizeText(x.name) === normalizeText(findText));
@@ -123,13 +125,26 @@ export function QuestionView(p: Props) {
         )}
 
         {q.question === 'new_party' && (
-          <TextField
-            label={t('nameLabelEdit')}
-            size="lg"
-            maxLength={80}
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-          />
+          <>
+            <TextField
+              label={t('nameLabelEdit')}
+              size="lg"
+              maxLength={80}
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+            {/* The phone may have mis-heard an existing customer: show the look-alikes, and a way to pick anyone */}
+            {similarNames.length > 0 && (
+              <ul className="flex flex-col gap-3">
+                {similarNames.map((party) => (
+                  <li key={party.id}>
+                    <PartyRow name={party.name} identifier={party.identifier} balance={p.balances[party.id] ?? 0} onClick={() => p.onParty(party)} />
+                  </li>
+                ))}
+              </ul>
+            )}
+            <OptionButton title={t('existingCustomer')} onClick={p.onPickExisting} />
+          </>
         )}
 
         {q.question === 'amount' && (
