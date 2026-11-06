@@ -276,10 +276,13 @@ export const text = {
     ur: 'انداز چنیں۔ واٹس ایپ کھلے گا، بھیجنا آپ کے ہاتھ میں ہے۔',
   },
   remindNone: { ro: 'Is customer ka koi udhaar baqi nahi.', ur: 'اس کسٹمر کا کوئی ادھار باقی نہیں۔' },
-  remindNoPhone: {
-    ro: 'Is customer ka number nahi hai. WhatsApp mein khud chun lein.',
-    ur: 'اس کسٹمر کا نمبر نہیں ہے۔ واٹس ایپ میں خود چن لیں۔',
+  addPhoneTitle: { ro: 'WhatsApp number ek baar save karein', ur: 'واٹس ایپ نمبر ایک بار محفوظ کریں' },
+  addPhoneBody: {
+    ro: 'Phir Yaad dilao aur Hisaab bhejo seedha isi ki chat kholenge.',
+    ur: 'پھر یاد دلاؤ اور حساب بھیجو سیدھا اسی کی چیٹ کھولیں گے۔',
   },
+  phoneNumberLabel: { ro: 'Number', ur: 'نمبر' },
+  phoneInvalid: { ro: 'Number theek nahi lagta. Jaise 0300 1234567', ur: 'نمبر ٹھیک نہیں لگتا۔ جیسے 0300 1234567' },
   msgSoft: {
     ro: 'Assalam o alaikum {name}, umeed hai aap khairiyat se honge. {shop} ka {amount} aap ke zimme baqi hai. Jab suhoolat ho ada kar dijiye ga. Bohot shukriya.',
     ur: 'السلام علیکم {name}، امید ہے آپ خیریت سے ہوں گے۔ {shop} کا {amount} آپ کے ذمے باقی ہے۔ جب سہولت ہو ادا کر دیجیے گا۔ بہت شکریہ۔',

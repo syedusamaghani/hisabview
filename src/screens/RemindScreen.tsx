@@ -10,6 +10,7 @@ import { partyBalance } from '../lib/balance';
 import { TONES, reminderText } from '../lib/messages';
 import { goBack, navigate } from '../lib/router';
 import { openWhatsApp, normalizePhone, whatsappUrl } from '../lib/whatsapp';
+import { PhoneCard } from './PhoneCard';
 
 // Yaad dilao: three polite-to-firm messages. One tap on a tone opens WhatsApp with the message typed.
 // Nothing is sent until the shopkeeper presses send there.
@@ -54,7 +55,7 @@ export function RemindScreen({ partyId }: { partyId: string }) {
               <AmountText amount={owed} size="l" tone="out" />
             </Card>
             <p className="text-body text-inkSoft">{t('remindHint')}</p>
-            {!hasPhone && <p role="note" className="rounded-card bg-accent px-4 py-3 text-body font-extrabold text-accentInk">{t('remindNoPhone')}</p>}
+            {!hasPhone && <PhoneCard partyId={party.id} />}
             <ul className="flex flex-col gap-3">
               {TONES.map(({ tone, title, body }) => {
                 const message = reminderText(body, lang, { name: party.name, shop: shopName }, owed);
