@@ -16,8 +16,14 @@ export function parseEntry(text: string, parties: readonly ParserParty[], now: D
   const tokens = tokenize(text, identifierPairs(parties));
   const day = findDay(tokens, now);
   const runs = findRuns(tokens, day.used);
-  const amount: AmountChoice = forced.amount ? { kind: 'one', value: forced.amount, weak: false } : chooseAmount(runs);
-  const kind: KindFound = forced.kind ? { kind: 'one', value: forced.kind, viaNe: false } : detectKind(tokens);
+  // "Saeed ka hisaab clear karo": no amount is said, it means the whole balance
+  const wantsSettle = tokens.some((t) => t.tag?.t === 'word' && t.tag.v === 'settle');
+  let amount: AmountChoice = forced.amount ? { kind: 'one', value: forced.amount, weak: false } : chooseAmount(runs);
+  // "saaf kar do": the little word "do" is also the number 2, but here it only means "please do it"
+  if (wantsSettle && !forced.amount && amount.kind === 'one' && amount.value <= 10 && !tokens.some((t) => t.digits !== null)) {
+    amount = { kind: 'none' };
+  }
+  let kind: KindFound = forced.kind ? { kind: 'one', value: forced.kind, viaNe: false } : detectKind(tokens);
 
   // The words left over are the customer: not numbers, not kind words, not "ko", "bhai", ...
   const inRun = new Set<number>();
@@ -35,6 +41,16 @@ export function parseEntry(text: string, parties: readonly ParserParty[], now: D
     : needsParty && nameWords.length > 0
       ? matchParty(said, parties)
       : null;
+
+  // Settle the whole balance: they owe us (+) so we receive it (mile); we owe them (-) so we give it (diye).
+  // Needs the balance to be known; with a balance of zero there is nothing to settle.
+  if (wantsSettle && amount.kind === 'none' && match?.kind === 'one' && match.candidate.party.balance !== undefined) {
+    const who = match.candidate.party;
+    const balance = who.balance as number;
+    if (balance === 0) return { type: 'question', question: 'settled', name: who.name, partial: { party: who } };
+    amount = { kind: 'one', value: Math.abs(balance), weak: false };
+    if (!forced.kind) kind = { kind: 'one', value: balance > 0 ? 'mile' : 'diye', viaNe: false };
+  }
 
   // What we already know, kept inside any question so nothing is lost
   const partial: Known = {};

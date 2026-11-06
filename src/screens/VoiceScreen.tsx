@@ -44,7 +44,9 @@ export default function VoiceScreen() {
       setView({ name: 'working' });
       return;
     }
-    const result = await ruleParser.parse(text, d.parties, new Date(), forced.current);
+    // The balance goes along so "hisaab clear karo" knows how much to settle
+    const people = d.parties.map((p) => ({ id: p.id, name: p.name, identifier: p.identifier, balance: d.stats[p.id]?.balance ?? 0 }));
+    const result = await ruleParser.parse(text, people, new Date(), forced.current);
     if (result.type === 'question') setView({ name: 'question', question: result });
     else setView({ name: 'confirm', entry: result });
   }, []);
@@ -205,6 +207,7 @@ export default function VoiceScreen() {
         recent={recent}
         onKind={(kind) => answer({ kind })}
         onAmount={(amount) => answer({ amount })}
+        onSettleAll={(amount, kind) => answer({ amount, kind })}
         onParty={(party) => answer({ party })}
         onAddParty={async (name) => {
           try {

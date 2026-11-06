@@ -11,6 +11,7 @@ import { SearchBar } from '../../components/SearchBar';
 import { TextField } from '../../components/TextField';
 import type { Party } from '../../data';
 import { useT } from '../../i18n/i18n';
+import { formatRs } from '../../lib/money';
 import { matchesQuery, normalizeText } from '../../lib/partyText';
 import { questionText, type ParseQuestion, type ParsedKind } from '../../voice';
 
@@ -23,6 +24,7 @@ type Props = {
   recent: Party[]; // people dealt with lately (for "who?")
   onKind: (kind: 'diye' | 'mile') => void;
   onAmount: (amount: number) => void;
+  onSettleAll: (amount: number, kind: 'diye' | 'mile') => void; // the whole balance of the customer
   onParty: (party: Party) => void;
   onAddParty: (name: string) => void; // the name, as typed or corrected by the person
   onNoParty: () => void;
@@ -40,6 +42,8 @@ export function QuestionView(p: Props) {
   const [find, setFind] = useState('');
   // "Naya naam hai": the heard name can be corrected before it is added
   const [newName, setNewName] = useState(q.name ?? '');
+  // What this customer owes now (or we owe them): for the "Poora hisaab" button on the amount question
+  const settleBalance = q.question === 'amount' && q.partial.party ? (p.balances[q.partial.party.id] ?? 0) : 0;
   const byId = new Map(p.parties.map((x) => [x.id, x]));
   const findText = find.trim();
   const found = findText ? p.parties.filter((x) => matchesQuery(x, findText)).slice(0, 8) : p.recent;
@@ -130,6 +134,13 @@ export function QuestionView(p: Props) {
 
         {q.question === 'amount' && (
           <>
+            {settleBalance !== 0 && (
+              <OptionButton
+                center
+                title={t('settleAll').replace('{amount}', formatRs(Math.abs(settleBalance)))}
+                onClick={() => p.onSettleAll(Math.abs(settleBalance), settleBalance > 0 ? 'mile' : 'diye')}
+              />
+            )}
             <div className="text-center">
               <AmountText amount={typed} size="xl" tone="neutral" reveal />
             </div>

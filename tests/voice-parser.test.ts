@@ -412,3 +412,40 @@ describe('little Urdu words that are not part of a name', () => {
     expectEntry('Saeed bhai ne 500 udhar liye', { party: 'saeed', kind: 'diye', amount: 500 }, [party('saeed', 'Saeed')]);
   });
 });
+
+// Real phone test: "Saeed bhai ka hisaab clear kardo". No amount is said: it means the whole balance.
+describe('settling a whole balance ("hisaab clear karo")', () => {
+  const owing = (name: string, balance?: number, id = name.toLowerCase()) => ({ ...party(id, name), balance });
+  it.each([
+    'Saeed bhai ka hisaab clear kardo',
+    'Saeed bhai ka hisab clear kar do',
+    'Saeed ka hisaab saaf kar do',
+    'Saeed ka hisaab khatam karo',
+    'Saeed ka hisaab barabar kar do',
+  ])('"%s": they owe 500, so Mile 500', (text) => {
+    expectEntry(text, { party: 'saeed', kind: 'mile', amount: 500 }, [owing('Saeed', 500), owing('Zia', 0)]);
+  });
+  it('we owe them: Diye for the whole amount', () => {
+    expectEntry('Zia ka hisaab clear kardo', { party: 'zia', kind: 'diye', amount: 2000 }, [owing('Saeed', 500), owing('Zia', -2000)]);
+  });
+  it('Urdu script', () => {
+    expectEntry('سعید بھائی کا حساب کلیئر کر دو', { party: 'saeed', kind: 'mile', amount: 500 }, [owing('سعید', 500, 'saeed')]);
+  });
+  it('nothing owed: says the khata is already clear, never an empty entry', () => {
+    const q = question('Saeed ka hisaab clear kardo', [owing('Saeed', 0)]);
+    expect(q.question).toBe('settled');
+    expect(q.name).toBe('Saeed');
+  });
+  it('without a known balance it still asks for the amount (never a guess)', () => {
+    expect(question('Saeed ka hisaab clear kardo', [owing('Saeed')]).question).toBe('amount');
+  });
+  it('an amount that is said still wins over the balance', () => {
+    const r = entry('Saeed ne 300 diye clear', [owing('Saeed', 500)]);
+    expect(r.amount).toBe(300);
+  });
+  it('questions for it have words in both languages', () => {
+    const q = question('Saeed ka hisaab clear kardo', [owing('Saeed', 0)]);
+    expect(questionText(q, 'ro')).toContain('Saeed');
+    expect(questionText(q, 'ur')).toContain('Saeed');
+  });
+});

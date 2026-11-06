@@ -9,6 +9,7 @@ const keys = {
   who: 'qWho',
   which_party: 'qWhichParty',
   new_party: 'qNewParty',
+  settled: 'qSettled',
 } as const satisfies Record<QuestionCode, keyof typeof text>;
 
 export function questionText(q: ParseQuestion, lang: Lang): string {

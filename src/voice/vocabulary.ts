@@ -13,6 +13,7 @@ export type Tag =
 export type WordKind =
   | 'give' // diye, diya, de
   | 'udhaar'
+  | 'settle' // clear, saaf, khatam: "settle the whole balance"
   | 'mile'
   | 'sale'
   | 'kharcha'
@@ -165,6 +166,7 @@ add({ t: 'frac', v: 'sade' }, 'sade saade saarhe sarhe ساڑھے');
 // ---- what kind of entry
 add({ t: 'word', v: 'give' }, 'diye diya dia diey di de dedo dedi dediya dijiye دیے دیئے دئیے دیا دی دے');
 add({ t: 'word', v: 'udhaar' }, 'udhaar udhar udaar uthaar ادھار ادہار');
+add({ t: 'word', v: 'settle' }, 'clear cleared kleer klear saaf saf safa khatam khtm khatm barabar chukta chukata chukao chuka کلیئر کلیر صاف ختم برابر چکتا چکا');
 add({ t: 'word', v: 'mile' }, 'mile mila mili milay mil milae wapas wapis wapsi jama jamaa wasool wasul aaye aya ayi aae received ملے ملا ملی مل واپس جمع وصول آئے آیا');
 add({ t: 'word', v: 'sale' }, 'sale sail bikri bikree bikry sold سیل بکری');
 add({ t: 'word', v: 'kharcha' }, 'kharcha kharch kharche expense expenses bill خرچہ خرچ بل');

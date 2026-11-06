@@ -228,6 +228,8 @@ export const text = {
   qKind: { ro: 'Diye ya Mile?', ur: 'دیے یا ملے؟' },
   qWho: { ro: 'Kis ka hisaab?', ur: 'کس کا حساب؟' },
   qWhichParty: { ro: 'Kaunsa {name}?', ur: 'کون سا {name}؟' },
+  qSettled: { ro: '{name} ka hisaab pehle se saaf hai', ur: '{name} کا حساب پہلے سے صاف ہے' },
+  settleAll: { ro: 'Poora hisaab: {amount}', ur: 'پورا حساب: {amount}' },
   qNewParty: { ro: 'Naya naam hai, add karoon?', ur: 'نیا نام ہے، شامل کروں؟' },
 
   // Voice screen

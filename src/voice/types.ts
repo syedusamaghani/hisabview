@@ -2,7 +2,9 @@
 // A Claude-based parser can be swapped in later by implementing EntryParser.
 
 // Only what the parser needs to know about a customer (a real Party fits this)
-export type ParserParty = { id: string; name: string; identifier: string | null };
+// balance (optional) = what the customer owes now (positive) or what we owe them (negative).
+// It is only used for "hisaab clear karo", which needs to know how much that is.
+export type ParserParty = { id: string; name: string; identifier: string | null; balance?: number };
 
 export type ParsedKind = 'diye' | 'mile' | 'cash_sale' | 'kharcha';
 
@@ -32,7 +34,8 @@ export type QuestionCode =
   | 'kind' // "Diye ya Mile?"
   | 'who' // no name was said
   | 'which_party' // "Kaunsa Ali?"
-  | 'new_party'; // "Naya naam hai, add karoon?"
+  | 'new_party' // "Naya naam hai, add karoon?"
+  | 'settled'; // "hisaab clear karo", but nothing is owed either way
 
 // label is only set for data (a customer's name, an amount). For diye/mile the screen uses its own words.
 export type QuestionOption = { value: string; label?: string; hint?: string };
