@@ -22,17 +22,22 @@ type Props = {
   failed: boolean;
   saved: boolean;
   onSave: () => void;
+  onEditParty: () => void;
+  onToggleKind: () => void;
+  onEditAmount: () => void;
   onChange: () => void;
   onBack: () => void;
   onSavedDone: () => void;
 };
 
-export function ConfirmView({ entry, party, transcript, balance, saving, failed, saved, onSave, onChange, onBack, onSavedDone }: Props) {
+export function ConfirmView({ entry, party, transcript, balance, saving, failed, saved, onSave, onEditParty, onToggleKind, onEditAmount, onChange, onBack, onSavedDone }: Props) {
   const { t, lang } = useT();
   // Red = money went out (diye, kharcha). Green = money came in (mile, sale).
   const out = entry.kind === 'diye' || entry.kind === 'kharcha';
   const kindLabel = t(entry.kind === 'diye' ? 'diye' : entry.kind === 'mile' ? 'mile' : entry.kind === 'cash_sale' ? 'saleLabel' : 'kharchaLabel');
   const unsure = entry.confidence < 0.8;
+  // Diye can be turned into Mile and back. A sale or a kharcha has no other side.
+  const canToggleKind = entry.kind === 'diye' || entry.kind === 'mile';
   return (
     <main className="mx-auto min-h-screen max-w-app pb-[var(--bar-h)]">
       <ScreenHeader title={t('confirmQuestion')} onBack={onBack} />
@@ -49,22 +54,33 @@ export function ConfirmView({ entry, party, transcript, balance, saving, failed,
         )}
 
         <Card className="flex flex-col items-center gap-3 py-6 text-center">
+          {/* Each part can be corrected with one tap, so a wrongly heard word never has to be saved */}
           {party && (
-            <div className="min-w-0 max-w-full">
-              <p dir="auto" className="truncate text-title font-extrabold">{party.name}</p>
-              {party.identifier && <p dir="auto" className="truncate text-label text-inkSoft">{party.identifier}</p>}
-            </div>
+            <button type="button" onClick={onEditParty} disabled={saving} className="flex min-h-tap min-w-0 max-w-full items-center gap-2 rounded-button px-3">
+              <span className="min-w-0">
+                <span dir="auto" className="block truncate text-title font-extrabold">{party.name}</span>
+                {party.identifier && <span dir="auto" className="block truncate text-label text-inkSoft">{party.identifier}</span>}
+              </span>
+              <Icon name="edit" size={22} className="shrink-0 text-inkSoft" />
+            </button>
           )}
-          <span
+          <button
+            type="button"
+            onClick={onToggleKind}
+            disabled={saving || !canToggleKind}
             className={cx(
-              'inline-flex items-center gap-1 rounded-full px-4 py-1 text-body font-extrabold',
+              'inline-flex min-h-tap items-center gap-1 rounded-full px-4 text-body font-extrabold',
               out ? 'bg-moneyOutSoft text-moneyOut' : 'bg-moneyInSoft text-moneyIn',
             )}
           >
             <Icon name={out ? 'up' : 'down'} size={22} />
             {kindLabel}
-          </span>
-          <AmountText amount={entry.amount} size="xl" tone={out ? 'out' : 'in'} reveal />
+            {canToggleKind && <Icon name="edit" size={20} />}
+          </button>
+          <button type="button" onClick={onEditAmount} disabled={saving} className="flex min-h-tap max-w-full items-center justify-center gap-2 rounded-button px-3">
+            <AmountText amount={entry.amount} size="xl" tone={out ? 'out' : 'in'} reveal />
+            <Icon name="edit" size={26} className="shrink-0 text-inkSoft" />
+          </button>
           {party && (
             <div className="flex items-baseline gap-2 text-inkSoft">
               <span className="text-label font-semibold">{t('newBalance')}:</span>
@@ -77,6 +93,8 @@ export function ConfirmView({ entry, party, transcript, balance, saving, failed,
             </p>
           )}
         </Card>
+
+        <p className="text-center text-label font-semibold text-inkSoft">{t('tapToChange')}</p>
 
         {failed && (
           <Card tone="soft" role="alert">

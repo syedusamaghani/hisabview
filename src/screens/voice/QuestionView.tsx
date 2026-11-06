@@ -31,7 +31,8 @@ type Props = {
 export function QuestionView(p: Props) {
   const { t, lang } = useT();
   const { question: q } = p;
-  const [typed, setTyped] = useState(0);
+  // When the amount is being corrected from the check card, start from the amount that was heard
+  const [typed, setTyped] = useState(q.question === 'amount' ? (q.partial.amount ?? 0) : 0);
   const byId = new Map(p.parties.map((x) => [x.id, x]));
   const known = q.partial;
 

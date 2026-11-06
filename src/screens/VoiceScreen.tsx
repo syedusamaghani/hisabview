@@ -92,10 +92,12 @@ export default function VoiceScreen() {
 
   const parties = data?.parties ?? [];
   const balances = useMemo(() => Object.fromEntries(Object.values(data?.stats ?? {}).map((s) => [s.party_id, s.balance])), [data]);
-  const recent = useMemo(
-    () => (data ? splitByLastContact(data.parties, Object.fromEntries(Object.values(data.stats).map((s) => [s.party_id, s.last_at])), 5).recent : []),
-    [data],
-  );
+  // For "Kis ka hisaab?": people dealt with lately first, then the rest A to Z (so a new customer is never missing)
+  const recent = useMemo(() => {
+    if (!data) return [];
+    const { recent: lately, others } = splitByLastContact(data.parties, Object.fromEntries(Object.values(data.stats).map((s) => [s.party_id, s.last_at])), 5);
+    return [...lately, ...others].slice(0, 8);
+  }, [data]);
 
   const answer = (next: Forced) => {
     forced.current = { ...forced.current, ...next };
@@ -150,6 +152,22 @@ export default function VoiceScreen() {
           failed={failed}
           saved={saved}
           onSave={save}
+          onEditParty={() => {
+            // Wrong person heard: pick again (the amount and Diye/Mile are kept)
+            forced.current = { ...forced.current, kind: entry.kind, amount: entry.amount };
+            setView({ name: 'question', question: { type: 'question', question: 'who', partial: { kind: entry.kind, amount: entry.amount } } });
+          }}
+          onToggleKind={() => {
+            // Diye <-> Mile in one tap. The person said it, so the "look carefully" note goes away.
+            const kind = entry.kind === 'diye' ? 'mile' : 'diye';
+            forced.current = { ...forced.current, kind };
+            setView({ name: 'confirm', entry: { ...entry, kind, confidence: 1 } });
+          }}
+          onEditAmount={() => {
+            // Wrong amount heard: the big number keys, starting from the heard amount
+            forced.current = { ...forced.current, kind: entry.kind, ...(entry.party ? { party: entry.party } : {}) };
+            setView({ name: 'question', question: { type: 'question', question: 'amount', partial: { kind: entry.kind, amount: entry.amount, party: entry.party } } });
+          }}
           onChange={() => navigate(changePath, { replace: true })}
           onBack={() => goBack('/')}
           onSavedDone={() => finishFlow('/')}

@@ -256,6 +256,7 @@ export const text = {
     ur: 'آواز میں مسئلہ آیا۔ دوبارہ کوشش کریں یا ہاتھ سے لکھ لو۔',
   },
   checkCarefully: { ro: 'Zara dhyan se dekh lein', ur: 'ذرا دھیان سے دیکھ لیں' },
+  tapToChange: { ro: 'Galat ho to naam, Diye/Mile ya raqam par dabayein', ur: 'غلط ہو تو نام، دیے/ملے یا رقم پر دبائیں' },
   promiseOn: { ro: 'Wada: {day}', ur: 'وعدہ: {day}' },
   yesAddParty: { ro: 'Haan, add karo', ur: 'ہاں، شامل کرو' },
   anotherCustomer: { ro: 'Koi aur customer', ur: 'کوئی اور کسٹمر' },

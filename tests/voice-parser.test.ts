@@ -395,3 +395,20 @@ describe('interface and safety', () => {
     }
   });
 });
+
+// Real phone test: "Saeed bhai ne 500 udhar liye". In Urdu script the little word "liye" was
+// read as part of the name, and the app asked to add a new customer "Saeed liye".
+describe('little Urdu words that are not part of a name', () => {
+  const saeed = [party('saeed', 'سعید'), party('zia', 'ضیا')];
+  it.each([
+    'سعید بھائی نے 500 ادھار لیے',
+    'سعید بھائی نے 500 ادھار لئے',
+    'سعید بھائی نے پانچ سو ادھار لیے',
+    'سعید نے 500 ادھار لیا',
+  ])('"%s" is Saeed, Diye, 500', (text) => {
+    expectEntry(text, { party: 'saeed', kind: 'diye', amount: 500 }, saeed);
+  });
+  it('Roman Urdu said the same way gives the same answer', () => {
+    expectEntry('Saeed bhai ne 500 udhar liye', { party: 'saeed', kind: 'diye', amount: 500 }, [party('saeed', 'Saeed')]);
+  });
+});
