@@ -6,7 +6,24 @@ import { LoginScreen } from './screens/LoginScreen';
 import { useAuth } from './state/auth';
 
 // The logged-in part (with the phone's database) is loaded only after login
-const SignedInApp = lazy(() => import('./SignedInApp'));
+const loadSignedIn = () => import('./SignedInApp');
+const SignedInApp = lazy(loadSignedIn);
+
+// A returning person (a saved login is on the phone) is going to need the logged-in part anyway,
+// so start fetching it now, side by side with the login check, instead of one after the other.
+// Brand-new visitors do not pay for it.
+function hasSavedLogin(): boolean {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i) ?? '';
+      if (key.startsWith('sb-') && key.endsWith('-auth-token')) return true;
+    }
+  } catch {
+    // storage blocked: just load normally
+  }
+  return false;
+}
+if (hasSavedLogin()) void loadSignedIn();
 
 function Splash() {
   const { t } = useT();
