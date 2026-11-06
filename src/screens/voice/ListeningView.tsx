@@ -1,14 +1,15 @@
 import { BigButton } from '../../components/BigButton';
 import { BottomActionBar } from '../../components/BottomActionBar';
+import { Icon } from '../../components/Icon';
 import { IconButton } from '../../components/IconButton';
 import { ListeningMic } from '../../components/ListeningMic';
 import { useT } from '../../i18n/i18n';
 
 // The screen while the phone listens: brown, a big mic with spreading rings, what is heard so far
 // in large text, and one big "Ruko" button. It stops by itself when you stop talking.
-type Props = { heard: string; working: boolean; onStop: () => void; onBack: () => void };
+type Props = { heard: string; working: boolean; onStop: () => void; onType: () => void; onBack: () => void };
 
-export function ListeningView({ heard, working, onStop, onBack }: Props) {
+export function ListeningView({ heard, working, onStop, onType, onBack }: Props) {
   const { t } = useT();
   return (
     <main className="mx-auto flex min-h-screen max-w-app flex-col bg-primary pb-[var(--bar-h)] text-primaryInk">
@@ -23,6 +24,15 @@ export function ListeningView({ heard, working, onStop, onBack }: Props) {
         </div>
         <p role="status" className="text-title font-extrabold text-accent">{working ? '' : t('listening')}</p>
         {!heard && <p className="text-center text-body text-primarySoft">{t('voiceHint')}</p>}
+        <button
+          type="button"
+          onClick={onType}
+          disabled={working}
+          className="inline-flex min-h-tap items-center gap-2 rounded-button px-4 text-body font-extrabold text-primaryInk underline decoration-2 underline-offset-4 disabled:opacity-50"
+        >
+          <Icon name="edit" size={22} />
+          {t('typeInstead')}
+        </button>
       </div>
 
       <div className="px-gutter pb-4">

@@ -276,6 +276,12 @@ export const text = {
     ur: 'انداز چنیں۔ واٹس ایپ کھلے گا، بھیجنا آپ کے ہاتھ میں ہے۔',
   },
   remindNone: { ro: 'Is customer ka koi udhaar baqi nahi.', ur: 'اس کسٹمر کا کوئی ادھار باقی نہیں۔' },
+  typeInstead: { ro: 'Likh kar batayein', ur: 'لکھ کر بتائیں' },
+  typeLabel: { ro: 'Kya hua? Likh dein', ur: 'کیا ہوا؟ لکھ دیں' },
+  typePlaceholder: { ro: 'Jaise: Saeed ne 500 udhar liye', ur: 'جیسے: سعید نے 500 ادھار لیے' },
+  nameLabelEdit: { ro: 'Naam (galat ho to theek karein)', ur: 'نام (غلط ہو تو ٹھیک کریں)' },
+  findCustomer: { ro: 'Naam likh kar dhoondein', ur: 'نام لکھ کر ڈھونڈیں' },
+  addNamed: { ro: 'Naya customer: {name}', ur: 'نیا کسٹمر: {name}' },
   addPhoneTitle: { ro: 'WhatsApp number ek baar save karein', ur: 'واٹس ایپ نمبر ایک بار محفوظ کریں' },
   addPhoneBody: {
     ro: 'Phir Yaad dilao aur Hisaab bhejo seedha isi ki chat kholenge.',

@@ -8,10 +8,12 @@ import { ConfirmView } from './voice/ConfirmView';
 import { ListeningView } from './voice/ListeningView';
 import { ProblemView, type Problem } from './voice/ProblemView';
 import { QuestionView } from './voice/QuestionView';
+import { TypeView } from './voice/TypeView';
 
 type View =
   | { name: 'listening' }
   | { name: 'working' }
+  | { name: 'typing' }
   | { name: 'confirm'; entry: ParsedEntry }
   | { name: 'question'; question: ParseQuestion }
   | { name: 'problem'; problem: Problem };
@@ -107,8 +109,25 @@ export default function VoiceScreen() {
 
   const manual = (kind: 'diye' | 'mile') => navigate(`/entry/${kind}`, { replace: true });
 
+  // Typing instead of speaking: stop the microphone, then read the typed sentence the same way
+  const openTyping = () => {
+    listener.current?.abort();
+    setView({ name: 'typing' });
+  };
+  const typed = (text: string) => {
+    forced.current = {};
+    transcript.current = text;
+    setHeard(text);
+    setView({ name: 'working' });
+    void run(text);
+  };
+
   if (view.name === 'problem') {
-    return <ProblemView problem={view.problem} onRetry={start} onManual={manual} onBack={() => goBack('/')} />;
+    return <ProblemView problem={view.problem} onRetry={start} onType={openTyping} onManual={manual} onBack={() => goBack('/')} />;
+  }
+
+  if (view.name === 'typing') {
+    return <TypeView onDone={typed} onBack={start} />;
   }
 
   if (view.name === 'confirm' && data) {
@@ -187,9 +206,9 @@ export default function VoiceScreen() {
         onKind={(kind) => answer({ kind })}
         onAmount={(amount) => answer({ amount })}
         onParty={(party) => answer({ party })}
-        onAddParty={async () => {
+        onAddParty={async (name) => {
           try {
-            const { party } = await partiesRepo.create({ name: q.name ?? '' });
+            const { party } = await partiesRepo.create({ name });
             answer({ party });
           } catch {
             setView({ name: 'problem', problem: 'other' });
@@ -208,6 +227,7 @@ export default function VoiceScreen() {
       heard={heard}
       working={view.name === 'working' || view.name === 'confirm'}
       onStop={() => listener.current?.stop()}
+      onType={openTyping}
       onBack={() => goBack('/')}
     />
   );

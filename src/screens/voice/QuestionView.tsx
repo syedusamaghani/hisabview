@@ -7,8 +7,11 @@ import { NumberKeypad } from '../../components/NumberKeypad';
 import { OptionButton } from '../../components/OptionButton';
 import { PartyRow } from '../../components/PartyRow';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { SearchBar } from '../../components/SearchBar';
+import { TextField } from '../../components/TextField';
 import type { Party } from '../../data';
 import { useT } from '../../i18n/i18n';
+import { matchesQuery, normalizeText } from '../../lib/partyText';
 import { questionText, type ParseQuestion, type ParsedKind } from '../../voice';
 
 // One short question with big answers to tap. There is no typing box:
@@ -21,7 +24,7 @@ type Props = {
   onKind: (kind: 'diye' | 'mile') => void;
   onAmount: (amount: number) => void;
   onParty: (party: Party) => void;
-  onAddParty: () => void;
+  onAddParty: (name: string) => void; // the name, as typed or corrected by the person
   onNoParty: () => void;
   onOtherParty: () => void;
   onRetry: () => void;
@@ -33,7 +36,14 @@ export function QuestionView(p: Props) {
   const { question: q } = p;
   // When the amount is being corrected from the check card, start from the amount that was heard
   const [typed, setTyped] = useState(q.question === 'amount' ? (q.partial.amount ?? 0) : 0);
+  // "Kis ka hisaab?": type a name to find the right customer, or add a new one
+  const [find, setFind] = useState('');
+  // "Naya naam hai": the heard name can be corrected before it is added
+  const [newName, setNewName] = useState(q.name ?? '');
   const byId = new Map(p.parties.map((x) => [x.id, x]));
+  const findText = find.trim();
+  const found = findText ? p.parties.filter((x) => matchesQuery(x, findText)).slice(0, 8) : p.recent;
+  const sameNameExists = p.parties.some((x) => normalizeText(x.name) === normalizeText(findText));
   const known = q.partial;
 
   const kindName = (k: ParsedKind) => (k === 'diye' ? t('diye') : k === 'mile' ? t('mile') : '');
@@ -72,16 +82,26 @@ export function QuestionView(p: Props) {
         )}
 
         {q.question === 'who' && (
-          <ul className="flex flex-col gap-3">
-            {p.recent.map((party) => (
-              <li key={party.id}>
-                <PartyRow name={party.name} identifier={party.identifier} balance={p.balances[party.id] ?? 0} onClick={() => p.onParty(party)} />
-              </li>
-            ))}
-            <li>
-              <OptionButton title={t('anotherCustomer')} onClick={p.onOtherParty} />
-            </li>
-          </ul>
+          <>
+            <SearchBar value={find} onChange={setFind} placeholder={t('findCustomer')} />
+            <ul className="flex flex-col gap-3">
+              {found.map((party) => (
+                <li key={party.id}>
+                  <PartyRow name={party.name} identifier={party.identifier} balance={p.balances[party.id] ?? 0} onClick={() => p.onParty(party)} />
+                </li>
+              ))}
+              {findText && !sameNameExists && (
+                <li>
+                  <OptionButton title={t('addNamed').replace('{name}', findText)} onClick={() => p.onAddParty(findText)} />
+                </li>
+              )}
+              {!findText && (
+                <li>
+                  <OptionButton title={t('anotherCustomer')} onClick={p.onOtherParty} />
+                </li>
+              )}
+            </ul>
+          </>
         )}
 
         {q.question === 'which_amount' && (
@@ -99,9 +119,13 @@ export function QuestionView(p: Props) {
         )}
 
         {q.question === 'new_party' && (
-          <Card className="py-8 text-center">
-            <p dir="auto" className="break-words text-display font-extrabold text-ink">{q.name}</p>
-          </Card>
+          <TextField
+            label={t('nameLabelEdit')}
+            size="lg"
+            maxLength={80}
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+          />
         )}
 
         {q.question === 'amount' && (
@@ -128,7 +152,7 @@ export function QuestionView(p: Props) {
         <BottomActionBar>
           <div className="grid grid-cols-[1fr_1.4fr] gap-3">
             <BigButton size="lg" variant="ghost" onClick={p.onNoParty}>{t('no')}</BigButton>
-            <BigButton size="lg" onClick={p.onAddParty}>{t('yesAddParty')}</BigButton>
+            <BigButton size="lg" disabled={newName.trim().length === 0} onClick={() => p.onAddParty(newName.trim())}>{t('yesAddParty')}</BigButton>
           </div>
         </BottomActionBar>
       )}

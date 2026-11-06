@@ -20,9 +20,9 @@ const MESSAGE: Record<Problem, TextKey> = {
   other: 'voiceError',
 };
 
-type Props = { problem: Problem; onRetry: () => void; onManual: (kind: 'diye' | 'mile') => void; onBack: () => void };
+type Props = { problem: Problem; onRetry: () => void; onType: () => void; onManual: (kind: 'diye' | 'mile') => void; onBack: () => void };
 
-export function ProblemView({ problem, onRetry, onManual, onBack }: Props) {
+export function ProblemView({ problem, onRetry, onType, onManual, onBack }: Props) {
   const { t } = useT();
   // Trying again only helps when it can work: not on a phone without voice, not without permission
   const canRetry = problem === 'no_speech' || problem === 'other' || problem === 'bad_language' || problem === 'offline';
@@ -39,6 +39,7 @@ export function ProblemView({ problem, onRetry, onManual, onBack }: Props) {
         {canRetry && (
           <BigButton full icon="mic" variant={problem === 'no_speech' ? 'primary' : 'ghost'} onClick={onRetry}>{t('voiceRetry')}</BigButton>
         )}
+        <BigButton full icon="edit" variant="ghost" onClick={onType}>{t('typeInstead')}</BigButton>
       </div>
       <BottomActionBar>
         <p className="mb-3 text-center text-label font-bold text-inkSoft">{t('writeByHand')}</p>
