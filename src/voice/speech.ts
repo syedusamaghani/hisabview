@@ -89,9 +89,11 @@ export function listen(opts: ListenOptions): Listener {
   let finished = false;
   let silenceTimer: number | undefined;
   let waitTimer: number | undefined;
+  let forceTimer: number | undefined;
   const clear = () => {
     window.clearTimeout(silenceTimer);
     window.clearTimeout(waitTimer);
+    window.clearTimeout(forceTimer);
   };
   const stop = () => {
     try {
@@ -99,6 +101,20 @@ export function listen(opts: ListenOptions): Listener {
     } catch {
       // already stopped
     }
+    // Some phones never say "ended" after stop(). Do not wait for ever: finish with what we heard.
+    window.clearTimeout(forceTimer);
+    forceTimer = window.setTimeout(() => {
+      if (finished) return;
+      finished = true;
+      clear();
+      try {
+        rec.abort();
+      } catch {
+        // already stopped
+      }
+      if (latest.trim()) opts.onEnd(latest.trim());
+      else opts.onProblem('no_speech', 'no end event after stop');
+    }, 2500);
   };
 
   const wait = opts.waitMs ?? 8000;
@@ -121,7 +137,8 @@ export function listen(opts: ListenOptions): Listener {
     opts.onText({ text, final, confidence: best ? (best[0].confidence ?? null) : null, alternatives: alts });
     // A pause after the last word means "done"
     window.clearTimeout(silenceTimer);
-    silenceTimer = window.setTimeout(stop, opts.silenceMs ?? 1600);
+    // A finished result means the phone is already sure: do not make the person wait
+    silenceTimer = window.setTimeout(stop, final ? 300 : (opts.silenceMs ?? 1600));
   };
 
   rec.onerror = (e) => {

@@ -3,6 +3,7 @@ import { entriesRepo, partiesRepo, statsRepo, useLive } from '../data';
 import { goBack, navigate, setFlash } from '../lib/router';
 import { finishEntryFlow } from '../lib/phoneAsk';
 import { splitByLastContact } from '../lib/recent';
+import { reportError } from '../lib/report';
 import { learnAlias, ruleParser, withAliases, type Forced, type ParseQuestion, type ParsedEntry } from '../voice';
 import { listen, preferredLangs, rememberLang, type Listener } from '../voice/speech';
 import { ConfirmView } from './voice/ConfirmView';
@@ -18,6 +19,9 @@ type View =
   | { name: 'confirm'; entry: ParsedEntry }
   | { name: 'question'; question: ParseQuestion }
   | { name: 'problem'; problem: Problem };
+
+// A number (with maybe "rupay") at the very end of what was heard
+const AMOUNT_LAST = /d[d,]*s*(?:rs.?|rupay[ae]?|rupees?|روپے|روپیہ)?s*$/i;
 
 // Speak an entry: listen -> understand -> check card -> Theek hai.
 // If the sentence is not clear the app asks ONE question with big answers to tap.
@@ -37,6 +41,7 @@ export default function VoiceScreen() {
   const forced = useRef<Forced>({});
   const pending = useRef<string | null>(null);
   const listener = useRef<Listener | null>(null);
+  const amountTimer = useRef<number | undefined>(undefined);
 
   // Read the sentence (with any answers already given) and show the next screen
   const run = useCallback(async (text: string) => {
@@ -49,7 +54,15 @@ export default function VoiceScreen() {
     // The balance goes along so "hisaab clear karo" knows how much to settle
     // and the spellings the phone got wrong before (corrected by the shopkeeper), so it can find the person
     const people = withAliases(d.parties.map((p) => ({ id: p.id, name: p.name, identifier: p.identifier, balance: d.stats[p.id]?.balance ?? 0 })));
-    const result = await ruleParser.parse(text, people, new Date(), forced.current);
+    let result: Awaited<ReturnType<typeof ruleParser.parse>>;
+    try {
+      result = await ruleParser.parse(text, people, new Date(), forced.current);
+    } catch (e) {
+      // Never leave the person staring at a stuck screen: say so and offer typing or the manual buttons
+      reportError(e, 'voice parse');
+      setView({ name: 'problem', problem: 'other' });
+      return;
+    }
     // Remember the name as the phone heard it. If the shopkeeper then corrects the person and saves, we learn from it.
     if (!heardName.current) {
       if (result.type === 'entry') heardName.current = result.heard_name ?? '';
@@ -80,8 +93,15 @@ export default function VoiceScreen() {
       const lang = langs[i];
       listener.current = listen({
         lang,
-        onText: (info) => setHeard(info.text),
+        silenceMs: 1300,
+        onText: (info) => {
+          setHeard(info.text);
+          // The amount was the last thing said ("Usama 500"): stop right there, the app asks the rest
+          window.clearTimeout(amountTimer.current);
+          if (AMOUNT_LAST.test(info.text)) amountTimer.current = window.setTimeout(() => listener.current?.stop(), 700);
+        },
         onEnd: (text) => {
+          window.clearTimeout(amountTimer.current);
           rememberLang(lang);
           transcript.current = text;
           setHeard(text);
@@ -100,8 +120,18 @@ export default function VoiceScreen() {
 
   useEffect(() => {
     start();
-    return () => listener.current?.abort();
+    return () => {
+      listener.current?.abort();
+      window.clearTimeout(amountTimer.current);
+    };
   }, [start]);
+
+  // Safety net: if reading the sentence takes too long for any reason, show the way out instead of waiting forever
+  useEffect(() => {
+    if (view.name !== 'working') return;
+    const id = window.setTimeout(() => setView({ name: 'problem', problem: 'other' }), 8000);
+    return () => window.clearTimeout(id);
+  }, [view]);
 
   const parties = data?.parties ?? [];
   const balances = useMemo(() => Object.fromEntries(Object.values(data?.stats ?? {}).map((s) => [s.party_id, s.balance])), [data]);
