@@ -9,6 +9,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { TextField } from '../components/TextField';
 import { partiesRepo, useLive } from '../data';
 import { useT } from '../i18n/i18n';
+import { loadBook, notYetCustomers, searchBook } from '../lib/contactBook';
 import { contactPickerSupported, pickContact } from '../lib/contacts';
 import { similarParties } from '../lib/partyText';
 import { goBack, navigate } from '../lib/router';
@@ -33,6 +34,9 @@ export function AddPartyScreen() {
   const existing = useLive(() => partiesRepo.listActive(), []);
   const similar = useMemo(() => similarParties(name, existing ?? []), [name, existing]);
   const ready = name.trim().length > 0;
+  // Contacts the person added to the app, matching what is typed
+  const [book] = useState(loadBook);
+  const suggestions = useMemo(() => (name.trim().length >= 2 ? searchBook(notYetCustomers(book, existing ?? []), name, 3) : []), [name, book, existing]);
 
   const pick = async () => {
     const contact = await pickContact();
@@ -67,6 +71,22 @@ export function AddPartyScreen() {
           autoFocus
           onChange={(e) => setName(e.target.value)}
         />
+
+        {suggestions.length > 0 && (
+          <div className="flex flex-wrap gap-2" aria-label={t('fromContacts')}>
+            {suggestions.map((c) => (
+              <Chip
+                key={c.phone}
+                onClick={() => {
+                  setName(c.name);
+                  setPhone(c.phone);
+                }}
+              >
+                {c.name} · {c.phone}
+              </Chip>
+            ))}
+          </div>
+        )}
 
         {similar.length > 0 && (
           <Card tone="soft" aria-live="polite" className="flex flex-col gap-2">

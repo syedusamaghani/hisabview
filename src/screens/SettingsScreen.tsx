@@ -9,6 +9,7 @@ import { SwitchRow } from '../components/SwitchRow';
 import { TextField } from '../components/TextField';
 import { describeSync, isTesting, shopsRepo, startTesting, stopTesting, sync, useSyncState, type Shop } from '../data';
 import { useT } from '../i18n/i18n';
+import { ContactsCard } from './ContactsCard';
 import { shopLanguage, type Lang } from '../i18n/translations';
 import { formatDay, formatTime } from '../lib/dates';
 import { APP_VERSION } from '../lib/report';
@@ -138,6 +139,8 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           <BigButton full variant="ghost" icon="cloud" disabled={syncing} onClick={saveNow}>{t('backupNow')}</BigButton>
         </Card>
         )}
+
+        <ContactsCard />
 
         <Card className="flex flex-col gap-2">
           <h2 className="text-label font-bold text-inkSoft">{t('testTitle')}</h2>

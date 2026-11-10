@@ -229,6 +229,14 @@ export default function VoiceScreen() {
             setView({ name: 'problem', problem: 'other' });
           }
         }}
+        onAddContact={async (name, phone) => {
+          try {
+            const { party } = await partiesRepo.create({ name, phone });
+            answer({ party });
+          } catch {
+            setView({ name: 'problem', problem: 'other' });
+          }
+        }}
         onPickExisting={() => setView({ name: 'question', question: { type: 'question', question: 'who', partial: q.partial } })}
         onNoParty={() => (q.partial.kind ? manual(q.partial.kind as 'diye' | 'mile') : goBack('/'))}
         onOtherParty={() => manual((q.partial.kind as 'diye' | 'mile' | undefined) ?? 'diye')}

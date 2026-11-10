@@ -422,8 +422,8 @@ const base = {
   },
   privacy8T: { ro: '8. Customers ki jankari', ur: 'کسٹمرز کی معلومات' },
   privacy8B: {
-    ro: 'Aap apne customers ke naam aur phone number khud likhte hain. Wo sirf aap ke hisaab ke liye hain. Hum unhein kisi aur kaam mein istemal nahi karte, na unhein message bhejte hain.',
-    ur: 'آپ اپنے کسٹمرز کے نام اور فون نمبر خود لکھتے ہیں۔ وہ صرف آپ کے حساب کے لیے ہیں۔ ہم انہیں کسی اور کام میں استعمال نہیں کرتے، نہ انہیں پیغام بھیجتے ہیں۔',
+    ro: 'Aap apne customers ke naam aur phone number khud likhte hain. Wo sirf aap ke hisaab ke liye hain. Hum unhein kisi aur kaam mein istemal nahi karte, na unhein message bhejte hain. Agar aap phone ke contacts app mein jodte hain to wo sirf aap ke phone par rehte hain, server par nahi jate.',
+    ur: 'آپ اپنے کسٹمرز کے نام اور فون نمبر خود لکھتے ہیں۔ وہ صرف آپ کے حساب کے لیے ہیں۔ ہم انہیں کسی اور کام میں استعمال نہیں کرتے، نہ انہیں پیغام بھیجتے ہیں۔ اگر آپ فون کے رابطے ایپ میں جوڑتے ہیں تو وہ صرف آپ کے فون پر رہتے ہیں، سرور پر نہیں جاتے۔',
   },
   privacy9T: { ro: '9. Bachche', ur: 'بچے' },
   privacy9B: {
@@ -471,6 +471,20 @@ const base = {
   editCustomerTitle: { ro: 'Customer theek karein', ur: 'کسٹمر ٹھیک کریں' },
   clearAccount: { ro: 'Poora hisaab clear karo', ur: 'پورا حساب کلیئر کرو' },
 
+  contactsTitle: { ro: 'Phone ke contacts', ur: 'فون کے رابطے' },
+  contactsBody: {
+    ro: 'Ek baar contacts jod lein, phir naam aur number khud mil jayenge. Khulne wali list mein "Sab" chun lein. Ye sirf aap ke phone par rehte hain, kahin bheje nahi jate.',
+    ur: 'ایک بار رابطے جوڑ لیں، پھر نام اور نمبر خود مل جائیں گے۔ کھلنے والی فہرست میں "سب" چن لیں۔ یہ صرف آپ کے فون پر رہتے ہیں، کہیں بھیجے نہیں جاتے۔',
+  },
+  contactsAdd: { ro: 'Contacts jodein', ur: 'رابطے جوڑیں' },
+  contactsCount: { ro: '{n} contacts jude hue hain', ur: '{n} رابطے جڑے ہوئے ہیں' },
+  contactsRemove: { ro: 'Contacts hata do', ur: 'رابطے ہٹا دو' },
+  contactsSearch: { ro: 'Contacts mein dhoondein', ur: 'رابطوں میں ڈھونڈیں' },
+  fromContacts: { ro: 'Aap ke contacts se', ur: 'آپ کے رابطوں سے' },
+  contactsUnsupported: {
+    ro: 'Is phone ka browser contacts jodne nahi deta (Android par Chrome chahiye). Naam aur number haath se likh sakte hain.',
+    ur: 'اس فون کا براؤزر رابطے جوڑنے نہیں دیتا (اینڈرائیڈ پر کروم چاہیے)۔ نام اور نمبر ہاتھ سے لکھ سکتے ہیں۔',
+  },
   linkPhoneTitle: { ro: 'Kya {name} aap ke contacts mein hai?', ur: 'کیا {name} آپ کے رابطوں میں ہے؟' },
 
   // Language names (always shown in their own language)

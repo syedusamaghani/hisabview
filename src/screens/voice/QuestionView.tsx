@@ -12,7 +12,10 @@ import { TextField } from '../../components/TextField';
 import type { Party } from '../../data';
 import { useT } from '../../i18n/i18n';
 import { formatRs } from '../../lib/money';
+import { addToBook, loadBook, notYetCustomers, searchBook } from '../../lib/contactBook';
+import { contactPickerSupported, pickManyContacts } from '../../lib/contacts';
 import { matchesQuery, normalizeText, similarParties } from '../../lib/partyText';
+import { similarContacts } from '../../voice/contactMatch';
 import { questionText, type ParseQuestion, type ParsedKind } from '../../voice';
 
 // One short question with big answers to tap. There is no typing box:
@@ -28,6 +31,7 @@ type Props = {
   onParty: (party: Party) => void;
   onAddParty: (name: string) => void; // the name, as typed or corrected by the person
   onPickExisting: () => void; // "this is an existing customer": the search list
+  onAddContact: (name: string, phone: string) => void; // a phone contact becomes a customer, with its number
   onNoParty: () => void;
   onOtherParty: () => void;
   onRetry: () => void;
@@ -51,6 +55,20 @@ export function QuestionView(p: Props) {
   const found = findText ? p.parties.filter((x) => matchesQuery(x, findText)).slice(0, 8) : p.recent;
   const sameNameExists = p.parties.some((x) => normalizeText(x.name) === normalizeText(findText));
   const known = q.partial;
+  // The contacts the person added to the app: suggest the ones that are not customers yet
+  const [book, setBook] = useState(loadBook);
+  const fresh = notYetCustomers(book, p.parties);
+  const contactHits = q.question === 'new_party' ? similarContacts(newName, fresh) : q.question === 'who' && findText ? searchBook(fresh, findText) : [];
+  const canImport = contactPickerSupported() && book.length === 0;
+  const importNow = async () => {
+    const picked = await pickManyContacts();
+    if (picked) setBook(addToBook(picked));
+  };
+  const contactRows = contactHits.map((c) => (
+    <li key={c.phone}>
+      <OptionButton title={c.name} subtitle={`${c.phone} · ${t('fromContacts')}`} onClick={() => p.onAddContact(c.name, c.phone)} />
+    </li>
+  ));
 
   const kindName = (k: ParsedKind) => (k === 'diye' ? t('diye') : k === 'mile' ? t('mile') : '');
   const bar = q.question === 'kind' || q.question === 'new_party' || q.question === 'amount';
@@ -96,6 +114,12 @@ export function QuestionView(p: Props) {
                   <PartyRow name={party.name} identifier={party.identifier} balance={p.balances[party.id] ?? 0} onClick={() => p.onParty(party)} />
                 </li>
               ))}
+              {contactRows}
+              {canImport && (
+                <li>
+                  <OptionButton title={t('contactsSearch')} onClick={importNow} />
+                </li>
+              )}
               {findText && !sameNameExists && (
                 <li>
                   <OptionButton title={t('addNamed').replace('{name}', findText)} onClick={() => p.onAddParty(findText)} />
@@ -143,6 +167,8 @@ export function QuestionView(p: Props) {
                 ))}
               </ul>
             )}
+            {contactRows.length > 0 && <ul className="flex flex-col gap-3">{contactRows}</ul>}
+            {canImport && <OptionButton title={t('contactsSearch')} onClick={importNow} />}
             <OptionButton title={t('existingCustomer')} onClick={p.onPickExisting} />
           </>
         )}

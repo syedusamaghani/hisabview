@@ -259,7 +259,7 @@ export const english: Record<TextKey, string> = {
   privacy7T: '7. Your rights',
   privacy7B: 'You can see your records in the app at any time. If you want your whole account and records erased forever, write to us (see contact below). We erase everything on your request.',
   privacy8T: '8. Customer information',
-  privacy8B: 'You write your customers\' names and phone numbers yourself. They are only for your records. We do not use them for anything else, and we do not message them.',
+  privacy8B: 'You write your customers\' names and phone numbers yourself. They are only for your records. We do not use them for anything else, and we do not message them. If you add your phone contacts to the app, they stay only on your phone and are never sent to the server.',
   privacy9T: '9. Children',
   privacy9B: 'HisabView is for shopkeepers, not for children.',
   privacy10T: '10. Changes and contact',
@@ -289,6 +289,14 @@ export const english: Record<TextKey, string> = {
   editCustomerTitle: 'Edit customer',
   clearAccount: 'Clear the whole balance',
 
+  contactsTitle: 'Phone contacts',
+  contactsBody: 'Add your contacts once, then names and numbers are found by themselves. In the list that opens, choose "All". They stay only on your phone and are never sent anywhere.',
+  contactsAdd: 'Add contacts',
+  contactsCount: '{n} contacts added',
+  contactsRemove: 'Remove contacts',
+  contactsSearch: 'Search contacts',
+  fromContacts: 'From your contacts',
+  contactsUnsupported: "This phone's browser does not allow adding contacts (Chrome on Android is needed). You can write names and numbers by hand.",
   linkPhoneTitle: 'Is {name} in your contacts?',
 
   langRo: 'Roman Urdu',

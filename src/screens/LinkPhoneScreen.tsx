@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { BigButton } from '../components/BigButton';
+import { OptionButton } from '../components/OptionButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { partiesRepo, useLive } from '../data';
 import { useT } from '../i18n/i18n';
+import { loadBook, searchBook } from '../lib/contactBook';
+import { normalizeText } from '../lib/partyText';
 import { skipPhoneAsk } from '../lib/phoneAsk';
 import { finishFlow } from '../lib/router';
 import { PhoneCard } from './PhoneCard';
@@ -19,6 +22,10 @@ export function LinkPhoneScreen({ partyId }: { partyId: string }) {
   }, [party]);
 
   if (!party) return <main className="mx-auto min-h-screen max-w-app" />;
+  // The app's own contacts: the same name, or the first word of it
+  const book = loadBook();
+  const hits = searchBook(book, party.name, 3);
+  const matches = hits.length > 0 ? hits : searchBook(book, normalizeText(party.name).split(' ')[0] ?? '', 3);
   const later = () => {
     skipPhoneAsk(party.id);
     done();
@@ -29,6 +36,15 @@ export function LinkPhoneScreen({ partyId }: { partyId: string }) {
       <ScreenHeader title={party.name} subtitle={party.identifier ?? undefined} onBack={later} />
       <div className="flex flex-col gap-4 px-gutter pt-5">
         <h2 className="text-display font-extrabold leading-tight text-ink">{t('linkPhoneTitle').replace('{name}', party.name)}</h2>
+        {matches.length > 0 && (
+          <ul className="flex flex-col gap-3">
+            {matches.map((c) => (
+              <li key={c.phone}>
+                <OptionButton title={c.name} subtitle={`${c.phone} · ${t('fromContacts')}`} onClick={() => void partiesRepo.update(party.id, { phone: c.phone })} />
+              </li>
+            ))}
+          </ul>
+        )}
         <PhoneCard partyId={party.id} />
         <BigButton full variant="ghost" onClick={later}>{t('later')}</BigButton>
       </div>
