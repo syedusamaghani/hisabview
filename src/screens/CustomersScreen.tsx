@@ -13,6 +13,7 @@ import { partiesRepo, statsRepo, useLive } from '../data';
 import { useT } from '../i18n/i18n';
 import { buildSearch } from '../lib/partyText';
 import { navigate, takeFlash } from '../lib/router';
+import { ContactsCard } from './ContactsCard';
 import { useLimit } from './useLimit';
 
 // Everyone in the khata: highest balance first, with a sticky search bar.
@@ -49,8 +50,10 @@ export function CustomersScreen() {
     <main className="mx-auto min-h-screen max-w-app pb-[calc(var(--bar-h)+24px)]">
       <ScreenHeader title={t('navCustomers')} right={<HideAmountsButton tone="header" />} />
 
-      <div className="px-gutter pt-4">
+      <div className="flex flex-col gap-4 px-gutter pt-4">
         <HideBanner />
+        {/* Offered here, where customers are: it makes names and numbers easy everywhere else */}
+        <ContactsCard offer />
       </div>
 
       {!noParties && (
