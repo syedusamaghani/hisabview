@@ -10,7 +10,7 @@ const STORAGE_KEY = 'hv_lang';
 function readSavedLang(): Lang | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'ro' || saved === 'ur') return saved;
+    if (saved === 'ro' || saved === 'ur' || saved === 'en') return saved;
   } catch {
     // Storage can be blocked. Roman Urdu is the default.
   }

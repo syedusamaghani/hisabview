@@ -12,7 +12,7 @@ Pain points: embarrassment asking for money, disputes ("maine to paise de diye t
 - Red = money went out / customer owes. Green = money came in. Red/green are ONLY for money meaning.
 - Every common task in 3 taps or fewer. One main action per screen.
 - Tap targets min 56px. Big bold numbers. High contrast (readable in sunlight). Key actions near the bottom (one-hand use).
-- Languages: Roman Urdu (default) and Urdu (proper RTL). Chosen on first launch, changeable in settings. ALL UI text lives in one translations file. No hardcoded strings in components.
+- Languages: Roman Urdu (default), Urdu (proper RTL) and English. Chosen on first launch, changeable in settings. English words live in src/i18n/english.ts (typed so no key can be missing); the server only stores 'ro'/'ur' for a shop, English is saved there as 'ro' (`shopLanguage`), the real choice is in localStorage hv_lang. ALL UI text lives in one translations file. No hardcoded strings in components.
 - Every entry confirmed before saving. Every entry can be undone.
 - Financial records are NEVER hard-deleted. Cancel = status 'cancelled' + audit log.
 - Haptic vibration + short sound on successful save.
@@ -83,6 +83,8 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - "Aaj ka hisaab" uses Pakistan day (UTC+5); see "WhatsApp and Aaj ka hisaab" below.
 - Settings: language (also saved on the shop, audited), hide amounts, shop name (audited), logout (asks first). Hidden customers can be brought back from the Customers tab.
 - Contact Picker only appears where the phone supports it (src/lib/contacts.ts).
+
+- "Badlo" on a SAVED entry (customer page and /today: tap entry -> Badlo): opens the entry screen with the amount and note already filled (`changeEntryPath` in EntryScreen, `?amount=&from=&note=`). Saving writes the new entry, then cancels the old one (both audited, nothing deleted).
 
 ## Voice parser (built in chunk 2A, brain only, no screen yet)
 - Code: src/voice. Screens use ONLY `src/voice/index.ts`: `ruleParser.parse(text, parties, now?)` (may be async so a Claude parser can replace it) and `questionText(q, lang)`.

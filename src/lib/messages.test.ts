@@ -87,7 +87,7 @@ describe('words', () => {
     const bad = /debit|credit|ledger|receivable|payable/i;
     for (const key of Object.keys(text) as (keyof typeof text)[]) {
       if (!/^(msg|bal|tone|today)/.test(key)) continue;
-      for (const lang of ['ro', 'ur'] as Lang[]) expect(text[key][lang]).not.toMatch(bad);
+      for (const lang of ['ro', 'ur', 'en'] as Lang[]) expect(text[key][lang]).not.toMatch(bad);
     }
   });
 });

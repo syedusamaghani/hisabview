@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AmountText } from '../components/AmountText';
 import { BigButton } from '../components/BigButton';
 import { BottomActionBar } from '../components/BottomActionBar';
@@ -16,6 +16,16 @@ import { partyBalance } from '../lib/balance';
 import { cx } from '../lib/cx';
 import { TextField } from '../components/TextField';
 import { finishFlow, goBack, navigate, setFlash } from '../lib/router';
+
+// "Badlo" on a saved entry: the same entry screen with the amount and note already filled in.
+// Saving writes the new entry and then cancels the old one (both are kept in the diary, nothing is deleted).
+export function changeEntryPath(entry: { id: string; kind: string; party_id: string | null; amount: number; note: string | null }): string | null {
+  const q = `?amount=${entry.amount}&from=${entry.id}${entry.note ? `&note=${encodeURIComponent(entry.note)}` : ''}`;
+  if ((entry.kind === 'diye' || entry.kind === 'mile') && entry.party_id) return `/party/${entry.party_id}/${entry.kind}${q}`;
+  if (entry.kind === 'cash_sale') return `/today/sale${q}`;
+  if (entry.kind === 'kharcha') return `/today/kharcha${q}`;
+  return null;
+}
 
 export type EntryKind = 'diye' | 'mile' | 'cash_sale' | 'kharcha';
 
@@ -39,8 +49,11 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [note, setNote] = useState('');
-  const [noteOpen, setNoteOpen] = useState(false);
+  const query = new URLSearchParams(window.location.search);
+  const changing = query.get('from'); // the saved entry being replaced
+  const [note, setNote] = useState(() => (changing ? (query.get('note') ?? '') : ''));
+  const [noteOpen, setNoteOpen] = useState(() => !!(changing && query.get('note')));
+  const newId = useRef<string | null>(null);
 
   const home = partyId ? `/party/${partyId}` : '/today';
   const back = () => goBack(home);
@@ -65,8 +78,10 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
     setSaving(true);
     setFailed(false);
     try {
-      const entry = await entriesRepo.create({ kind, party_id: party?.id ?? null, amount, note });
-      setFlash({ kind: 'undoEntry', entryId: entry.id });
+      // On a retry the new entry already exists: only the cancel is left to do
+      if (!newId.current) newId.current = (await entriesRepo.create({ kind, party_id: party?.id ?? null, amount, note })).id;
+      if (changing) await entriesRepo.cancel(changing).catch((e) => { if (!/already cancelled/.test(String(e))) throw e; });
+      setFlash({ kind: 'undoEntry', entryId: newId.current });
       setSaved(true);
     } catch {
       setFailed(true);

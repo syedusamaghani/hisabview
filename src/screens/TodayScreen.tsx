@@ -13,6 +13,7 @@ import { cx } from '../lib/cx';
 import { formatDay, formatTime } from '../lib/dates';
 import { todayText } from '../lib/messages';
 import { beginFlow, goBack, navigate } from '../lib/router';
+import { changeEntryPath } from './EntryScreen';
 import { pakistanDayStart, todayEntries, todaySummary } from '../lib/today';
 import { openWhatsApp, whatsappUrl } from '../lib/whatsapp';
 import { useEntrySnack } from './useEntrySnack';
@@ -119,6 +120,7 @@ function TodayRow({ entry, name, open, onToggle, onCancel }: { entry: Entry; nam
   const { t, lang } = useT();
   const rowRef = useRef<HTMLLIElement>(null);
   const [asking, setAsking] = useState(false);
+  const changePath = changeEntryPath(entry);
   useEffect(() => {
     if (open) rowRef.current?.scrollIntoView({ block: 'nearest' });
     else setAsking(false);
@@ -170,7 +172,10 @@ function TodayRow({ entry, name, open, onToggle, onCancel }: { entry: Entry; nam
               <BigButton full variant="ghost" onClick={onToggle}>{t('no')}</BigButton>
             </>
           ) : (
-            <BigButton full variant="ghost" onClick={() => setAsking(true)}>{t('cancelEntry')}</BigButton>
+            <>
+              {changePath && <BigButton full icon="edit" onClick={() => { beginFlow(); navigate(changePath); }}>{t('badlo')}</BigButton>}
+              <BigButton full variant="ghost" onClick={() => setAsking(true)}>{t('cancelEntry')}</BigButton>
+            </>
           )}
         </div>
       )}

@@ -1,10 +1,12 @@
 // ALL text shown in the app lives in this one file. No text inside components.
-// 'ro' = Roman Urdu (default), 'ur' = Urdu (right-to-left).
-// To add text: add one line below with both languages, then use t('yourKey').
+// 'ro' = Roman Urdu (default), 'ur' = Urdu (right-to-left), 'en' = English (words in english.ts).
+// To add text: add one line below with Roman Urdu and Urdu, add the English in english.ts, then use t('yourKey').
 
-export type Lang = 'ro' | 'ur';
+import { english } from './english';
 
-export const text = {
+export type Lang = 'ro' | 'ur' | 'en';
+
+const base = {
   appName: { ro: 'HisabView', ur: 'حساب ویو' },
   tagline: { ro: 'Aap ki dukaan ka udhaar khata', ur: 'آپ کی دکان کا ادھار کھاتا' },
 
@@ -456,8 +458,18 @@ export const text = {
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },
   langUr: { ro: 'اردو', ur: 'اردو' },
+  langEn: { ro: 'English', ur: 'English' },
 } as const;
 
-export type TextKey = keyof typeof text;
+export type TextKey = keyof typeof base;
+
+// Every key with all three languages
+export const text = Object.fromEntries(
+  (Object.keys(base) as TextKey[]).map((k) => [k, { ...base[k], en: english[k] }]),
+) as Record<TextKey, { ro: string; ur: string; en: string }>;
+
+// The server only knows 'ro' and 'ur' for a shop's language, so English is kept as 'ro' there
+// (the phone remembers the real choice).
+export const shopLanguage = (lang: Lang): 'ro' | 'ur' => (lang === 'en' ? 'ro' : lang);
 
 export const isRtl = (lang: Lang) => lang === 'ur';

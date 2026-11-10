@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { shopsRepo } from '../data';
 import { useT } from '../i18n/i18n';
+import { shopLanguage } from '../i18n/translations';
 
 // One question: what is your shop called? One big box, one button.
 export function ShopNameScreen({ onCreated }: { onCreated: () => void }) {
@@ -20,7 +21,7 @@ export function ShopNameScreen({ onCreated }: { onCreated: () => void }) {
     setSaving(true);
     setFailed(false);
     try {
-      await shopsRepo.create({ shop_name: name, language: lang });
+      await shopsRepo.create({ shop_name: name, language: shopLanguage(lang) });
       onCreated();
     } catch {
       setFailed(true);

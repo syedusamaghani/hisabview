@@ -13,6 +13,7 @@ import { formatDay, formatTime } from '../lib/dates';
 import { cx } from '../lib/cx';
 import { statementText } from '../lib/messages';
 import { beginFlow, goBack, navigate, setFlash } from '../lib/router';
+import { changeEntryPath } from './EntryScreen';
 import { openWhatsApp, whatsappUrl } from '../lib/whatsapp';
 import { speakBalance, speakSupported, stopSpeaking } from '../voice/speak';
 import { useEntrySnack } from './useEntrySnack';
@@ -185,6 +186,7 @@ function HistoryRow({ entry, party, open, onToggle, onCancel }: { entry: Entry; 
   const { t, lang } = useT();
   const rowRef = useRef<HTMLLIElement>(null);
   const [asking, setAsking] = useState(false);
+  const changePath = changeEntryPath(entry);
   useEffect(() => {
     if (open) rowRef.current?.scrollIntoView({ block: 'nearest' });
     else setAsking(false);
@@ -241,7 +243,10 @@ function HistoryRow({ entry, party, open, onToggle, onCancel }: { entry: Entry; 
               <BigButton full variant="ghost" onClick={onToggle}>{t('no')}</BigButton>
             </>
           ) : (
-            <BigButton full variant="ghost" onClick={() => setAsking(true)}>{t('cancelEntry')}</BigButton>
+            <>
+              {changePath && <BigButton full icon="edit" onClick={() => { beginFlow(); navigate(changePath); }}>{t('badlo')}</BigButton>}
+              <BigButton full variant="ghost" onClick={() => setAsking(true)}>{t('cancelEntry')}</BigButton>
+            </>
           )}
         </div>
       )}

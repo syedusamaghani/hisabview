@@ -7,8 +7,9 @@ import { ChoiceCard } from '../components/ChoiceCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SwitchRow } from '../components/SwitchRow';
 import { TextField } from '../components/TextField';
-import { describeSync, shopsRepo, sync, useSyncState, type Language, type Shop } from '../data';
+import { describeSync, shopsRepo, sync, useSyncState, type Shop } from '../data';
 import { useT } from '../i18n/i18n';
+import { shopLanguage, type Lang } from '../i18n/translations';
 import { formatDay, formatTime } from '../lib/dates';
 import { APP_VERSION } from '../lib/report';
 import { navigate } from '../lib/router';
@@ -31,10 +32,10 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
   const [loggingOut, setLoggingOut] = useState(false);
   const [learned, setLearned] = useState(() => countAliases()); // wrong spellings the voice reader learned from corrections
 
-  const chooseLang = (next: Language) => {
+  const chooseLang = (next: Lang) => {
     if (next === lang) return;
     setLang(next);
-    void shopsRepo.update(shop.id, { language: next }); // remembered with the shop, and audited
+    void shopsRepo.update(shop.id, { language: shopLanguage(next) }); // remembered with the shop, and audited
   };
 
   // "Abhi save karo": send everything now and also check for changes from another phone
@@ -63,6 +64,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           <h2 className="text-label font-bold text-inkSoft">{t('langSection')}</h2>
           <div role="radiogroup" aria-label={t('langSection')} className="flex flex-col gap-3">
             <ChoiceCard title={t('langRo')} selected={lang === 'ro'} onSelect={() => chooseLang('ro')} className="!min-h-tap" />
+            <ChoiceCard title={t('langEn')} selected={lang === 'en'} onSelect={() => chooseLang('en')} className="!min-h-tap" />
             <ChoiceCard title={t('langUr')} selected={lang === 'ur'} onSelect={() => chooseLang('ur')} className="!min-h-tap font-urdu !text-title" />
           </div>
         </Card>

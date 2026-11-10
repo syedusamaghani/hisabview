@@ -28,14 +28,19 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
       <ScreenHeader title={t('privacyTitle')} subtitle={t('privacyUpdated')} onBack={onBack} />
       <div className="flex flex-col gap-4 px-gutter pt-5">
         {/* The visitor may not have chosen a language yet: one tap switches the whole page */}
-        <button
-          type="button"
-          onClick={() => setLang(lang === 'ro' ? 'ur' : 'ro')}
-          lang={lang === 'ro' ? 'ur' : 'en'}
-          className="min-h-tap self-start rounded-full border-[1.5px] border-line bg-surface px-5 text-body font-bold text-primary focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-accent"
-        >
-          {lang === 'ro' ? text.langUr.ur : text.langRo.ro}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {(['ro', 'en', 'ur'] as const).filter((l) => l !== lang).map((l) => (
+            <button
+              key={l}
+              type="button"
+              onClick={() => setLang(l)}
+              lang={l === 'ur' ? 'ur' : 'en'}
+              className="min-h-tap rounded-full border-[1.5px] border-line bg-surface px-5 text-body font-bold text-primary focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-accent"
+            >
+              {l === 'ur' ? text.langUr.ur : l === 'en' ? text.langEn.ro : text.langRo.ro}
+            </button>
+          ))}
+        </div>
         <p className="text-body text-inkSoft">{t('privacyIntro')}</p>
         {SECTIONS.map(([title, body]) => (
           <Card key={title} className="flex flex-col gap-2">
