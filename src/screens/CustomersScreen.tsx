@@ -4,16 +4,17 @@ import { BottomNav } from '../components/BottomNav';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { HideBanner } from '../components/HideBanner';
-import { HideAmountsButton } from '../components/IconButton';
+import { HideAmountsButton, IconButton } from '../components/IconButton';
 import { PartyRow } from '../components/PartyRow';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SearchBar } from '../components/SearchBar';
 import { Snackbar } from '../components/Snackbar';
 import { partiesRepo, statsRepo, useLive } from '../data';
 import { useT } from '../i18n/i18n';
+import { addToBook } from '../lib/contactBook';
+import { contactPickerSupported, pickManyContacts } from '../lib/contacts';
 import { buildSearch } from '../lib/partyText';
 import { navigate, takeFlash } from '../lib/router';
-import { ContactsCard } from './ContactsCard';
 import { useLimit } from './useLimit';
 
 // Everyone in the khata: highest balance first, with a sticky search bar.
@@ -22,6 +23,13 @@ export function CustomersScreen() {
   const { t } = useT();
   const [query, setQuery] = useState('');
   const [undoArchive, setUndoArchive] = useState<string | null>(null);
+  const [contactsAdded, setContactsAdded] = useState<number | null>(null);
+
+  // The phonebook icon: the phone's own list opens, the chosen contacts stay on this phone
+  const addContacts = async () => {
+    const picked = await pickManyContacts();
+    if (picked) setContactsAdded(addToBook(picked).length);
+  };
 
   // "Customer chhupa diya / Wapas lo", coming back from the customer's page
   useEffect(() => {
@@ -48,12 +56,18 @@ export function CustomersScreen() {
 
   return (
     <main className="mx-auto min-h-screen max-w-app pb-[calc(var(--bar-h)+24px)]">
-      <ScreenHeader title={t('navCustomers')} right={<HideAmountsButton tone="header" />} />
+      <ScreenHeader
+        title={t('navCustomers')}
+        right={
+          <div className="flex items-center gap-2">
+            {contactPickerSupported() && <IconButton tone="header" icon="contacts" label={t('contactsAdd')} onClick={addContacts} />}
+            <HideAmountsButton tone="header" />
+          </div>
+        }
+      />
 
       <div className="flex flex-col gap-4 px-gutter pt-4">
         <HideBanner />
-        {/* Offered here, where customers are: it makes names and numbers easy everywhere else */}
-        <ContactsCard offer />
       </div>
 
       {!noParties && (
@@ -96,6 +110,12 @@ export function CustomersScreen() {
         duration={10_000}
         onAction={() => undoArchive && void partiesRepo.update(undoArchive, { archived: false })}
         onClose={() => setUndoArchive(null)}
+      />
+
+      <Snackbar
+        open={contactsAdded !== null}
+        message={t('contactsCount').replace('{n}', String(contactsAdded ?? 0))}
+        onClose={() => setContactsAdded(null)}
       />
 
       <BottomNav active="customers">
