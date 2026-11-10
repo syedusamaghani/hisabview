@@ -455,6 +455,22 @@ const base = {
   },
   errReload: { ro: 'Dobara kholein', ur: 'دوبارہ کھولیں' },
 
+  // Testing mode (Settings) and editing a customer
+  testTitle: { ro: 'Testing', ur: 'ٹیسٹنگ' },
+  testSwitch: { ro: 'Testing mode', ur: 'ٹیسٹنگ موڈ' },
+  testBody: {
+    ro: 'On karne par naya khali test khata khulta hai. Asli khata bilkul mehfooz rehta hai, usay chhua nahi jata. Off karne par asli khata wapas aa jata hai. Har baar On karne par test khata naye sire se khali hota hai.',
+    ur: 'آن کرنے پر نیا خالی ٹیسٹ کھاتا کھلتا ہے۔ اصلی کھاتا بالکل محفوظ رہتا ہے، اسے چھوا نہیں جاتا۔ آف کرنے پر اصلی کھاتا واپس آ جاتا ہے۔ ہر بار آن کرنے پر ٹیسٹ کھاتا نئے سرے سے خالی ہوتا ہے۔',
+  },
+  testBanner: {
+    ro: 'TESTING chal rahi hai, ye asli khata nahi. Asli khata par wapas jane ke liye dabayein',
+    ur: 'ٹیسٹنگ چل رہی ہے، یہ اصلی کھاتا نہیں۔ اصلی کھاتے پر واپس جانے کے لیے دبائیں',
+  },
+  testShopName: { ro: 'Test Dukaan', ur: 'ٹیسٹ دکان' },
+  editCustomer: { ro: 'Edit karein', ur: 'تبدیل کریں' },
+  editCustomerTitle: { ro: 'Customer theek karein', ur: 'کسٹمر ٹھیک کریں' },
+  clearAccount: { ro: 'Poora hisaab clear karo', ur: 'پورا حساب کلیئر کرو' },
+
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },
   langUr: { ro: 'اردو', ur: 'اردو' },

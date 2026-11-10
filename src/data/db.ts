@@ -2,6 +2,7 @@
 // Only the repositories in this folder may use it. Screens never touch it directly.
 import Dexie, { type Table } from 'dexie';
 import { computeStats } from './stats';
+import { REAL_DB_NAME, TEST_DB_NAME, isTesting } from './testMode';
 import type { AuditRow, Entry, Party, PartyStat, Shop, SyncMeta } from './types';
 
 export class HisabDB extends Dexie {
@@ -12,7 +13,7 @@ export class HisabDB extends Dexie {
   sync_meta!: Table<SyncMeta, string>;
   party_stats!: Table<PartyStat, string>;
 
-  constructor(name = 'hisabview') {
+  constructor(name = REAL_DB_NAME) {
     super(name);
     // Only the fields we search by are listed. pending_sync lets Phase 4 find
     // everything that still has to be sent to the server.
@@ -36,4 +37,5 @@ export class HisabDB extends Dexie {
   }
 }
 
-export const db = new HisabDB();
+// In testing mode the phone opens its separate testing database instead of the real one
+export const db = new HisabDB(isTesting() ? TEST_DB_NAME : REAL_DB_NAME);

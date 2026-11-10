@@ -7,7 +7,7 @@ import { ChoiceCard } from '../components/ChoiceCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SwitchRow } from '../components/SwitchRow';
 import { TextField } from '../components/TextField';
-import { describeSync, shopsRepo, sync, useSyncState, type Shop } from '../data';
+import { describeSync, isTesting, shopsRepo, startTesting, stopTesting, sync, useSyncState, type Shop } from '../data';
 import { useT } from '../i18n/i18n';
 import { shopLanguage, type Lang } from '../i18n/translations';
 import { formatDay, formatTime } from '../lib/dates';
@@ -25,6 +25,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
   const { signOut, email } = useAuth();
   const syncState = useSyncState();
   const install = useInstall();
+  const testing = isTesting();
   const [syncing, setSyncing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(shop.shop_name);
@@ -111,6 +112,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           </Card>
         )}
 
+        {!testing && (
         <Card className="flex flex-col gap-3">
           <h2 className="text-body font-extrabold text-ink">{t('backupTitle')}</h2>
           <SyncBadge className="!text-inkSoft" />
@@ -134,6 +136,20 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           {syncState.pending > 0 && <p className="text-label font-bold text-ink">{t('backupPending').replace('{n}', String(syncState.pending))}</p>}
           {describeSync(syncState) === 'problem' && <p role="alert" className="text-label font-bold text-ink">{t('backupProblem')}</p>}
           <BigButton full variant="ghost" icon="cloud" disabled={syncing} onClick={saveNow}>{t('backupNow')}</BigButton>
+        </Card>
+        )}
+
+        <Card className="flex flex-col gap-2">
+          <h2 className="text-label font-bold text-inkSoft">{t('testTitle')}</h2>
+          <SwitchRow
+            label={t('testSwitch')}
+            checked={testing}
+            onChange={(next) => {
+              if (next) void startTesting();
+              else stopTesting();
+            }}
+          />
+          <p className="text-label text-inkSoft">{t('testBody')}</p>
         </Card>
 
         {install.canPrompt && (

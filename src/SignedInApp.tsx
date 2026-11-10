@@ -1,14 +1,17 @@
 // Everything a logged-in person sees. It is loaded only after login (lazy), so the first
 // screens (language, login) stay small and fast.
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { ScreenHeader } from './components/ScreenHeader';
-import { attachShop, shopsRepo, sync, useLive } from './data';
+import { attachShop, isTesting, shopsRepo, sync, useLive } from './data';
+import { TestBanner } from './components/TestBanner';
 import { useT } from './i18n/i18n';
+import { shopLanguage } from './i18n/translations';
 import { goBack, usePath } from './lib/router';
 import { AddPartyScreen } from './screens/AddPartyScreen';
 import { CustomersScreen } from './screens/CustomersScreen';
 import { DoneScreen } from './screens/DoneScreen';
 import { FeedbackScreen } from './screens/FeedbackScreen';
+import { EditPartyScreen } from './screens/EditPartyScreen';
 import { EntryScreen } from './screens/EntryScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { OldBalancesScreen } from './screens/OldBalancesScreen';
@@ -30,7 +33,8 @@ const VoiceScreen = lazy(() => import('./screens/VoiceScreen'));
 type Stage = 'restoring' | 'restoreFailed' | 'name' | 'done' | 'old' | 'home';
 
 export default function SignedInApp() {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const testShopMade = useRef(false);
   const path = usePath();
   const found = useLive(async () => ({ shop: (await shopsRepo.getMine()) ?? null }), []);
   const [stage, setStage] = useState<Stage | null>(null);
@@ -53,6 +57,14 @@ export default function SignedInApp() {
   // No shop on this phone: look on the internet before asking for a shop name
   useEffect(() => {
     if (stage !== 'restoring') return;
+    // Testing mode: no internet and no questions, a test shop is made at once
+    if (isTesting()) {
+      if (!testShopMade.current) {
+        testShopMade.current = true;
+        void shopsRepo.create({ shop_name: t('testShopName'), language: shopLanguage(lang) });
+      }
+      return;
+    }
     let alive = true;
     void sync.restore().then((result) => {
       if (!alive) return;
@@ -115,16 +127,20 @@ export default function SignedInApp() {
   if (path === '/settings' && shop) return <SettingsScreen shop={shop} />;
   const pick = /^\/entry\/(diye|mile)$/.exec(path);
   if (pick) return <PickPartyScreen kind={pick[1] as 'diye' | 'mile'} />;
-  const match = /^\/party\/([^/]+)(?:\/(diye|mile|remind))?$/.exec(path);
+  const match = /^\/party\/([^/]+)(?:\/(diye|mile|remind|edit))?$/.exec(path);
   if (match) {
     if (match[2] === 'remind') return <RemindScreen partyId={match[1]} />;
+    if (match[2] === 'edit') return <EditPartyScreen partyId={match[1]} />;
     return match[2] ? <EntryScreen partyId={match[1]} kind={match[2] as 'diye' | 'mile'} /> : <PartyScreen partyId={match[1]} />;
   }
   return <HomeScreen shopName={shop?.shop_name ?? t('appName')} />;
   })();
   return (
-    <div key={path} className="animate-fade">
-      {screen}
-    </div>
+    <>
+      <TestBanner />
+      <div key={path} className="animate-fade">
+        {screen}
+      </div>
+    </>
   );
 }

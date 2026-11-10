@@ -74,6 +74,13 @@ export function PartyScreen({ partyId }: { partyId: string }) {
     notify('entryCancelled');
   };
 
+  // Clear the whole balance: the normal entry screen opens with the full amount filled in
+  // (they owe us: Mile for all of it; we owe them: Diye), and it is checked before saving.
+  const clearAccount = () => {
+    beginFlow();
+    navigate(`/party/${party.id}/${balance > 0 ? 'mile' : 'diye'}?amount=${Math.abs(balance)}`);
+  };
+
   const archive = async () => {
     await partiesRepo.archive(party.id);
     setFlash({ kind: 'undoArchive', partyId: party.id });
@@ -92,9 +99,14 @@ export function PartyScreen({ partyId }: { partyId: string }) {
           <AmountText amount={Math.abs(balance)} size="xl" tone={balance > 0 ? 'out' : 'neutral'} />
         </Card>
 
-        <div className={canSpeak ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-2 gap-2'}>
+        {balance !== 0 && (
+          <BigButton full variant="ghost" icon="check" onClick={clearAccount}>{t('clearAccount')}</BigButton>
+        )}
+
+        <div className="grid grid-cols-2 gap-2">
           <ActionTile icon="bell" label={t('remind')} onClick={() => navigate(`/party/${party.id}/remind`)} />
           <ActionTile icon="whatsapp" label={t('sendStatement')} onClick={sendStatement} />
+          <ActionTile icon="edit" label={t('editCustomer')} onClick={() => navigate(`/party/${party.id}/edit`)} />
           {canSpeak && <ActionTile icon={speaking ? 'stop' : 'speaker'} label={speaking ? t('ruko') : t('listen')} pressed={speaking} onClick={sunao} />}
         </div>
 

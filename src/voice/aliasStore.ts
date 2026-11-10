@@ -1,6 +1,8 @@
 // Where the learned spellings are kept: this phone only (not sent anywhere). Small on purpose, so Settings can
 // use it (show a count, wipe it) without loading the voice reader.
-export const ALIAS_KEY = 'hv_aliases';
+import { isTesting } from '../data/testMode';
+
+export const ALIAS_KEY = isTesting() ? 'hv_aliases_test' : 'hv_aliases';
 
 export type Book = Record<string, string[]>; // customer id -> spellings the phone got wrong
 

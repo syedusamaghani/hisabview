@@ -86,6 +86,9 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 
 - "Badlo" on a SAVED entry (customer page and /today: tap entry -> Badlo): opens the entry screen with the amount and note already filled (`changeEntryPath` in EntryScreen, `?amount=&from=&note=`). Saving writes the new entry, then cancels the old one (both audited, nothing deleted).
 
+- Customer page: "Edit karein" (/party/:id/edit: name, pehchaan, phone; audited) and "Poora hisaab clear karo" (opens the normal entry screen with the full balance filled in: Mile if they owe us, Diye if we owe them; checked before saving). "Delete" = Customer chhupayein (archive), never a real delete.
+- Testing mode (Settings > Testing, src/data/testMode.ts): flag `hv_testing` in localStorage. ON wipes the separate Dexie database `hisabview_testing`, switches to it and reloads; a test shop is made automatically; `sync` becomes a do-nothing object (nothing goes to the internet); aliases use `hv_aliases_test`; Backup card and SyncBadge are hidden; a marigold TestBanner on every screen turns it off in one tap. OFF returns to the untouched real database `hisabview`. The database is chosen once at app start (src/data/db.ts), so every switch reloads the page.
+
 ## Voice parser (built in chunk 2A, brain only, no screen yet)
 - Code: src/voice. Screens use ONLY `src/voice/index.ts`: `ruleParser.parse(text, parties, now?)` (may be async so a Claude parser can replace it) and `questionText(q, lang)`.
 - Answer is `{type:'entry', party|null, kind, amount, promise_date?, confidence, warnings?}` or `{type:'question', question, name?, options?, partial}`. `partial` keeps what was understood, so nothing is lost when a question is asked.

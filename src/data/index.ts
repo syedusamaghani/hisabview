@@ -8,6 +8,7 @@ export { auditRepo } from './auditRepo';
 export type * from './types';
 export { MAX_AMOUNT } from './types';
 export { useLive } from './useLive';
+export { isTesting, startTesting, stopTesting } from './testMode';
 export { sync, describeSync, useSyncState } from './sync';
 export type { SyncState, SyncView, RestoreResult, SyncResult } from './sync';
 export type { NewParty, OpeningBalance, PartyChanges } from './partiesRepo';

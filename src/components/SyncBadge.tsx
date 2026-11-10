@@ -1,4 +1,4 @@
-import { describeSync, useSyncState, type SyncView } from '../data';
+import { describeSync, isTesting, useSyncState, type SyncView } from '../data';
 import { useT } from '../i18n/i18n';
 import type { TextKey } from '../i18n/translations';
 import { cx } from '../lib/cx';
@@ -18,6 +18,7 @@ export function SyncBadge({ className }: { className?: string }) {
   const { t } = useT();
   const state = useSyncState();
   const view = describeSync(state);
+  if (isTesting()) return null; // the testing khata is never sent anywhere
   return (
     <p role="status" className={cx('flex items-center gap-1.5 text-caption font-semibold', view === 'synced' ? 'text-primarySoft' : 'text-accent', className)}>
       <Icon name="cloud" size={18} />

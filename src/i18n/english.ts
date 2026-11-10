@@ -280,6 +280,15 @@ export const english: Record<TextKey, string> = {
   errBody: 'Sorry. Your records are safe on the phone. Please open the app again.',
   errReload: 'Open again',
 
+  testTitle: 'Testing',
+  testSwitch: 'Testing mode',
+  testBody: 'Turning it on opens a new empty test khata. Your real khata stays completely safe and is not touched. Turning it off brings the real khata back. Every time you turn it on, the test khata starts empty again.',
+  testBanner: 'TESTING is running, this is not the real khata. Tap to go back to the real khata',
+  testShopName: 'Test Shop',
+  editCustomer: 'Edit',
+  editCustomerTitle: 'Edit customer',
+  clearAccount: 'Clear the whole balance',
+
   langRo: 'Roman Urdu',
   langUr: 'اردو',
   langEn: 'English',
