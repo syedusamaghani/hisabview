@@ -6,8 +6,8 @@ export const english: Record<TextKey, string> = {
   appName: 'HisabView',
   tagline: 'The udhaar khata for your shop',
 
-  diye: 'Gave',
-  mile: 'Received',
+  diye: 'Lent',
+  mile: 'Got Paid',
   leneHain: 'To collect',
   deneHain: 'To pay',
 
@@ -30,7 +30,7 @@ export const english: Record<TextKey, string> = {
   backspace: 'Delete last digit',
 
   emptyTitle: 'No entries yet',
-  emptyBody: 'Tap Gave or Received below to write your first entry',
+  emptyBody: 'Tap Lent or Got Paid below to write your first entry',
   emptyButton: 'Write first entry',
 
   loginTitle: 'Welcome',
@@ -123,12 +123,12 @@ export const english: Record<TextKey, string> = {
   navSettings: 'Settings',
 
   todayTitle: "Today's account",
-  todayDiye: 'Gave today',
-  todayMile: 'Received today',
+  todayDiye: 'Udhaar given today',
+  todayMile: 'Paid today',
   recentTitle: 'Recent entries',
   hiddenBanner: 'Amounts are hidden. Tap to show them',
   micSoonTitle: 'Voice is coming soon',
-  micSoonBody: 'Writing entries by speaking will start very soon. Until then, tap Gave or Received.',
+  micSoonBody: 'Writing entries by speaking will start very soon. Until then, tap Lent or Got Paid.',
 
   pickWho: 'With whom?',
   recentCustomers: 'Recent customers',
@@ -147,7 +147,7 @@ export const english: Record<TextKey, string> = {
 
   qAmount: 'How much?',
   qWhichAmount: 'Which amount?',
-  qKind: 'Gave or Received?',
+  qKind: 'Lent or got paid?',
   qWho: 'Whose account?',
   qWhichParty: 'Which {name}?',
   qSettled: "{name}'s account is already settled",
@@ -167,7 +167,7 @@ export const english: Record<TextKey, string> = {
   voiceUnsupported: 'Speaking does not work on this phone. Please write by hand.',
   voiceError: 'There was a voice problem. Try again or write by hand.',
   checkCarefully: 'Please check carefully',
-  tapToChange: 'If wrong, tap the name, Gave/Received or the amount',
+  tapToChange: 'If wrong, tap the name, Lent / Got Paid, or the amount',
   promiseOn: 'Promise: {day}',
   yesAddParty: 'Yes, add',
   anotherCustomer: 'Another customer',
