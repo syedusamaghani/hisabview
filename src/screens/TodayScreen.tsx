@@ -57,7 +57,7 @@ export function TodayScreen() {
 
   return (
     <main className="mx-auto min-h-screen max-w-app pb-[calc(var(--bar-h)+24px)]">
-      <ScreenHeader title={t('todayTitle')} subtitle={view ? formatDay(view.now.toISOString(), lang) : undefined} onBack={() => goBack('/')} right={<HideAmountsButton tone="onBrand" />} />
+      <ScreenHeader title={t('todayTitle')} subtitle={view ? formatDay(view.now.toISOString(), lang) : undefined} onBack={() => goBack('/')} right={<HideAmountsButton tone="header" />} />
 
       <div className="flex flex-col gap-4 px-gutter pt-4">
         <HideBanner />

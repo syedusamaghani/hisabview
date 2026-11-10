@@ -27,6 +27,14 @@ type Palette = {
   moneyIn: string; // money came in
   moneyInSoft: string;
   scrim: string;
+  headerBg: string; // the top bar of every screen
+  headerInk: string;
+  headerSub: string;
+  headerLine: string; // thin line under the top bar
+  chipBg: string; // round buttons inside the top bar
+  chipInk: string;
+  btnInk: string; // text on the main (primary) button
+  ringBtn: string; // outline of the quiet (ghost) button
 };
 
 type Look = {
@@ -34,7 +42,8 @@ type Look = {
   colors: Palette;
   radius: { card: string; button: string };
   shadowColor: string; // "r, g, b" of the soft shadow
-  chunky: boolean; // Bold: shadows are a solid ledge under the card
+  minimal: boolean; // Bold: flat and quiet (no heavy shadows, lighter type, plain top bar)
+  headerRadius: string; // how round the bottom of the top bar is
   jali: boolean; // Desi: the soft diamond pattern
 };
 
@@ -44,23 +53,32 @@ export const looks: Record<StyleId, Look> = {
     colors: {
       primary: '#4A35C8',
       primaryInk: '#FFFFFF',
-      primarySoft: '#ECE9FB',
+      primarySoft: '#EEEBFB',
       accent: '#FFB300',
       accentInk: '#14112B',
-      page: '#F3F1FB',
+      page: '#F7F7FB',
       surface: '#FFFFFF',
       ink: '#14112B',
       inkSoft: '#4A4668',
-      line: '#DAD6EE',
+      line: '#E6E4F0',
       moneyOut: '#C4161C',
       moneyOutSoft: '#FDE8E8',
       moneyIn: '#087238',
       moneyInSoft: '#E3F6EB',
       scrim: 'rgba(20, 17, 43, 0.55)',
+      headerBg: '#FFFFFF',
+      headerInk: '#14112B',
+      headerSub: '#4A4668',
+      headerLine: '#E6E4F0',
+      chipBg: '#EEEBFB',
+      chipInk: '#4A35C8',
+      btnInk: '#FFFFFF',
+      ringBtn: '#CFCBE6',
     },
-    radius: { card: '20px', button: '20px' },
+    radius: { card: '16px', button: '14px' },
     shadowColor: '46, 31, 148',
-    chunky: true,
+    minimal: true,
+    headerRadius: '0px',
     jali: false,
   },
   desi: {
@@ -81,10 +99,19 @@ export const looks: Record<StyleId, Look> = {
       moneyIn: '#1E6B2E',
       moneyInSoft: '#E2F0DC',
       scrim: 'rgba(43, 26, 14, 0.55)',
+      headerBg: '#4A2A14',
+      headerInk: '#FFF6E5',
+      headerSub: '#F5E6CB',
+      headerLine: '#4A2A14',
+      chipBg: '#63422B',
+      chipInk: '#F0A500',
+      btnInk: '#F0A500',
+      ringBtn: '#4A2A14',
     },
     radius: { card: '18px', button: '16px' },
     shadowColor: '74, 42, 20',
-    chunky: false,
+    minimal: false,
+    headerRadius: '28px',
     jali: true,
   },
   calm: {
@@ -105,10 +132,19 @@ export const looks: Record<StyleId, Look> = {
       moneyIn: '#0B7A3B',
       moneyInSoft: '#E4F4EA',
       scrim: 'rgba(14, 27, 26, 0.55)',
+      headerBg: '#0B5F5A',
+      headerInk: '#FFFFFF',
+      headerSub: '#E3F1F0',
+      headerLine: '#0B5F5A',
+      chipBg: '#2C7A75',
+      chipInk: '#F5B041',
+      btnInk: '#F5B041',
+      ringBtn: '#0B5F5A',
     },
     radius: { card: '16px', button: '16px' },
     shadowColor: '14, 27, 26',
-    chunky: false,
+    minimal: false,
+    headerRadius: '28px',
     jali: false,
   },
 };
@@ -125,13 +161,16 @@ export function styleVars(id: StyleId): Record<string, string> {
   const vars: Record<string, string> = {
     '--r-card': look.radius.card,
     '--r-button': look.radius.button,
-    '--s-card': look.chunky ? `0 5px 0 rgba(${sh}, 0.14)` : `0 3px 14px rgba(${sh}, 0.10)`,
-    '--s-dock': `0 -4px 18px rgba(${sh}, 0.10)`,
-    '--s-btn': 'inset 0 -4px 0 rgba(0, 0, 0, 0.22)',
-    '--s-btnPressed': 'inset 0 -1px 0 rgba(0, 0, 0, 0.22)',
+    '--r-header': look.headerRadius,
+    '--fw-heavy': look.minimal ? '700' : '800',
+    '--fw-bold': look.minimal ? '600' : '700',
+    '--s-card': look.minimal ? `0 1px 2px rgba(${sh}, 0.05)` : `0 3px 14px rgba(${sh}, 0.10)`,
+    '--s-dock': look.minimal ? `0 -1px 0 ${c.line}` : `0 -4px 18px rgba(${sh}, 0.10)`,
+    '--s-btn': look.minimal ? 'none' : 'inset 0 -4px 0 rgba(0, 0, 0, 0.22)',
+    '--s-btnPressed': look.minimal ? 'none' : 'inset 0 -1px 0 rgba(0, 0, 0, 0.22)',
     '--s-snack': '0 8px 24px rgba(20, 17, 43, 0.35)',
-    '--s-mic': `0 0 0 5px ${c.surface}, 0 0 0 8px ${c.accent}, 0 6px 16px rgba(${sh}, 0.25)`,
-    '--s-micOn': `0 0 0 5px ${c.surface}, 0 0 0 10px ${c.primary}, 0 6px 16px rgba(${sh}, 0.25)`,
+    '--s-mic': look.minimal ? `0 6px 18px rgba(${sh}, 0.28)` : `0 0 0 5px ${c.surface}, 0 0 0 8px ${c.accent}, 0 6px 16px rgba(${sh}, 0.25)`,
+    '--s-micOn': look.minimal ? `0 0 0 8px rgba(${sh}, 0.18), 0 6px 18px rgba(${sh}, 0.28)` : `0 0 0 5px ${c.surface}, 0 0 0 10px ${c.primary}, 0 6px 16px rgba(${sh}, 0.25)`,
     '--c-scrim': c.scrim,
     '--jali-brand': look.jali ? jali('rgba(255, 246, 229, 0.16)') : 'none',
     '--jali-soft': look.jali ? jali('rgba(74, 42, 20, 0.05)') : 'none',
@@ -155,6 +194,14 @@ export const colorKeys = [
   'moneyOutSoft',
   'moneyIn',
   'moneyInSoft',
+  'headerBg',
+  'headerInk',
+  'headerSub',
+  'headerLine',
+  'chipBg',
+  'chipInk',
+  'btnInk',
+  'ringBtn',
 ] as const;
 
 export const spacing = {

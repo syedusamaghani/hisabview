@@ -8,7 +8,7 @@ import { Icon, type IconName } from './Icon';
 type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> & {
   icon: IconName;
   label: string;
-  tone?: 'onBrand' | 'onPage'; // onBrand = on the brown header
+  tone?: 'onBrand' | 'header' | 'onPage'; // onBrand = on a full primary-colour page, header = inside the top bar
   flip?: boolean; // mirror the picture in Urdu (arrows)
 };
 
@@ -20,7 +20,7 @@ export function IconButton({ icon, label, tone = 'onPage', flip, className, type
       className={cx(
         'grid size-tap shrink-0 place-items-center rounded-full transition-transform duration-fast active:scale-95',
         'focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-accent',
-        tone === 'onBrand' ? 'bg-white/10 text-accent' : 'text-primary',
+        tone === 'onBrand' ? 'bg-white/10 text-accent' : tone === 'header' ? 'bg-chipBg text-chipInk' : 'text-primary',
         className,
       )}
       {...rest}
@@ -31,7 +31,7 @@ export function IconButton({ icon, label, tone = 'onPage', flip, className, type
 }
 
 // The eye button that hides or shows every amount in the app.
-export function HideAmountsButton({ tone }: { tone?: 'onBrand' | 'onPage' }) {
+export function HideAmountsButton({ tone }: { tone?: 'onBrand' | 'header' | 'onPage' }) {
   const { hidden, toggle } = usePrivacy();
   const { t } = useT();
   return (

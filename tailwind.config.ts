@@ -20,6 +20,7 @@ export default {
       maxWidth: { app: '480px' },
       borderRadius: { ...radius, card: 'var(--r-card)', button: 'var(--r-button)' },
       fontSize,
+      fontWeight: { bold: 'var(--fw-bold)', extrabold: 'var(--fw-heavy)' },
       boxShadow: {
         card: 'var(--s-card)',
         dock: 'var(--s-dock)',

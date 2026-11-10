@@ -5,7 +5,7 @@ import { IconButton } from './IconButton';
 
 // The top of a screen: title, optional small line under it, optional back button,
 // and an optional slot on the far side (for example the hide-amounts eye).
-// variant "brand" = brown with the light jali pattern. "plain" = no background.
+// variant "brand" = the style's top bar (white in Bold & Bright, brown with jali in Warm & Desi). "plain" = no background.
 type Props = {
   title: string;
   subtitle?: string;
@@ -24,15 +24,15 @@ export function ScreenHeader({ title, subtitle, onBack, right, variant = 'brand'
     <header
       className={cx(
         'px-gutter pb-4 pt-[calc(env(safe-area-inset-top,0px)+8px)]',
-        brand ? 'rounded-b-[28px] bg-primary bg-jali text-primaryInk' : 'text-ink',
+        brand ? 'rounded-b-[var(--r-header)] border-b border-headerLine bg-headerBg bg-jali text-headerInk' : 'text-ink',
         className,
       )}
     >
       <div className="flex min-h-[64px] items-center gap-2">
-        {onBack && <IconButton icon="back" flip label={t('back')} tone={brand ? 'onBrand' : 'onPage'} onClick={onBack} />}
+        {onBack && <IconButton icon="back" flip label={t('back')} tone={brand ? 'header' : 'onPage'} onClick={onBack} />}
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-title font-extrabold leading-tight">{title}</h1>
-          {subtitle && <p className={cx('truncate text-label', brand ? 'text-primarySoft' : 'text-inkSoft')}>{subtitle}</p>}
+          {subtitle && <p className={cx('truncate text-label', brand ? 'text-headerSub' : 'text-inkSoft')}>{subtitle}</p>}
         </div>
         {right}
       </div>

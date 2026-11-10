@@ -20,7 +20,7 @@ export function SyncBadge({ className }: { className?: string }) {
   const view = describeSync(state);
   if (isTesting()) return null; // the testing khata is never sent anywhere
   return (
-    <p role="status" className={cx('flex items-center gap-1.5 text-caption font-semibold', view === 'synced' ? 'text-primarySoft' : 'text-accent', className)}>
+    <p role="status" className={cx('flex items-center gap-1.5 text-caption font-semibold', view === 'synced' ? 'text-headerSub' : 'text-chipInk', className)}>
       <Icon name="cloud" size={18} />
       <span>{t(WORDS[view])}</span>
     </p>

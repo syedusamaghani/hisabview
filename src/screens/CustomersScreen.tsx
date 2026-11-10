@@ -47,7 +47,7 @@ export function CustomersScreen() {
 
   return (
     <main className="mx-auto min-h-screen max-w-app pb-[calc(var(--bar-h)+24px)]">
-      <ScreenHeader title={t('navCustomers')} right={<HideAmountsButton tone="onBrand" />} />
+      <ScreenHeader title={t('navCustomers')} right={<HideAmountsButton tone="header" />} />
 
       <div className="px-gutter pt-4">
         <HideBanner />

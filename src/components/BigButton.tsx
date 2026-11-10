@@ -24,10 +24,10 @@ const base =
   'disabled:pointer-events-none disabled:opacity-50';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-primary text-accent shadow-btn active:shadow-btnPressed',
+  primary: 'bg-primary text-btnInk shadow-btn active:shadow-btnPressed',
   diye: 'bg-moneyOut text-white shadow-btn active:shadow-btnPressed',
   mile: 'bg-moneyIn text-white shadow-btn active:shadow-btnPressed',
-  ghost: 'bg-surface text-primary ring-2 ring-inset ring-primary',
+  ghost: 'bg-surface text-primary ring-[1.5px] ring-inset ring-ringBtn',
   accent: 'bg-accent text-accentInk shadow-btn active:shadow-btnPressed',
 };
 

@@ -135,7 +135,7 @@ export default function ComponentGallery() {
 
       <Section title="ScreenHeader: brand and plain">
         <div className="overflow-hidden rounded-card bg-page">
-          <ScreenHeader title={t('appName')} subtitle={t('tagline')} onBack={() => undefined} right={<HideAmountsButton tone="onBrand" />} />
+          <ScreenHeader title={t('appName')} subtitle={t('tagline')} onBack={() => undefined} right={<HideAmountsButton tone="header" />} />
         </div>
         <Card className="p-0">
           <ScreenHeader variant="plain" title={t('appName')} subtitle={t('tagline')} onBack={() => undefined} right={<HideAmountsButton />} />

@@ -67,7 +67,7 @@ export function HomeScreen({ shopName }: { shopName: string }) {
 
   return (
     <main className="mx-auto min-h-screen max-w-app pb-[calc(var(--bar-h)+24px)]">
-      <ScreenHeader title={shopName} right={<HideAmountsButton tone="onBrand" />}>
+      <ScreenHeader title={shopName} right={<HideAmountsButton tone="header" />}>
         <SyncBadge />
       </ScreenHeader>
 
@@ -89,7 +89,7 @@ export function HomeScreen({ shopName }: { shopName: string }) {
           </Card>
         </div>
 
-        <Card pattern stripe className="flex flex-col gap-3">
+        <Card pattern className="flex flex-col gap-3">
           {/* The title opens the full Aaj ka hisaab page */}
           <button
             type="button"
