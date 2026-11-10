@@ -11,10 +11,10 @@ import { useT } from '../i18n/i18n';
 import { partyBalance } from '../lib/balance';
 import { formatDay, formatTime } from '../lib/dates';
 import { cx } from '../lib/cx';
-import { statementText } from '../lib/messages';
+import { TONES, reminderText, statementText } from '../lib/messages';
 import { beginFlow, goBack, navigate, setFlash } from '../lib/router';
 import { changeEntryPath } from './EntryScreen';
-import { openWhatsApp, whatsappUrl } from '../lib/whatsapp';
+import { normalizePhone, openWhatsApp, whatsappUrl } from '../lib/whatsapp';
 import { speakBalance, speakSupported, stopSpeaking } from '../voice/speak';
 import { useEntrySnack } from './useEntrySnack';
 
@@ -55,6 +55,17 @@ export function PartyScreen({ partyId }: { partyId: string }) {
 
   // "Hisaab bhejo": the account in a few lines, ready in WhatsApp
   const sendStatement = () => openWhatsApp(whatsappUrl(party.phone, statementText(lang, { name: party.name, shop: shopName }, entries, balance)));
+
+  // "Yaad dilao": a customer with a number and something owed goes straight to their WhatsApp chat with the
+  // normal reminder typed. Otherwise the reminder screen helps (save the number first, or says nothing is owed).
+  const remind = () => {
+    const normal = TONES.find((x) => x.tone === 'normal')!;
+    if (balance > 0 && normalizePhone(party.phone)) {
+      openWhatsApp(whatsappUrl(party.phone, reminderText(normal.body, lang, { name: party.name, shop: shopName }, balance)));
+    } else {
+      navigate(`/party/${party.id}/remind`);
+    }
+  };
 
   // "Sunao": the phone reads the balance aloud. Tap again to stop.
   const canSpeak = speakSupported();
@@ -104,7 +115,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
         )}
 
         <div className="grid grid-cols-2 gap-2">
-          <ActionTile icon="bell" label={t('remind')} onClick={() => navigate(`/party/${party.id}/remind`)} />
+          <ActionTile icon="bell" label={t('remind')} onClick={remind} />
           <ActionTile icon="whatsapp" label={t('sendStatement')} onClick={sendStatement} />
           <ActionTile icon="edit" label={t('editCustomer')} onClick={() => navigate(`/party/${party.id}/edit`)} />
           {canSpeak && <ActionTile icon={speaking ? 'stop' : 'speaker'} label={speaking ? t('ruko') : t('listen')} pressed={speaking} onClick={sunao} />}

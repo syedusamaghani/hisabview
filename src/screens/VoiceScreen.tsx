@@ -3,9 +3,11 @@ import { entriesRepo, partiesRepo, statsRepo, useLive } from '../data';
 import { goBack, navigate, setFlash } from '../lib/router';
 import { finishEntryFlow } from '../lib/phoneAsk';
 import { splitByLastContact } from '../lib/recent';
+import { loadBook, notYetCustomers } from '../lib/contactBook';
 import { reportError } from '../lib/report';
 import { learnAlias, ruleParser, withAliases, type Forced, type ParseQuestion, type ParsedEntry } from '../voice';
 import { listen, preferredLangs, rememberLang, type Listener } from '../voice/speech';
+import { similarContacts } from '../voice/contactMatch';
 import { ConfirmView } from './voice/ConfirmView';
 import { ListeningView } from './voice/ListeningView';
 import { ProblemView, type Problem } from './voice/ProblemView';
@@ -16,9 +18,11 @@ type View =
   | { name: 'listening' }
   | { name: 'working' }
   | { name: 'typing' }
-  | { name: 'confirm'; entry: ParsedEntry }
+  | { name: 'confirm'; entry: ParsedEntry; kindPending: boolean }
   | { name: 'question'; question: ParseQuestion }
   | { name: 'problem'; problem: Problem };
+
+const capitalize = (text: string) => text.replace(/(^|\s)(\S)/g, (_, space: string, ch: string) => space + ch.toUpperCase());
 
 // A number (with maybe "rupay") at the very end of what was heard
 const AMOUNT_LAST = /d[d,]*s*(?:rs.?|rupay[ae]?|rupees?|روپے|روپیہ)?s*$/i;
@@ -63,13 +67,48 @@ export default function VoiceScreen() {
       setView({ name: 'problem', problem: 'other' });
       return;
     }
+    // Only a name and an amount were said ("Aslam 500"): find the person first. The Diye / Mile choice is
+    // then made with the same tap that saves (two big buttons on the check card), so there is one step less.
+    let kindPending = false;
+    if (result.type === 'question' && result.question === 'kind' && result.partial.amount && !forced.current.kind) {
+      kindPending = true;
+      try {
+        result = await ruleParser.parse(text, people, new Date(), { ...forced.current, kind: 'diye' });
+      } catch (e) {
+        reportError(e, 'voice parse');
+        setView({ name: 'problem', problem: 'other' });
+        return;
+      }
+    }
+    // The phonebook is searched with the customers: every matching person is shown, the shopkeeper taps the right one
+    if (!forced.current.party) {
+      const fresh = notYetCustomers(loadBook(), d.parties);
+      const heard = result.type === 'entry' ? (result.heard_name ?? '') : result.question === 'new_party' || result.question === 'which_party' ? (result.name ?? '') : '';
+      const hits = fresh.length > 0 && heard ? similarContacts(heard, fresh, 5) : [];
+      if (hits.length > 0) {
+        const contactOptions = hits.map((c) => ({ value: `contact:${c.phone}`, label: c.name, hint: c.phone }));
+        if (result.type === 'entry' && result.party) {
+          result = {
+            type: 'question',
+            question: 'which_party',
+            name: capitalize(heard),
+            options: [{ value: result.party.id, label: result.party.name, hint: result.party.identifier ?? undefined }, ...contactOptions],
+            partial: { amount: result.amount, ...(kindPending ? {} : { kind: result.kind }) },
+          };
+        } else if (result.type === 'question' && result.question === 'which_party') {
+          result = { ...result, options: [...(result.options ?? []), ...contactOptions] };
+        } else if (result.type === 'question' && result.question === 'new_party') {
+          result = { type: 'question', question: 'which_party', name: capitalize(heard), options: contactOptions, partial: result.partial };
+        }
+      }
+    }
     // Remember the name as the phone heard it. If the shopkeeper then corrects the person and saves, we learn from it.
     if (!heardName.current) {
       if (result.type === 'entry') heardName.current = result.heard_name ?? '';
       else if (result.question === 'new_party' || result.question === 'which_party') heardName.current = result.name ?? '';
     }
     if (result.type === 'question') setView({ name: 'question', question: result });
-    else setView({ name: 'confirm', entry: result });
+    else setView({ name: 'confirm', entry: result, kindPending });
   }, []);
 
   useEffect(() => {
@@ -174,23 +213,25 @@ export default function VoiceScreen() {
 
   if (view.name === 'confirm' && data) {
     const entry = view.entry;
+    const kindPending = view.kindPending;
     // Diye and Mile belong to a customer. A sale or a kharcha belongs to nobody.
     const withParty = entry.kind === 'diye' || entry.kind === 'mile';
     const party = entry.party ? (data.parties.find((p) => p.id === entry.party?.id) ?? null) : null;
     if (!withParty || party) {
       const balance = party ? (data.stats[party.id]?.balance ?? 0) + (entry.kind === 'diye' ? entry.amount : entry.kind === 'mile' ? -entry.amount : 0) : 0;
-      const save = async () => {
+      const save = async (chosen?: 'diye' | 'mile') => {
         if (saving) return;
+        const kind = chosen ?? entry.kind;
         setSaving(true);
         setFailed(false);
         try {
           const created = await entriesRepo.create({
-            kind: entry.kind,
+            kind,
             party_id: party?.id ?? null,
             amount: entry.amount,
             transcript: transcript.current,
             source: 'voice',
-            promise_date: entry.promise_date ?? null,
+            promise_date: kind === 'diye' ? (entry.promise_date ?? null) : null,
           });
           setFlash({ kind: 'undoEntry', entryId: created.id });
           // The phone heard one name and a different customer was saved: remember it for next time
@@ -214,22 +255,23 @@ export default function VoiceScreen() {
           saving={saving}
           failed={failed}
           saved={saved}
+          kindPending={kindPending}
           onSave={save}
           onEditParty={() => {
             // Wrong person heard: pick again (the amount and Diye/Mile are kept)
-            forced.current = { ...forced.current, kind: entry.kind, amount: entry.amount };
-            setView({ name: 'question', question: { type: 'question', question: 'who', partial: { kind: entry.kind, amount: entry.amount } } });
+            forced.current = { ...forced.current, ...(kindPending ? {} : { kind: entry.kind }), amount: entry.amount };
+            setView({ name: 'question', question: { type: 'question', question: 'who', partial: { ...(kindPending ? {} : { kind: entry.kind }), amount: entry.amount } } });
           }}
           onToggleKind={() => {
             // Diye <-> Mile in one tap. The person said it, so the "look carefully" note goes away.
             const kind = entry.kind === 'diye' ? 'mile' : 'diye';
             forced.current = { ...forced.current, kind };
-            setView({ name: 'confirm', entry: { ...entry, kind, confidence: 1 } });
+            setView({ name: 'confirm', entry: { ...entry, kind, confidence: 1 }, kindPending: false });
           }}
           onEditAmount={() => {
             // Wrong amount heard: the big number keys, starting from the heard amount
-            forced.current = { ...forced.current, kind: entry.kind, ...(entry.party ? { party: entry.party } : {}) };
-            setView({ name: 'question', question: { type: 'question', question: 'amount', partial: { kind: entry.kind, amount: entry.amount, party: entry.party } } });
+            forced.current = { ...forced.current, ...(kindPending ? {} : { kind: entry.kind }), ...(entry.party ? { party: entry.party } : {}) };
+            setView({ name: 'question', question: { type: 'question', question: 'amount', partial: { ...(kindPending ? {} : { kind: entry.kind }), amount: entry.amount, party: entry.party } } });
           }}
           onChange={() => navigate(changePath, { replace: true })}
           onBack={() => goBack('/')}

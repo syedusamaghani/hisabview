@@ -18,7 +18,23 @@ export function whatsappUrl(phone: string | null | undefined, text: string): str
   return `https://wa.me/${normalizePhone(phone) ?? ''}?text=${encodeURIComponent(text)}`;
 }
 
-// Must be called straight from a tap, or the phone may block the new window
+// Must be called straight from a tap, or the phone may block the new window.
+// On an Android phone the WhatsApp app is opened directly on the chat (no web page, no "open with" question).
+// If the app does not take over within a moment, the normal wa.me link is opened instead.
 export function openWhatsApp(url: string) {
-  window.open(url, '_blank', 'noopener');
+  const parts = /^https:\/\/wa\.me\/(\d*)\?text=(.*)$/.exec(url);
+  if (!parts || typeof navigator === 'undefined' || !/Android/i.test(navigator.userAgent)) {
+    window.open(url, '_blank', 'noopener');
+    return;
+  }
+  let left = false;
+  const onChange = () => {
+    if (document.visibilityState === 'hidden') left = true;
+  };
+  document.addEventListener('visibilitychange', onChange);
+  window.location.href = `whatsapp://send?${parts[1] ? `phone=${parts[1]}&` : ''}text=${parts[2]}`;
+  window.setTimeout(() => {
+    document.removeEventListener('visibilitychange', onChange);
+    if (!left && document.visibilityState === 'visible') window.open(url, '_blank', 'noopener');
+  }, 1500);
 }

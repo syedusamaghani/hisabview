@@ -94,6 +94,14 @@ export function QuestionView(p: Props) {
         {q.question === 'which_party' && (
           <ul className="flex flex-col gap-3">
             {q.options?.map((o) => {
+              // A person from the phone's contacts (not a customer yet): one tap makes them a customer with their number
+              if (o.value.startsWith('contact:')) {
+                return (
+                  <li key={o.value}>
+                    <OptionButton title={o.label ?? ''} subtitle={`${o.hint ?? ''} · ${t('fromContacts')}`} onClick={() => p.onAddContact(o.label ?? '', o.value.slice('contact:'.length))} />
+                  </li>
+                );
+              }
               const party = byId.get(o.value);
               if (!party) return null;
               return (
@@ -102,6 +110,11 @@ export function QuestionView(p: Props) {
                 </li>
               );
             })}
+            {q.name && q.options?.some((o) => o.value.startsWith('contact:')) && (
+              <li>
+                <OptionButton title={t('addNamed').replace('{name}', q.name)} onClick={() => p.onAddParty(q.name ?? '')} />
+              </li>
+            )}
           </ul>
         )}
 
