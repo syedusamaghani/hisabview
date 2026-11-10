@@ -15,7 +15,8 @@ import type { TextKey } from '../i18n/translations';
 import { partyBalance } from '../lib/balance';
 import { cx } from '../lib/cx';
 import { TextField } from '../components/TextField';
-import { finishFlow, goBack, navigate, setFlash } from '../lib/router';
+import { goBack, navigate, setFlash } from '../lib/router';
+import { finishEntryFlow } from '../lib/phoneAsk';
 
 // "Badlo" on a saved entry: the same entry screen with the amount and note already filled in.
 // Saving writes the new entry and then cancels the old one (both are kept in the diary, nothing is deleted).
@@ -137,7 +138,7 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
             <BigButton size="lg" onClick={save} disabled={saving}>{t('theekHai')}</BigButton>
           </div>
         </BottomActionBar>
-        <SaveSuccess show={saved} label={t('saved')} duration={900} onDone={() => finishFlow(home)} />
+        <SaveSuccess show={saved} label={t('saved')} duration={900} onDone={() => finishEntryFlow(party, home)} />
       </main>
     );
   }

@@ -471,6 +471,8 @@ const base = {
   editCustomerTitle: { ro: 'Customer theek karein', ur: 'کسٹمر ٹھیک کریں' },
   clearAccount: { ro: 'Poora hisaab clear karo', ur: 'پورا حساب کلیئر کرو' },
 
+  linkPhoneTitle: { ro: 'Kya {name} aap ke contacts mein hai?', ur: 'کیا {name} آپ کے رابطوں میں ہے؟' },
+
   // Language names (always shown in their own language)
   langRo: { ro: 'Roman Urdu', ur: 'Roman Urdu' },
   langUr: { ro: 'اردو', ur: 'اردو' },

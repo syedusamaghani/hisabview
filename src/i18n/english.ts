@@ -289,6 +289,8 @@ export const english: Record<TextKey, string> = {
   editCustomerTitle: 'Edit customer',
   clearAccount: 'Clear the whole balance',
 
+  linkPhoneTitle: 'Is {name} in your contacts?',
+
   langRo: 'Roman Urdu',
   langUr: 'اردو',
   langEn: 'English',

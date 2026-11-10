@@ -14,6 +14,7 @@ import { FeedbackScreen } from './screens/FeedbackScreen';
 import { EditPartyScreen } from './screens/EditPartyScreen';
 import { EntryScreen } from './screens/EntryScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { LinkPhoneScreen } from './screens/LinkPhoneScreen';
 import { OldBalancesScreen } from './screens/OldBalancesScreen';
 import { PartyScreen } from './screens/PartyScreen';
 import { PrivacyScreen } from './screens/PrivacyScreen';
@@ -127,9 +128,10 @@ export default function SignedInApp() {
   if (path === '/settings' && shop) return <SettingsScreen shop={shop} />;
   const pick = /^\/entry\/(diye|mile)$/.exec(path);
   if (pick) return <PickPartyScreen kind={pick[1] as 'diye' | 'mile'} />;
-  const match = /^\/party\/([^/]+)(?:\/(diye|mile|remind|edit))?$/.exec(path);
+  const match = /^\/party\/([^/]+)(?:\/(diye|mile|remind|edit|link))?$/.exec(path);
   if (match) {
     if (match[2] === 'remind') return <RemindScreen partyId={match[1]} />;
+    if (match[2] === 'link') return <LinkPhoneScreen partyId={match[1]} />;
     if (match[2] === 'edit') return <EditPartyScreen partyId={match[1]} />;
     return match[2] ? <EntryScreen partyId={match[1]} kind={match[2] as 'diye' | 'mile'} /> : <PartyScreen partyId={match[1]} />;
   }

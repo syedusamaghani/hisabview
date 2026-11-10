@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { entriesRepo, partiesRepo, statsRepo, useLive } from '../data';
-import { finishFlow, goBack, navigate, setFlash } from '../lib/router';
+import { goBack, navigate, setFlash } from '../lib/router';
+import { finishEntryFlow } from '../lib/phoneAsk';
 import { splitByLastContact } from '../lib/recent';
 import { learnAlias, ruleParser, withAliases, type Forced, type ParseQuestion, type ParsedEntry } from '../voice';
 import { listen, preferredLangs, rememberLang, type Listener } from '../voice/speech';
@@ -202,7 +203,7 @@ export default function VoiceScreen() {
           }}
           onChange={() => navigate(changePath, { replace: true })}
           onBack={() => goBack('/')}
-          onSavedDone={() => finishFlow('/')}
+          onSavedDone={() => finishEntryFlow(party, '/')}
         />
       );
     }
