@@ -1,5 +1,6 @@
 // The contacts the person chose to share with the app, kept ONLY on this phone (never sent to the server).
 // They are used for two things: finding a name that was heard or typed, and filling in the phone number.
+import { contactPickerSupported, pickManyContacts } from './contacts';
 import { matchesQuery, normalizeText } from './partyText';
 
 const KEY = 'hv_contacts';
@@ -48,4 +49,34 @@ export function notYetCustomers(book: readonly BookContact[], parties: readonly 
 // Type a few letters of a name (or digits of a number): the matching contacts
 export function searchBook(book: readonly BookContact[], query: string, limit = 5): BookContact[] {
   return book.filter((c) => matchesQuery({ name: c.name, identifier: null, phone: c.phone }, query)).slice(0, limit);
+}
+
+// The microphone tap is the one moment the browser lets us ask for the phone's contacts (it needs a tap).
+// So: if the phone supports it, no contacts were added yet, and the person did not say no in the last week,
+// the phone's own contact chooser opens first. Whatever happens (chosen, closed, not supported) the caller
+// carries on to the voice screen, so asking can never block writing an entry.
+const ASKED_KEY = 'hv_contacts_later';
+const WEEK = 7 * 24 * 60 * 60 * 1000;
+
+export function contactsAskedRecently(): boolean {
+  try {
+    return Date.now() - Number(localStorage.getItem(ASKED_KEY) ?? 0) < WEEK;
+  } catch {
+    return false;
+  }
+}
+
+export function rememberContactsAsked() {
+  try {
+    localStorage.setItem(ASKED_KEY, String(Date.now()));
+  } catch {
+    // fine: it may ask again
+  }
+}
+
+export async function askForContacts(): Promise<void> {
+  if (!contactPickerSupported() || loadBook().length > 0 || contactsAskedRecently()) return;
+  const picked = await pickManyContacts();
+  if (picked && addToBook(picked).length > 0) return;
+  rememberContactsAsked(); // closed without choosing: do not ask again for a week
 }

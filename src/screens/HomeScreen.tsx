@@ -18,6 +18,7 @@ import { formatDay, formatTime } from '../lib/dates';
 import { beginFlow, navigate } from '../lib/router';
 import { pakistanDayStart, todaySummary } from '../lib/today';
 import { todayText } from '../lib/messages';
+import { askForContacts } from '../lib/contactBook';
 import { openWhatsApp, whatsappUrl } from '../lib/whatsapp';
 import { speechSupported } from '../voice/speech';
 import { useEntrySnack } from './useEntrySnack';
@@ -59,7 +60,9 @@ export function HomeScreen({ shopName }: { shopName: string }) {
   const sendToday = () => {
     if (view) openWhatsApp(whatsappUrl(null, todayText(lang, shopName, new Date(), view.today)));
   };
-  const openVoice = () => {
+  const openVoice = async () => {
+    // First the phone's contacts (once), so a name like "Aslam" can be found in the phonebook
+    await askForContacts();
     beginFlow();
     navigate('/voice');
   };

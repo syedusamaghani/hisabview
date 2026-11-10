@@ -2,27 +2,17 @@ import { useState } from 'react';
 import { BigButton } from '../components/BigButton';
 import { Card } from '../components/Card';
 import { useT } from '../i18n/i18n';
-import { addToBook, clearBook, loadBook } from '../lib/contactBook';
+import { addToBook, clearBook, contactsAskedRecently, loadBook, rememberContactsAsked } from '../lib/contactBook';
 import { contactPickerSupported, pickManyContacts } from '../lib/contacts';
 
 // "Add your phone's contacts once": the phone's own list opens, the person ticks everyone (or some),
 // and the app keeps them on this phone to find names and numbers later. Nothing is sent to the internet.
-const LATER_KEY = 'hv_contacts_later';
-const WEEK = 7 * 24 * 60 * 60 * 1000;
-const askedRecently = () => {
-  try {
-    return Date.now() - Number(localStorage.getItem(LATER_KEY) ?? 0) < WEEK;
-  } catch {
-    return false;
-  }
-};
-
 // onlyIfEmpty: show only while no contacts were added. offer: also has "Baad mein" (hidden for a week).
 export function ContactsCard({ onlyIfEmpty, offer }: { onlyIfEmpty?: boolean; offer?: boolean }) {
   const { t } = useT();
   const [count, setCount] = useState(() => loadBook().length);
   const supported = contactPickerSupported();
-  const [later, setLater] = useState(askedRecently);
+  const [later, setLater] = useState(contactsAskedRecently);
   if ((onlyIfEmpty || offer) && (count > 0 || !supported)) return null;
   if (offer && later) return null;
 
@@ -44,11 +34,7 @@ export function ContactsCard({ onlyIfEmpty, offer }: { onlyIfEmpty?: boolean; of
               full
               variant="ghost"
               onClick={() => {
-                try {
-                  localStorage.setItem(LATER_KEY, String(Date.now()));
-                } catch {
-                  // fine: it may show again
-                }
+                rememberContactsAsked();
                 setLater(true);
               }}
             >
