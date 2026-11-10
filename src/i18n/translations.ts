@@ -471,6 +471,10 @@ const base = {
   editCustomerTitle: { ro: 'Customer theek karein', ur: 'کسٹمر ٹھیک کریں' },
   clearAccount: { ro: 'Poora hisaab clear karo', ur: 'پورا حساب کلیئر کرو' },
 
+  styleTitle: { ro: 'App ka look', ur: 'ایپ کا انداز' },
+  styleBold: { ro: 'Bold & Bright', ur: 'Bold & Bright' },
+  styleDesi: { ro: 'Warm & Desi', ur: 'Warm & Desi' },
+  styleCalm: { ro: 'Calm & Clean', ur: 'Calm & Clean' },
   whichContact: { ro: 'Phonebook mein kaunsa?', ur: 'فون بک میں کون سا؟' },
   contactsTitle: { ro: 'Phone ke contacts', ur: 'فون کے رابطے' },
   contactsBody: {

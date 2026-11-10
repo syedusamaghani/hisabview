@@ -38,7 +38,9 @@ Pain points: embarrassment asking for money, disputes ("maine to paise de diye t
 - "Lene hain" amount is RED (customer owes). "Dene hain" amount is neutral dark, not coloured.
 - Large amounts (lakh-style grouping such as 1,24,500 vs 124,500) are undecided for now; revisit later.
 
-## Chosen style: Warm & Desi (default, chosen in Phase 0.5)
+## STYLE UPDATE (founder, Nov 2026): the default look is now Bold & Bright (indigo #4A35C8, amber accent #FFB300, lavender page, 20px radius, chunky ledge shadows, big amounts). Warm & Desi and Calm & Clean are choosable in Settings > "App ka look" (saved on the phone, localStorage hv_style). All three live in src/design/tokens.ts (`looks`); tailwind.config.ts turns them into CSS variables (:root = default, [data-style="desi"|"calm"] = the others), src/design/style.ts applies the choice with one attribute, so a restart of the dev server is needed after changing tokens. Jali pattern and the scalloped dock edge show only in Warm & Desi. The app icon is still the brown khata. The Warm & Desi details below are still the reference for that style.
+
+## Chosen style: Warm & Desi (was the default; now an option, chosen in Phase 0.5)
 Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc). Exact values live in tools/design/build.mjs under `desi`. Follow them everywhere.
 - Personality: friendly, familiar, premium. Chai-brown header, marigold highlights, soft jali (diamond lattice) pattern used lightly (header, small card corners, voice transcript card only). Never cluttered.
 - Colours: primary chai-brown #4A2A14 (text on it #FFF6E5); accent marigold #F0A500 (text on it #2B1A0E); page cream #FBF4E6; surface #FFFDF8; ink #2B1A0E; soft ink #6B5240; line #EADCC4; soft primary #F5E6CB.

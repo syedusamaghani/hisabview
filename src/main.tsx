@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { applyStyle, getStyle } from './design/style';
 import { initInstall } from './lib/install';
 import { installErrorReporting } from './lib/report';
 import { LangProvider } from './i18n/i18n';
@@ -27,6 +28,7 @@ function Crash(): never {
 
 // Catch the browser's "install" offer early; it fires only once
 initInstall();
+applyStyle(getStyle()); // the look the person chose in Settings (Bold & Bright by default)
 installErrorReporting();
 
 createRoot(document.getElementById('root')!).render(

@@ -59,8 +59,8 @@ bdi,
   line-height: 1.2;
 }
 
-/* Scalloped top edge of the bottom bar (Warm & Desi detail) */
-.scallop::before {
+/* Scalloped top edge of the bottom bar (Warm & Desi detail only) */
+:root[data-style='desi'] .scallop::before {
   content: '';
   position: absolute;
   inset: -9px 0 auto 0;

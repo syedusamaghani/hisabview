@@ -1,22 +1,39 @@
 import type { Config } from 'tailwindcss';
-import { colors, spacing, radius, fontSize, shadow, motion, jali, fonts } from './src/design/tokens.ts';
+import plugin from 'tailwindcss/plugin';
+import { DEFAULT_STYLE, STYLE_IDS, colorKeys, spacing, radius, fontSize, motion, fonts, styleVars } from './src/design/tokens.ts';
 
 // Every value comes from src/design/tokens.ts. Do not type colours or sizes here.
+// Colours, card/button radius, shadows and the jali pattern are CSS variables, one set per style:
+// the default style on :root, the others under [data-style="..."].
+const rgbVar = (key: string) => `rgb(var(--c-${key}) / <alpha-value>)`;
+
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      colors,
+      colors: {
+        ...Object.fromEntries(colorKeys.map((k) => [k, rgbVar(k)])),
+        white: '#FFFFFF',
+        scrim: 'var(--c-scrim)',
+      },
       spacing,
       maxWidth: { app: '480px' },
-      borderRadius: radius,
+      borderRadius: { ...radius, card: 'var(--r-card)', button: 'var(--r-button)' },
       fontSize,
-      boxShadow: shadow,
+      boxShadow: {
+        card: 'var(--s-card)',
+        dock: 'var(--s-dock)',
+        btn: 'var(--s-btn)',
+        btnPressed: 'var(--s-btnPressed)',
+        snack: 'var(--s-snack)',
+        mic: 'var(--s-mic)',
+        micOn: 'var(--s-micOn)',
+      },
       transitionDuration: motion,
       fontFamily: { sans: fonts.sans, urdu: fonts.urdu },
       backgroundImage: {
-        jali: jali('rgba(255, 246, 229, 0.16)'),
-        jaliSoft: jali('rgba(74, 42, 20, 0.05)'),
+        jali: 'var(--jali-brand)',
+        jaliSoft: 'var(--jali-soft)',
       },
       keyframes: {
         fade: { from: { opacity: '0' }, to: { opacity: '1' } },
@@ -34,5 +51,10 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addBase }) => {
+      addBase({ ':root': styleVars(DEFAULT_STYLE) });
+      for (const id of STYLE_IDS) if (id !== DEFAULT_STYLE) addBase({ [`:root[data-style="${id}"]`]: styleVars(id) });
+    }),
+  ],
 } satisfies Config;

@@ -6,15 +6,17 @@ import { cx } from '../lib/cx';
 type Props = HTMLAttributes<HTMLDivElement> & {
   tone?: 'plain' | 'soft';
   pattern?: boolean;
+  stripe?: boolean; // a thick accent edge on the start side (Home: Aaj ka hisaab)
 };
 
-export function Card({ tone = 'plain', pattern, className, ...rest }: Props) {
+export function Card({ tone = 'plain', pattern, stripe, className, ...rest }: Props) {
   return (
     <div
       className={cx(
         'rounded-card border-[1.5px] border-line p-4 shadow-card',
         tone === 'soft' ? 'bg-primarySoft' : 'bg-surface',
         pattern && 'bg-jaliSoft',
+        stripe && 'border-s-[6px] border-s-accent',
         className,
       )}
       {...rest}

@@ -78,18 +78,18 @@ export function HomeScreen({ shopName }: { shopName: string }) {
         {/* Offered once the first entry is written, not before: first the work, then the install */}
         {view && view.recent.length > 0 && <InstallCard />}
 
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <p className="text-label font-semibold text-inkSoft">{t('leneHain')}</p>
-            <AmountText amount={view?.sum.leneHain ?? 0} tone="out" />
+        <div className="flex flex-col gap-3">
+          <Card className="flex items-center justify-between gap-3">
+            <p className="text-body font-extrabold text-ink">{t('leneHain')}</p>
+            <AmountText amount={view?.sum.leneHain ?? 0} size="l" tone="out" room="210px" />
           </Card>
-          <Card>
-            <p className="text-label font-semibold text-inkSoft">{t('deneHain')}</p>
-            <AmountText amount={view?.sum.deneHain ?? 0} />
+          <Card className="flex items-center justify-between gap-3">
+            <p className="text-body font-extrabold text-ink">{t('deneHain')}</p>
+            <AmountText amount={view?.sum.deneHain ?? 0} size="l" room="210px" />
           </Card>
         </div>
 
-        <Card pattern className="flex flex-col gap-3">
+        <Card pattern stripe className="flex flex-col gap-3">
           {/* The title opens the full Aaj ka hisaab page */}
           <button
             type="button"

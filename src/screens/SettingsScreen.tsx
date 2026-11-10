@@ -8,6 +8,8 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { SwitchRow } from '../components/SwitchRow';
 import { TextField } from '../components/TextField';
 import { describeSync, isTesting, shopsRepo, startTesting, stopTesting, sync, useSyncState, type Shop } from '../data';
+import { getStyle, setStyle } from '../design/style';
+import { STYLE_IDS } from '../design/tokens';
 import { useT } from '../i18n/i18n';
 import { ContactsCard } from './ContactsCard';
 import { shopLanguage, type Lang } from '../i18n/translations';
@@ -19,7 +21,9 @@ import { useAuth } from '../state/auth';
 import { clearAliases, countAliases } from '../voice/aliasStore';
 import { usePrivacy } from '../state/privacy';
 
-// Settings: language, hide amounts, shop name, logout.
+const STYLE_TEXT = { bold: 'styleBold', desi: 'styleDesi', calm: 'styleCalm' } as const;
+
+// Settings: language, look, hide amounts, shop name, logout.
 export function SettingsScreen({ shop }: { shop: Shop }) {
   const { t, lang, setLang } = useT();
   const { hidden, toggle } = usePrivacy();
@@ -27,6 +31,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
   const syncState = useSyncState();
   const install = useInstall();
   const testing = isTesting();
+  const [style, setStyleState] = useState(getStyle);
   const [syncing, setSyncing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(shop.shop_name);
@@ -68,6 +73,24 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
             <ChoiceCard title={t('langRo')} selected={lang === 'ro'} onSelect={() => chooseLang('ro')} className="!min-h-tap" />
             <ChoiceCard title={t('langEn')} selected={lang === 'en'} onSelect={() => chooseLang('en')} className="!min-h-tap" />
             <ChoiceCard title={t('langUr')} selected={lang === 'ur'} onSelect={() => chooseLang('ur')} className="!min-h-tap font-urdu !text-title" />
+          </div>
+        </Card>
+
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-label font-bold text-inkSoft">{t('styleTitle')}</h2>
+          <div role="radiogroup" aria-label={t('styleTitle')} className="flex flex-col gap-3">
+            {STYLE_IDS.map((id) => (
+              <ChoiceCard
+                key={id}
+                title={t(STYLE_TEXT[id])}
+                selected={style === id}
+                onSelect={() => {
+                  setStyle(id);
+                  setStyleState(id);
+                }}
+                className="!min-h-tap"
+              />
+            ))}
           </div>
         </Card>
 

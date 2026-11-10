@@ -289,6 +289,10 @@ export const english: Record<TextKey, string> = {
   editCustomerTitle: 'Edit customer',
   clearAccount: 'Clear the whole balance',
 
+  styleTitle: 'App look',
+  styleBold: 'Bold & Bright',
+  styleDesi: 'Warm & Desi',
+  styleCalm: 'Calm & Clean',
   whichContact: 'Which one in your phonebook?',
   contactsTitle: 'Phone contacts',
   contactsBody: 'Add your contacts once, then names and numbers are found by themselves. In the list that opens, choose "All". They stay only on your phone and are never sent anywhere.',
