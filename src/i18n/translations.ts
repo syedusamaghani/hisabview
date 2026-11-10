@@ -471,6 +471,7 @@ const base = {
   editCustomerTitle: { ro: 'Customer theek karein', ur: 'کسٹمر ٹھیک کریں' },
   clearAccount: { ro: 'Poora hisaab clear karo', ur: 'پورا حساب کلیئر کرو' },
 
+  whichContact: { ro: 'Phonebook mein kaunsa?', ur: 'فون بک میں کون سا؟' },
   contactsTitle: { ro: 'Phone ke contacts', ur: 'فون کے رابطے' },
   contactsBody: {
     ro: 'Ek baar contacts jod lein, phir naam aur number khud mil jayenge. Khulne wali list mein "Sab" chun lein. Ye sirf aap ke phone par rehte hain, kahin bheje nahi jate.',

@@ -58,7 +58,7 @@ export function QuestionView(p: Props) {
   // The contacts the person added to the app: suggest the ones that are not customers yet
   const [book, setBook] = useState(loadBook);
   const fresh = notYetCustomers(book, p.parties);
-  const contactHits = q.question === 'new_party' ? similarContacts(newName, fresh) : q.question === 'who' && findText ? searchBook(fresh, findText) : [];
+  const contactHits = q.question === 'new_party' ? similarContacts(newName, fresh, 6) : q.question === 'who' && findText ? searchBook(fresh, findText) : [];
   const canImport = contactPickerSupported() && book.length === 0;
   const importNow = async () => {
     const picked = await pickManyContacts();
@@ -78,7 +78,7 @@ export function QuestionView(p: Props) {
       <ScreenHeader title={t('voiceTitle')} onBack={p.onBack} />
       <div className="flex flex-col gap-4 px-gutter pt-5">
         {/* The question is the main thing on this screen: big, and never cut short */}
-        <h2 role="heading" aria-level={2} className="text-display font-extrabold leading-tight text-ink">{questionText(q, lang)}</h2>
+        <h2 role="heading" aria-level={2} className="text-display font-extrabold leading-tight text-ink">{q.question === 'new_party' && contactHits.length > 0 ? t('whichContact') : questionText(q, lang)}</h2>
 
         {(known.party || known.amount || known.kind) && (
           <Card pattern className="flex flex-col gap-1">

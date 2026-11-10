@@ -7,11 +7,24 @@ import { contactPickerSupported, pickManyContacts } from '../lib/contacts';
 
 // "Add your phone's contacts once": the phone's own list opens, the person ticks everyone (or some),
 // and the app keeps them on this phone to find names and numbers later. Nothing is sent to the internet.
-export function ContactsCard({ onlyIfEmpty }: { onlyIfEmpty?: boolean }) {
+const LATER_KEY = 'hv_contacts_later';
+const WEEK = 7 * 24 * 60 * 60 * 1000;
+const askedRecently = () => {
+  try {
+    return Date.now() - Number(localStorage.getItem(LATER_KEY) ?? 0) < WEEK;
+  } catch {
+    return false;
+  }
+};
+
+// onlyIfEmpty: show only while no contacts were added. offer: also has "Baad mein" (hidden for a week).
+export function ContactsCard({ onlyIfEmpty, offer }: { onlyIfEmpty?: boolean; offer?: boolean }) {
   const { t } = useT();
   const [count, setCount] = useState(() => loadBook().length);
   const supported = contactPickerSupported();
-  if (onlyIfEmpty && (count > 0 || !supported)) return null;
+  const [later, setLater] = useState(askedRecently);
+  if ((onlyIfEmpty || offer) && (count > 0 || !supported)) return null;
+  if (offer && later) return null;
 
   const add = async () => {
     const picked = await pickManyContacts();
@@ -26,6 +39,22 @@ export function ContactsCard({ onlyIfEmpty }: { onlyIfEmpty?: boolean }) {
           <p className="text-label text-inkSoft">{t('contactsBody')}</p>
           {count > 0 && <p className="text-label font-bold text-ink">{t('contactsCount').replace('{n}', String(count))}</p>}
           <BigButton full icon="userPlus" onClick={add}>{t('contactsAdd')}</BigButton>
+          {offer && (
+            <BigButton
+              full
+              variant="ghost"
+              onClick={() => {
+                try {
+                  localStorage.setItem(LATER_KEY, String(Date.now()));
+                } catch {
+                  // fine: it may show again
+                }
+                setLater(true);
+              }}
+            >
+              {t('later')}
+            </BigButton>
+          )}
           {count > 0 && (
             <BigButton
               full

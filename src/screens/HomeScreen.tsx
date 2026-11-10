@@ -5,6 +5,7 @@ import { BottomNav } from '../components/BottomNav';
 import { Card } from '../components/Card';
 import { HideBanner } from '../components/HideBanner';
 import { InstallCard } from '../components/InstallCard';
+import { ContactsCard } from './ContactsCard';
 import { SyncBadge } from '../components/SyncBadge';
 import { HideAmountsButton } from '../components/IconButton';
 import { Icon } from '../components/Icon';
@@ -72,6 +73,8 @@ export function HomeScreen({ shopName }: { shopName: string }) {
 
       <div className="flex flex-col gap-4 px-gutter pt-4">
         <HideBanner />
+        {/* The phone's contacts come first: they make names and numbers easy everywhere else */}
+        <ContactsCard offer />
         {/* Offered once the first entry is written, not before: first the work, then the install */}
         {view && view.recent.length > 0 && <InstallCard />}
 
