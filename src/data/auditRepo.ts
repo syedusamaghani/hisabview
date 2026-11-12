@@ -15,7 +15,7 @@ export function snapshot<T extends { pending_sync: number }>(row: T): Values {
 }
 
 // Call only inside a db.transaction(...) that includes the audit_log table
-export async function write(entity: AuditEntity, entityId: string, action: AuditAction, before: Values, after: Values, shopId = requireShop()) {
+export async function write(entity: AuditEntity, entityId: string, action: AuditAction, before: Values, after: Values, shopId = requireShop(), reason: string | null = null) {
   const row: AuditRow = {
     id: newId(),
     shop_id: shopId,
@@ -25,6 +25,7 @@ export async function write(entity: AuditEntity, entityId: string, action: Audit
     before_value: before,
     after_value: after,
     actor: requireUser(),
+    ...(reason ? { reason } : {}),
     created_at: nowIso(),
     pending_sync: 1,
   };

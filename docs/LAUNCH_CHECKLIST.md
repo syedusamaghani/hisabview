@@ -16,6 +16,11 @@ Privacy policy page (give this link to Google): https://hisabview.usama-syedghan
    - 0003 makes syncing faster (the app still works without it).
    - 0004 creates the places where feedback and error reports arrive (without it, feedback and error reports are simply not delivered).
 
+## 1b. Database: staff, roles and the server diary (5 minutes)
+
+Do this after the two files above. Same way: **SQL Editor**, **New query**, open `supabase/migrations/0005_roles_audit_integrity.sql`, copy ALL the text, paste, **Run**. It must say "Success". Your existing khata is not touched; it only adds new things.
+After it: Settings has **Staff aur role** (owner only) where you add a Manager or Cashier by their Google email. Until you run it, the app works as before without staff.
+
 ## 2. Contact email on the privacy page (2 minutes)
 
 The privacy policy tells people how to ask for their data to be deleted. It uses the app's **Hamein batayein** button, and can also show an email address.

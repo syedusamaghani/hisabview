@@ -6,6 +6,10 @@
 export type PendingSync = 0 | 1;
 
 export type Language = 'ro' | 'ur';
+// Who a person is in a shop. The database enforces what each may do (supabase/migrations/0005); the screens only hide what would be refused.
+export type Role = 'owner' | 'manager' | 'cashier';
+// Why an entry was cancelled (the shopkeeper's three answers, plus the two the app writes itself)
+export type CancelReason = 'wrong_entry' | 'customer_refused' | 'other' | 'undo' | 'changed';
 export type PartyType = 'customer' | 'supplier';
 export type EntryKind = 'diye' | 'mile' | 'opening' | 'kharcha' | 'cash_sale';
 export type EntrySource = 'voice' | 'manual' | 'import';
@@ -48,6 +52,7 @@ export type Entry = {
   created_by: string;
   created_at: string;
   cancelled_at: string | null;
+  cancel_reason?: CancelReason | null; // only set when cancelled
   pending_sync: PendingSync;
 };
 
@@ -63,6 +68,7 @@ export type AuditRow = {
   before_value: Record<string, unknown> | null;
   after_value: Record<string, unknown> | null;
   actor: string;
+  reason?: string | null; // why (for a cancel)
   created_at: string;
   pending_sync: PendingSync;
 };

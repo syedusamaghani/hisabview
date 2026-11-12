@@ -21,6 +21,7 @@ type Props = {
   saving: boolean;
   failed: boolean;
   saved: boolean;
+  duplicate?: boolean; // the same entry was saved a moment ago: a warning is shown, pressing save again saves it anyway
   kindPending?: boolean; // only a name and an amount were said: the two buttons below say Diye or Mile AND save
   onSave: (kind?: 'diye' | 'mile') => void;
   onEditParty: () => void;
@@ -31,7 +32,7 @@ type Props = {
   onSavedDone: () => void;
 };
 
-export function ConfirmView({ entry, party, transcript, balance, saving, failed, saved, kindPending, onSave, onEditParty, onToggleKind, onEditAmount, onChange, onBack, onSavedDone }: Props) {
+export function ConfirmView({ entry, party, transcript, balance, saving, failed, saved, kindPending, duplicate, onSave, onEditParty, onToggleKind, onEditAmount, onChange, onBack, onSavedDone }: Props) {
   const { t, lang } = useT();
   // Red = money went out (diye, kharcha). Green = money came in (mile, sale).
   const out = !kindPending && (entry.kind === 'diye' || entry.kind === 'kharcha');
@@ -99,6 +100,11 @@ export function ConfirmView({ entry, party, transcript, balance, saving, failed,
 
         <p className="text-center text-label font-semibold text-inkSoft">{kindPending ? t('qKind') : t('tapToChange')}</p>
 
+        {duplicate && (
+          <Card tone="soft" role="alert">
+            <p className="text-body font-bold">{t('duplicateWarn')}</p>
+          </Card>
+        )}
         {failed && (
           <Card tone="soft" role="alert">
             <p className="text-body font-bold">{t('errorGeneric')}</p>

@@ -2,6 +2,7 @@ import { db } from './db';
 import { attachShop, requireUser } from './context';
 import { newId, nowIso } from './ids';
 import { snapshot, write } from './auditRepo';
+import { getMemberShopId, getStoredRole, type StoredRole } from './roleStore';
 import type { Language, Shop } from './types';
 
 function checkName(name: string) {
@@ -9,9 +10,22 @@ function checkName(name: string) {
 }
 
 export const shopsRepo = {
-  // The logged-in person's shop, or undefined if they have not made one yet
+  // The logged-in person's shop (their own, or the one they work in), or undefined if they have none here yet
   async getMine(): Promise<Shop | undefined> {
-    return db.shops.where('owner_user_id').equals(requireUser()).first();
+    const user = requireUser();
+    const own = await db.shops.where('owner_user_id').equals(user).first();
+    if (own) return own;
+    const memberOf = await getMemberShopId(user);
+    return memberOf ? db.shops.get(memberOf) : undefined;
+  },
+
+  // Owner, manager or cashier. 'revoked' = the owner switched this login off. Until the server says otherwise,
+  // somebody else's shop means cashier (the safest).
+  async myRole(): Promise<StoredRole> {
+    const user = requireUser();
+    const shop = await this.getMine();
+    if (!shop || shop.owner_user_id === user) return 'owner';
+    return (await getStoredRole(user)) ?? 'cashier';
   },
 
   async create(input: { shop_name: string; language: Language }): Promise<Shop> {

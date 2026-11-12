@@ -6,7 +6,9 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { Icon, type IconName } from '../components/Icon';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { entriesRepo, partiesRepo, shopsRepo, useLive, type Entry, type Party } from '../data';
+import { CancelReasons } from '../components/CancelReasons';
+import { currentUserId, entriesRepo, partiesRepo, shopsRepo, useLive, useRole, type CancelReason, type Entry, type Party } from '../data';
+import { canChangeEntry, canEditCustomer } from '../lib/permissions';
 import { useT } from '../i18n/i18n';
 import { partyBalance } from '../lib/balance';
 import { formatDay, formatTime } from '../lib/dates';
@@ -29,6 +31,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   const [archiving, setArchiving] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const { snackbar, notify, hide } = useEntrySnack();
+  const role = useRole() ?? 'cashier'; // what is shown depends on the role; the database refuses the rest
   const archiveRef = useRef<HTMLDivElement>(null);
 
   // Stop talking when the screen is left
@@ -79,9 +82,9 @@ export function PartyScreen({ partyId }: { partyId: string }) {
     speakBalance(party.name, balance, () => setSpeaking(false));
   };
 
-  const cancel = async (entry: Entry) => {
+  const cancel = async (entry: Entry, reason: CancelReason) => {
     setOpenId(null);
-    await entriesRepo.cancel(entry.id);
+    await entriesRepo.cancel(entry.id, reason);
     notify('entryCancelled');
   };
 
@@ -117,7 +120,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
         <div className="grid grid-cols-2 gap-2">
           <ActionTile icon="bell" label={t('remind')} onClick={remind} />
           <ActionTile icon="whatsapp" label={t('sendStatement')} onClick={sendStatement} />
-          <ActionTile icon="edit" label={t('editCustomer')} onClick={() => navigate(`/party/${party.id}/edit`)} />
+          {canEditCustomer(role) && <ActionTile icon="edit" label={t('editCustomer')} onClick={() => navigate(`/party/${party.id}/edit`)} />}
           {canSpeak && <ActionTile icon={speaking ? 'stop' : 'speaker'} label={speaking ? t('ruko') : t('listen')} pressed={speaking} onClick={sunao} />}
         </div>
 
@@ -135,16 +138,18 @@ export function PartyScreen({ partyId }: { partyId: string }) {
                 entry={entry}
                 party={party}
                 open={openId === entry.id}
+                canChange={canChangeEntry(role, entry, currentUserId())}
                 onToggle={() => {
                   hide();
                   setOpenId(openId === entry.id ? null : entry.id);
                 }}
-                onCancel={() => cancel(entry)}
+                onCancel={(reason) => cancel(entry, reason)}
               />
             ))}
           </ul>
         )}
 
+        {canEditCustomer(role) && (
         <div ref={archiveRef} className="scroll-mb-[calc(var(--bar-h)+24px)] pt-6">
           {archiving ? (
             <Card tone="soft" className="flex flex-col gap-3">
@@ -166,6 +171,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
             </BigButton>
           )}
         </div>
+        )}
       </div>
 
       {snackbar}
@@ -205,7 +211,7 @@ function ActionTile({ icon, label, onClick, pressed }: { icon: IconName; label: 
   );
 }
 
-function HistoryRow({ entry, party, open, onToggle, onCancel }: { entry: Entry; party: Party; open: boolean; onToggle: () => void; onCancel: () => void }) {
+function HistoryRow({ entry, party, open, canChange, onToggle, onCancel }: { entry: Entry; party: Party; open: boolean; canChange: boolean; onToggle: () => void; onCancel: (reason: CancelReason) => void }) {
   const { t, lang } = useT();
   const rowRef = useRef<HTMLLIElement>(null);
   const [asking, setAsking] = useState(false);
@@ -260,11 +266,9 @@ function HistoryRow({ entry, party, open, onToggle, onCancel }: { entry: Entry; 
       {open && !cancelled && (
         <div className="flex flex-col gap-3 border-t-[1.5px] border-line p-3">
           {asking ? (
-            <>
-              <p className="text-body text-inkSoft">{t('cancelAsk')}</p>
-              <BigButton full onClick={onCancel}>{t('yesCancel')}</BigButton>
-              <BigButton full variant="ghost" onClick={onToggle}>{t('no')}</BigButton>
-            </>
+            <CancelReasons onPick={onCancel} onNo={onToggle} />
+          ) : !canChange ? (
+            <p className="text-body text-inkSoft">{t('askManager')}</p>
           ) : (
             <>
               {changePath && <BigButton full icon="edit" onClick={() => { beginFlow(); navigate(changePath); }}>{t('badlo')}</BigButton>}

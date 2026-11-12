@@ -7,7 +7,10 @@ import { HideBanner } from '../components/HideBanner';
 import { Icon, type IconName } from '../components/Icon';
 import { HideAmountsButton } from '../components/IconButton';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { entriesRepo, partiesRepo, shopsRepo, useLive, type Entry } from '../data';
+import { CancelReasons } from '../components/CancelReasons';
+import { ClockBanner } from '../components/ClockBanner';
+import { currentUserId, entriesRepo, partiesRepo, shopsRepo, useLive, useRole, type CancelReason, type Entry } from '../data';
+import { canChangeEntry } from '../lib/permissions';
 import { useT } from '../i18n/i18n';
 import { cx } from '../lib/cx';
 import { formatDay, formatTime } from '../lib/dates';
@@ -49,9 +52,10 @@ export function TodayScreen() {
     openWhatsApp(whatsappUrl(null, todayText(lang, data.shopName, view.now, view.summary)));
   };
 
-  const cancel = async (entry: Entry) => {
+  const role = useRole() ?? 'cashier'; // what is shown depends on the role; the database refuses the rest
+  const cancel = async (entry: Entry, reason: CancelReason) => {
     setOpenId(null);
-    await entriesRepo.cancel(entry.id);
+    await entriesRepo.cancel(entry.id, reason);
     notify('entryCancelled');
   };
 
@@ -61,6 +65,7 @@ export function TodayScreen() {
 
       <div className="flex flex-col gap-4 px-gutter pt-4">
         <HideBanner />
+        <ClockBanner />
 
         <div className="grid grid-cols-2 gap-3">
           <Stat label={t('todayDiye')} amount={view?.summary.diye ?? 0} tone="out" />
@@ -84,11 +89,12 @@ export function TodayScreen() {
               entry={entry}
               name={entry.party_id ? (view.names.get(entry.party_id) ?? '') : ''}
               open={openId === entry.id}
+              canChange={canChangeEntry(role, entry, currentUserId())}
               onToggle={() => {
                 hide();
                 setOpenId(openId === entry.id ? null : entry.id);
               }}
-              onCancel={() => cancel(entry)}
+              onCancel={(reason) => cancel(entry, reason)}
             />
           ))}
         </ul>
@@ -116,7 +122,7 @@ function Stat({ label, amount, tone }: { label: string; amount: number; tone: 'i
 }
 
 // One entry of today. Tap it to cancel it (it stays in the history, marked cancelled).
-function TodayRow({ entry, name, open, onToggle, onCancel }: { entry: Entry; name: string; open: boolean; onToggle: () => void; onCancel: () => void }) {
+function TodayRow({ entry, name, open, canChange, onToggle, onCancel }: { entry: Entry; name: string; open: boolean; canChange: boolean; onToggle: () => void; onCancel: (reason: CancelReason) => void }) {
   const { t, lang } = useT();
   const rowRef = useRef<HTMLLIElement>(null);
   const [asking, setAsking] = useState(false);
@@ -166,11 +172,9 @@ function TodayRow({ entry, name, open, onToggle, onCancel }: { entry: Entry; nam
       {open && !cancelled && (
         <div className="flex flex-col gap-3 border-t-[1.5px] border-line p-3">
           {asking ? (
-            <>
-              <p className="text-body text-inkSoft">{t('cancelAsk')}</p>
-              <BigButton full onClick={onCancel}>{t('yesCancel')}</BigButton>
-              <BigButton full variant="ghost" onClick={onToggle}>{t('no')}</BigButton>
-            </>
+            <CancelReasons onPick={onCancel} onNo={onToggle} />
+          ) : !canChange ? (
+            <p className="text-body text-inkSoft">{t('askManager')}</p>
           ) : (
             <>
               {changePath && <BigButton full icon="edit" onClick={() => { beginFlow(); navigate(changePath); }}>{t('badlo')}</BigButton>}

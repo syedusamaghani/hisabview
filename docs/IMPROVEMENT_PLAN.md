@@ -189,6 +189,10 @@ Your message said "Phases 1-9 below" but they were not in it. Below is my propos
 4. Google login limited to test users until "Publish app".
 5. Everything on a real Android phone is unverified (Contact Picker, WhatsApp open, speed).
 
+## 8b. Phase 1 status (done 12 Nov 2026)
+
+Built: migration 0005 (staff and roles enforced by the database, server-side diary and activity log, guards, server time, party_balances view), duplicate warning, cancel reasons, clock warning, balance auto-check, Staff screen, role-aware screens. Tests: 20 SQL tests that run all migrations in an in-memory Postgres, plus new app tests (permissions, staff sync, clock, cancel reason, duplicates). Covers D1, D2, D3, D5, D6 and risks 2, 3, 4, 8 above. D4, D7 (method/branch columns exist, no screens), D9, D10 are not done. Risk 1 (unsynced entries lost with the phone) is unchanged. Run migration 0005 in Supabase first (docs/LAUNCH_CHECKLIST.md, step 1b).
+
 ## 9. What I need from you to start Phase 1
 1. Your list of Phases 1-9 (or approve my proposed list in section 7).
 2. A decision on stock/products (phase 5): build or not.

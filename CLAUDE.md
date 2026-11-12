@@ -155,6 +155,20 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Step-by-step for the founder: docs/LAUNCH_CHECKLIST.md (SQL 0003 and 0004, contact email, backup secrets, Google "Publish app" with home page and privacy links, final phone check). Possible cost: Google may refuse a workers.dev address as an authorized domain; then a custom domain is needed (about Rs 3,000-4,000 per year): ask the founder BEFORE buying.
 - Hidden test pages: /dev/components, /dev/voice, /dev/crash (breaks on purpose).
 
+## Phase 1: roles, server diary, integrity (built; migration 0005)
+- Migration `supabase/migrations/0005_roles_audit_integrity.sql` (run in Supabase SQL Editor after 0001-0004; safe on a khata with data, checked by tests/sql/migrations.test.ts which runs ALL the SQL in PGlite, a small in-memory Postgres). The app also works WITHOUT it (it leaves the new columns out and skips the staff features), like 0003.
+- Roles are enforced IN THE DATABASE: tables `shop_members` (owner / manager / cashier, `active`), `shop_invites`, functions `invite_member`, `set_member`, `accept_my_invites` (owner invites by Google email; the invited person is joined at login, before the shop-name question), `my_role`. Owner: everything. Manager: entries, cancel, edit customers; not settings or staff. Cashier: add entries and customers; can take back (Wapas lo) their OWN entry within 10 minutes; nothing else. A switched-off member sees nothing (screen AccessOffScreen). One owner per shop, one active shop per login.
+- The phone only HIDES what would be refused: src/lib/permissions.ts (same rules, tested), `useRole()` / `shopsRepo.myRole()`, role kept in sync_meta (`role:<user>`, `member_shop:<user>`, src/data/roleStore.ts) and refreshed every sync pull. Without a server answer a person in somebody else's shop is a cashier (safest). Settings: only the owner sees shop name, Testing and the Staff button (/settings/staff, StaffScreen, src/data/staffRepo.ts, needs internet). A non-owner's language choice stays on the phone (no shop update).
+- Server diary: triggers write an audit line (origin 'server') and an activity_log line (user, action, entity, device from the request's user-agent) for every create/edit/cancel of shops, customers, entries. The phone's own diary lines (origin 'phone', they carry the cancel reason) are still sent; the phone downloads only 'phone' lines. activity_log is readable by owner and manager.
+- Integrity: entries get `server_received_at` (the server's time), `cancel_reason`, `cancelled_by` (always the logged-in person), `method` (cash/jazzcash/easypaisa/bank/other, not used by the app yet), `branch_id` (+ `branches` table, empty = main shop; not used yet). A customer's type and opening_balance cannot change once entries exist. A cancelled entry is frozen. Sale/kharcha cannot have a customer; promise_date only on diye (NOT VALID checks: old rows are not re-checked). View `party_balances` = the app's balance rule on the server (security_invoker).
+- Cancel asks why with one tap (CancelReasons: wrong_entry / customer_refused / other); Wapas lo writes 'undo', Badlo writes 'changed'. Reason is on the entry and in the diary.
+- Double-save warning (EntryScreen and the voice ConfirmView): the same customer + kind + amount within 2 minutes (`entriesRepo.findRecentDuplicate`) shows a warning once, pressing again saves. Retries of the same entry are already harmless (client UUID + upsert).
+- Clock: the sync pull asks `server_time()`; if the phone differs by more than 10 minutes, ClockBanner shows on Home and Today.
+- Balance check: after a pull that brought new rows, `statsRepo.verify` runs; a wrong summary is rebuilt and reported (reportError 'sync').
+- Money stays whole rupees (integers); not paisa on purpose (PKR amounts are whole rupees here).
+- Auth: Google only through Supabase (no passwords are stored by us); the session is saved and refreshed automatically; if refreshing fails the person is logged out and sees the login screen, the khata stays on the phone. Session length is a Supabase dashboard setting.
+- Not built: branch screens, payment-method picker, stock, a screen for the activity log.
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).
@@ -175,7 +189,7 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Balances are ALWAYS calculated from entries, never stored as an editable number.
 
 ## V2 (do not build, but keep architecture ready)
-Customer read-only balance link, promise-date reminders, draft entries ("Jaldi note"), cash reconciliation ("Galla milao"), credit limit warnings, risky-customer list, staff login, PDF statements, CSV import, expense categories, supplier accounts, Claude API parser.
+Customer read-only balance link, promise-date reminders, draft entries ("Jaldi note"), cash reconciliation ("Galla milao"), credit limit warnings, risky-customer list, PDF statements, CSV import, expense categories, supplier accounts, Claude API parser.
 
 ## Phases (the founder gives one chunk at a time)
 - Phase 0: Setup (install tools, create accounts, deploy an empty installable app)

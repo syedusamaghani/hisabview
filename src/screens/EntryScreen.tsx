@@ -55,6 +55,7 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
   const [note, setNote] = useState(() => (changing ? (query.get('note') ?? '') : ''));
   const [noteOpen, setNoteOpen] = useState(() => !!(changing && query.get('note')));
   const newId = useRef<string | null>(null);
+  const [duplicate, setDuplicate] = useState(false); // the same entry was saved a moment ago: warned once, the next tap saves
 
   const home = partyId ? `/party/${partyId}` : '/today';
   const back = () => goBack(home);
@@ -76,12 +77,17 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
 
   const save = async () => {
     if (saving) return;
-    setSaving(true);
     setFailed(false);
+    // The same entry two minutes ago (a double tap, or the customer repeated it)? Warn once; pressing again saves it.
+    if (!duplicate && !newId.current && !changing && (await entriesRepo.findRecentDuplicate({ kind, party_id: party?.id ?? null, amount }))) {
+      setDuplicate(true);
+      return;
+    }
+    setSaving(true);
     try {
       // On a retry the new entry already exists: only the cancel is left to do
       if (!newId.current) newId.current = (await entriesRepo.create({ kind, party_id: party?.id ?? null, amount, note })).id;
-      if (changing) await entriesRepo.cancel(changing).catch((e) => { if (!/already cancelled/.test(String(e))) throw e; });
+      if (changing) await entriesRepo.cancel(changing, 'changed').catch((e) => { if (!/already cancelled/.test(String(e))) throw e; });
       setFlash({ kind: 'undoEntry', entryId: newId.current });
       setSaved(true);
     } catch {
@@ -126,6 +132,11 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
               <Chip onClick={() => setNoteOpen(true)}>{t('addNote')}</Chip>
             )}
           </div>
+          {duplicate && (
+            <Card tone="soft" className="mt-4" role="alert">
+              <p className="text-body font-bold">{t('duplicateWarn')}</p>
+            </Card>
+          )}
           {failed && (
             <Card tone="soft" className="mt-4" role="alert">
               <p className="text-body font-bold">{t('errorGeneric')}</p>
@@ -134,7 +145,7 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
         </div>
         <BottomActionBar>
           <div className="grid grid-cols-[1fr_1.4fr] gap-3">
-            <BigButton size="lg" variant="ghost" icon="edit" onClick={() => setStep('amount')} disabled={saving}>{t('badlo')}</BigButton>
+            <BigButton size="lg" variant="ghost" icon="edit" onClick={() => { setDuplicate(false); setStep('amount'); }} disabled={saving}>{t('badlo')}</BigButton>
             <BigButton size="lg" onClick={save} disabled={saving}>{t('theekHai')}</BigButton>
           </div>
         </BottomActionBar>

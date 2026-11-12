@@ -39,6 +39,7 @@ export default function VoiceScreen() {
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [warned, setWarned] = useState<string | null>(null); // 'customer|amount' of an entry we already warned about (saved a moment ago)
 
   const transcript = useRef('');
   const heardName = useRef(''); // the name words as the phone first wrote them
@@ -222,8 +223,14 @@ export default function VoiceScreen() {
       const save = async (chosen?: 'diye' | 'mile') => {
         if (saving) return;
         const kind = chosen ?? entry.kind;
-        setSaving(true);
         setFailed(false);
+        // The same entry two minutes ago? Warn once; pressing again saves it.
+        const sig = `${party?.id ?? ''}|${entry.amount}`;
+        if (warned !== sig && (await entriesRepo.findRecentDuplicate({ kind, party_id: party?.id ?? null, amount: entry.amount }))) {
+          setWarned(sig);
+          return;
+        }
+        setSaving(true);
         try {
           const created = await entriesRepo.create({
             kind,
@@ -256,6 +263,7 @@ export default function VoiceScreen() {
           failed={failed}
           saved={saved}
           kindPending={kindPending}
+          duplicate={warned === `${party?.id ?? ''}|${entry.amount}`}
           onSave={save}
           onEditParty={() => {
             // Wrong person heard: pick again (the amount and Diye/Mile are kept)

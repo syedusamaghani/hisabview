@@ -12,7 +12,7 @@ function fakeClient(answer: (calls: Call[]) => { data?: unknown; error?: { messa
     calls.push({ fn, args });
     return query;
   };
-  for (const fn of ['select', 'eq', 'gte', 'order']) query[fn] = chain(fn);
+  for (const fn of ['select', 'eq', 'gte', 'order', 'limit']) query[fn] = chain(fn);
   query.range = (...args: unknown[]) => {
     calls.push({ fn: 'range', args });
     return Promise.resolve({ error: null, status: 200, ...answer(calls) });
@@ -94,9 +94,25 @@ describe('supabaseRemote', () => {
     expect(calls.filter((c) => c.fn === 'gte')).toHaveLength(1); // the retry has no filter
   });
 
-  it('finds my shop by my login id', async () => {
+  it('finds my shop (the server only shows the shops this login may see: its own, or the one it works in)', async () => {
     const { client, calls } = fakeClient(() => ({ data: { id: 'shop-1' } }));
     expect(await supabaseRemote(client).fetchMyShop('user-1')).toEqual({ id: 'shop-1' });
-    expect(calls.find((c) => c.fn === 'eq')?.args).toEqual(['owner_user_id', 'user-1']);
+    expect(calls.find((c) => c.fn === 'from')?.args).toEqual(['shops']);
+  });
+
+  it('downloads only the own diary lines of the phone, and still works before migration 0005 (no origin column)', async () => {
+    let n = 0;
+    const { client, calls } = fakeClient(() => (n++ === 0 ? { error: { message: 'column origin does not exist', code: '42703' } } : { data: [{ id: 'a' }] }));
+    const rows = await supabaseRemote(client).fetchRows('audit_log', 'shop-1', null);
+    expect(rows).toEqual([{ id: 'a' }]);
+    expect(calls.filter((c) => c.fn === 'eq').map((c) => c.args[0])).toEqual(['shop_id', 'origin', 'shop_id']); // the retry has no origin filter
+  });
+
+  it('leaves the cancel reason out and sends again when the server does not know that column yet', async () => {
+    let n = 0;
+    const { client, calls } = fakeClient(() => (n++ === 0 ? { error: { message: 'no column cancel_reason', code: 'PGRST204' } } : {}));
+    await supabaseRemote(client).upsert('entries', [{ id: 'a', status: 'cancelled', cancel_reason: 'undo' }]);
+    const sent = calls.filter((c) => c.fn === 'upsert').map((c) => c.args[0]);
+    expect(sent).toEqual([[{ id: 'a', status: 'cancelled', cancel_reason: 'undo' }], [{ id: 'a', status: 'cancelled' }]]);
   });
 });

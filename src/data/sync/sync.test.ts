@@ -295,9 +295,72 @@ describe('two phones that each made their own shop before ever syncing', () => {
   });
 });
 
+describe('staff: somebody who works in the owner shop', () => {
+  const STAFF = '00000000-0000-4000-8000-0000000000bb';
+
+  it('a cashier phone finds the owner shop and keeps the role', async () => {
+    const { shop, ali } = await startShop();
+    await sync.syncNow();
+    // a different phone: the cashier logs in and is already a team member on the server
+    await wipePhone();
+    setDataContext({ userId: STAFF, shopId: null });
+    server.team[STAFF] = { shopId: shop.id, role: 'cashier' };
+    const cashierSync = createSync(async () => server);
+    expect(await cashierSync.restore()).toBe('restored');
+    const mine = await shopsRepo.getMine();
+    expect(mine?.id).toBe(shop.id);
+    expect(await shopsRepo.myRole()).toBe('cashier');
+    expect(await db.parties.get(ali.id)).toBeTruthy();
+  });
+
+  it('the role is looked up again at every sync round (the owner can change it)', async () => {
+    const { shop } = await startShop();
+    await sync.syncNow();
+    await wipePhone();
+    setDataContext({ userId: STAFF, shopId: null });
+    server.team[STAFF] = { shopId: shop.id, role: 'cashier' };
+    const staffSync = createSync(async () => server);
+    await staffSync.restore();
+    server.team[STAFF] = { shopId: shop.id, role: 'manager' };
+    await staffSync.syncNow({ pull: true });
+    expect(await shopsRepo.myRole()).toBe('manager');
+    server.team[STAFF] = { shopId: shop.id, role: 'revoked' };
+    await staffSync.syncNow({ pull: true });
+    expect(await shopsRepo.myRole()).toBe('revoked');
+  });
+
+  it('the owner is always the owner, even offline', async () => {
+    await startShop();
+    expect(await shopsRepo.myRole()).toBe('owner');
+  });
+});
+
+describe('the phone clock and the balance check', () => {
+  it('remembers how far the phone clock is from the server clock', async () => {
+    await startShop();
+    server.clockOffsetMs = 45 * 60_000;
+    await sync.syncNow({ pull: true });
+    expect(getSyncState().clockOffsetMs).toBe(45 * 60_000);
+  });
+
+  it('fixes a wrong balance summary after new rows arrive, instead of showing a wrong balance', async () => {
+    const { ali } = await startShop();
+    await sync.syncNow();
+    const other = createSync(async () => server);
+    await db.party_stats.put({ party_id: ali.id, shop_id: ali.shop_id, balance: 999_999, last_at: null }); // drift
+    // a change from another phone arrives
+    server.tables.entries.set('50000000-0000-4000-8000-000000000001', {
+      id: '50000000-0000-4000-8000-000000000001', shop_id: ali.shop_id, party_id: ali.id, kind: 'mile', amount: 100, note: null, transcript: null,
+      source: 'manual', status: 'active', promise_date: null, created_by: USER, created_at: '2026-11-05T10:00:00+00:00', cancelled_at: null, updated_at: '2030-01-01T00:00:00+00:00',
+    });
+    await other.syncNow({ pull: true });
+    expect(await (await import('../statsRepo')).statsRepo.verify(ali.shop_id)).toEqual([]);
+  });
+});
+
 describe('status words', () => {
   it('synced, queued, syncing and problem', () => {
-    const base = { phase: 'idle' as const, pending: 0, blocked: 0, lastSyncAt: null };
+    const base = { phase: 'idle' as const, pending: 0, blocked: 0, lastSyncAt: null, clockOffsetMs: null };
     expect(describeSync(base)).toBe('synced');
     expect(describeSync({ ...base, pending: 3, phase: 'offline' })).toBe('queued');
     expect(describeSync({ ...base, pending: 3, phase: 'syncing' })).toBe('syncing');

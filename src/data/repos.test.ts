@@ -38,6 +38,48 @@ describe('shop', () => {
   });
 });
 
+describe('cancel reason and double-save warning', () => {
+  it('keeps why an entry was cancelled, on the entry and in the diary', async () => {
+    const { ali } = await startShop();
+    const entry = await entriesRepo.create({ kind: 'diye', party_id: ali.id, amount: 700 });
+    const cancelled = await entriesRepo.cancel(entry.id, 'wrong_entry');
+    expect(cancelled).toMatchObject({ status: 'cancelled', cancel_reason: 'wrong_entry', pending_sync: 1 });
+    const log = (await auditRepo.listFor(entry.id)).find((l) => l.action === 'cancel');
+    expect(log?.reason).toBe('wrong_entry');
+  });
+
+  it('a cancel without a reason still works', async () => {
+    const { ali } = await startShop();
+    const entry = await entriesRepo.create({ kind: 'diye', party_id: ali.id, amount: 700 });
+    expect((await entriesRepo.cancel(entry.id)).cancel_reason).toBeUndefined();
+  });
+
+  it('finds the same entry saved a moment ago, but not a different one or a cancelled one', async () => {
+    const { ali } = await startShop();
+    const { party: bilal } = await partiesRepo.create({ name: 'Bilal' });
+    const first = await entriesRepo.create({ kind: 'diye', party_id: ali.id, amount: 500 });
+    expect((await entriesRepo.findRecentDuplicate({ kind: 'diye', party_id: ali.id, amount: 500 }))?.id).toBe(first.id);
+    expect(await entriesRepo.findRecentDuplicate({ kind: 'diye', party_id: ali.id, amount: 501 })).toBeUndefined();
+    expect(await entriesRepo.findRecentDuplicate({ kind: 'mile', party_id: ali.id, amount: 500 })).toBeUndefined();
+    expect(await entriesRepo.findRecentDuplicate({ kind: 'diye', party_id: bilal.id, amount: 500 })).toBeUndefined();
+    await entriesRepo.cancel(first.id, 'undo');
+    expect(await entriesRepo.findRecentDuplicate({ kind: 'diye', party_id: ali.id, amount: 500 })).toBeUndefined();
+  });
+
+  it('does not warn about an entry from long ago', async () => {
+    const { ali } = await startShop();
+    const first = await entriesRepo.create({ kind: 'diye', party_id: ali.id, amount: 500 });
+    await db.entries.update(first.id, { created_at: new Date(Date.now() - 10 * 60_000).toISOString() });
+    expect(await entriesRepo.findRecentDuplicate({ kind: 'diye', party_id: ali.id, amount: 500 })).toBeUndefined();
+  });
+
+  it('also works for a sale (no customer)', async () => {
+    await startShop();
+    await entriesRepo.create({ kind: 'cash_sale', party_id: null, amount: 1500 });
+    expect(await entriesRepo.findRecentDuplicate({ kind: 'cash_sale', party_id: null, amount: 1500 })).toBeTruthy();
+  });
+});
+
 describe('entries', () => {
   it('saves an entry with its audit line, both marked pending sync', async () => {
     const { ali } = await startShop();

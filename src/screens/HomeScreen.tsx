@@ -3,6 +3,7 @@ import { AmountText } from '../components/AmountText';
 import { BigButton } from '../components/BigButton';
 import { BottomNav } from '../components/BottomNav';
 import { Card } from '../components/Card';
+import { ClockBanner } from '../components/ClockBanner';
 import { HideBanner } from '../components/HideBanner';
 import { InstallCard } from '../components/InstallCard';
 import { SyncBadge } from '../components/SyncBadge';
@@ -75,6 +76,7 @@ export function HomeScreen({ shopName }: { shopName: string }) {
 
       <div className="flex flex-col gap-4 px-gutter pt-4">
         <HideBanner />
+        <ClockBanner />
         {/* Offered once the first entry is written, not before: first the work, then the install */}
         {view && view.recent.length > 0 && <InstallCard />}
 

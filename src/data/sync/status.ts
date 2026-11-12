@@ -6,9 +6,10 @@ export type SyncState = {
   pending: number; // changes on this phone that the server does not have yet
   blocked: number; // changes the server refused (a rule was broken); they stay on the phone
   lastSyncAt: string | null; // the last time everything was up to date with the server
+  clockOffsetMs: number | null; // server time minus this phone's time (null = not known yet). Far from 0 = the phone's clock is wrong
 };
 
-const start: SyncState = { phase: 'idle', pending: 0, blocked: 0, lastSyncAt: null };
+const start: SyncState = { phase: 'idle', pending: 0, blocked: 0, lastSyncAt: null, clockOffsetMs: null };
 let state: SyncState = start;
 const listeners = new Set<() => void>();
 
@@ -16,7 +17,7 @@ export const getSyncState = (): SyncState => state;
 
 export function setSyncState(patch: Partial<SyncState>) {
   const next = { ...state, ...patch };
-  if (next.phase === state.phase && next.pending === state.pending && next.blocked === state.blocked && next.lastSyncAt === state.lastSyncAt) return;
+  if (next.phase === state.phase && next.pending === state.pending && next.blocked === state.blocked && next.lastSyncAt === state.lastSyncAt && next.clockOffsetMs === state.clockOffsetMs) return;
   state = next;
   listeners.forEach((l) => l());
 }

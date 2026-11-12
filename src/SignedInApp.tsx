@@ -2,12 +2,15 @@
 // screens (language, login) stay small and fast.
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { ScreenHeader } from './components/ScreenHeader';
-import { attachShop, isTesting, shopsRepo, sync, useLive } from './data';
+import { attachShop, currentUserId, isTesting, shopsRepo, sync, useLive, useRole } from './data';
 import { TestBanner } from './components/TestBanner';
 import { useT } from './i18n/i18n';
 import { shopLanguage } from './i18n/translations';
 import { goBack, usePath } from './lib/router';
+import { AccessOffScreen } from './screens/AccessOffScreen';
 import { AddPartyScreen } from './screens/AddPartyScreen';
+import { StaffScreen } from './screens/StaffScreen';
+import { canManageStaff } from './lib/permissions';
 import { CustomersScreen } from './screens/CustomersScreen';
 import { DoneScreen } from './screens/DoneScreen';
 import { FeedbackScreen } from './screens/FeedbackScreen';
@@ -41,6 +44,7 @@ export default function SignedInApp() {
   const [stage, setStage] = useState<Stage | null>(null);
   const [attachedShop, setAttachedShop] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const role = useRole();
 
   useEffect(() => {
     if (!found) return;
@@ -104,6 +108,7 @@ export default function SignedInApp() {
     );
   }
 
+  if (role === 'revoked') return <AccessOffScreen />; // the owner switched this login off
   if (stage === 'name') return <ShopNameScreen onCreated={() => setStage('done')} />;
   if (stage === 'done') return <DoneScreen shopName={shop?.shop_name ?? ''} onOld={() => setStage('old')} onSkip={() => setStage('home')} />;
   if (stage === 'old') return <OldBalancesScreen onFinish={() => setStage('home')} />;
@@ -126,6 +131,7 @@ export default function SignedInApp() {
   if (path === '/today/sale') return <EntryScreen kind="cash_sale" />;
   if (path === '/today/kharcha') return <EntryScreen kind="kharcha" />;
   if (path === '/settings' && shop) return <SettingsScreen shop={shop} />;
+  if (path === '/settings/staff' && shop && role && canManageStaff(role)) return <StaffScreen shopId={shop.id} userId={currentUserId()} />;
   const pick = /^\/entry\/(diye|mile)$/.exec(path);
   if (pick) return <PickPartyScreen kind={pick[1] as 'diye' | 'mile'} />;
   const match = /^\/party\/([^/]+)(?:\/(diye|mile|remind|edit|link))?$/.exec(path);

@@ -3,7 +3,7 @@ import { requireShop, requireUser } from './context';
 import { newId, nowIso } from './ids';
 import { snapshot, write } from './auditRepo';
 import { applyEntryChange } from './statsRepo';
-import { MAX_AMOUNT, type Entry, type EntryKind, type EntrySource } from './types';
+import { MAX_AMOUNT, type CancelReason, type Entry, type EntryKind, type EntrySource } from './types';
 
 export type NewEntry = {
   kind: EntryKind;
@@ -47,18 +47,27 @@ export const entriesRepo = {
   },
 
   // "Wapas lo" / cancel. The entry stays in the database, marked cancelled.
-  async cancel(id: string): Promise<Entry> {
+  async cancel(id: string, reason?: CancelReason): Promise<Entry> {
     return db.transaction('rw', db.entries, db.parties, db.audit_log, db.party_stats, async () => {
       const before = await db.entries.get(id);
       if (!before || before.shop_id !== requireShop()) throw new Error('Entry not found');
       if (before.status === 'cancelled') throw new Error('Entry is already cancelled');
-      const after: Entry = { ...before, status: 'cancelled', cancelled_at: nowIso(), pending_sync: 1 };
+      const after: Entry = { ...before, status: 'cancelled', cancelled_at: nowIso(), ...(reason ? { cancel_reason: reason } : {}), pending_sync: 1 };
       await db.entries.put(after);
-      await write('entry', id, 'cancel', snapshot(before), snapshot(after));
+      await write('entry', id, 'cancel', snapshot(before), snapshot(after), requireShop(), reason ?? null);
       const party = before.party_id ? await db.parties.get(before.party_id) : undefined;
       if (party) await applyEntryChange(party, before, after);
       return after;
     });
+  },
+
+  // The same entry saved a moment ago? (same person, kind and amount, still counting). Used to warn before a
+  // double save: a shopkeeper in a rush can write the same Diye twice. Only a warning, saving is still allowed.
+  async findRecentDuplicate(input: { kind: EntryKind; party_id: string | null; amount: number }, withinMs = 120_000): Promise<Entry | undefined> {
+    const shop = requireShop();
+    const since = new Date(Date.now() - withinMs).toISOString();
+    const recent = await db.entries.where('created_at').aboveOrEqual(since).toArray();
+    return recent.find((e) => e.shop_id === shop && e.status === 'active' && e.kind === input.kind && e.party_id === input.party_id && e.amount === input.amount);
   },
 
   async get(id: string): Promise<Entry | undefined> {

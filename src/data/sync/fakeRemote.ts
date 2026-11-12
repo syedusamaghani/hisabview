@@ -5,7 +5,7 @@
 //  - the audit diary is add-only
 //  - "updated_at" is stamped by the server (like the trigger in migration 0003)
 // Not used by the app itself.
-import { RemoteError, type LogTable, type Remote, type RemoteRow, type SyncTable } from './remote';
+import { RemoteError, type LogTable, type Remote, type RemoteRole, type RemoteRow, type SyncTable } from './remote';
 
 export type FakeServer = Remote & {
   tables: Record<SyncTable, Map<string, RemoteRow>>;
@@ -13,6 +13,9 @@ export type FakeServer = Remote & {
   offline: boolean; // true = every call fails like a missing internet connection
   supportsUpdatedAt: boolean; // false = migration 0003 was not run
   calls: { op: string; table?: SyncTable | LogTable; rows?: number }[];
+  // people who work in this shop without owning it: { loginId: { shopId, role } }
+  team: Record<string, { shopId: string; role: RemoteRole }>;
+  clockOffsetMs: number | null; // what clockOffset() answers
   // the server refuses every row for which this is true (null = stop refusing)
   refuseRows: (predicate: ((table: SyncTable, row: RemoteRow) => boolean) | null) => void;
 };
@@ -32,6 +35,8 @@ export function createFakeServer(userId: string): FakeServer {
     offline: false,
     supportsUpdatedAt: true,
     calls: [],
+    team: {},
+    clockOffsetMs: 0,
     refuseRows(predicate) {
       refuse = predicate;
     },
@@ -74,7 +79,8 @@ export function createFakeServer(userId: string): FakeServer {
           if (other) throw reject('duplicate key value violates unique constraint (owner_user_id)', '23505');
         }
         if (table === 'parties' || table === 'entries') {
-          if (!tables.shops.has(row.shop_id as string) || tables.shops.get(row.shop_id as string)?.owner_user_id !== userId) throw reject('shop missing or not yours', '23503');
+          const mine = tables.shops.get(row.shop_id as string)?.owner_user_id === userId || server.team[userId]?.shopId === row.shop_id;
+          if (!tables.shops.has(row.shop_id as string) || !mine) throw reject('shop missing or not yours', '23503');
         }
         if (table === 'parties' && old && old.shop_id !== row.shop_id) throw reject('party moved shop', '23503');
         if (table === 'entries') {
@@ -101,8 +107,24 @@ export function createFakeServer(userId: string): FakeServer {
     async fetchMyShop(uid) {
       server.calls.push({ op: 'fetchMyShop' });
       if (server.offline) throw new RemoteError('network', 'Failed to fetch');
-      const shop = [...tables.shops.values()].find((s) => s.owner_user_id === uid);
+      const shop = [...tables.shops.values()].find((s) => s.owner_user_id === uid || s.id === server.team[uid]?.shopId);
       return shop ? { ...shop } : null;
+    },
+
+    async acceptInvites() {
+      server.calls.push({ op: 'acceptInvites' });
+      if (server.offline) throw new RemoteError('network', 'Failed to fetch');
+    },
+
+    async fetchMyRole(_shopId, uid) {
+      server.calls.push({ op: 'fetchMyRole' });
+      if (server.offline) throw new RemoteError('network', 'Failed to fetch');
+      return server.team[uid]?.role ?? 'owner';
+    },
+
+    async clockOffset() {
+      if (server.offline) throw new RemoteError('network', 'Failed to fetch');
+      return server.clockOffsetMs;
     },
 
     async fetchRows(table, shopId, since) {

@@ -7,7 +7,8 @@ import { ChoiceCard } from '../components/ChoiceCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SwitchRow } from '../components/SwitchRow';
 import { TextField } from '../components/TextField';
-import { describeSync, isTesting, shopsRepo, startTesting, stopTesting, sync, useSyncState, type Shop } from '../data';
+import { describeSync, isTesting, shopsRepo, startTesting, stopTesting, sync, useRole, useSyncState, type Shop } from '../data';
+import { canChangeShop, canManageStaff } from '../lib/permissions';
 import { getStyle, setStyle } from '../design/style';
 import { STYLE_IDS } from '../design/tokens';
 import { useT } from '../i18n/i18n';
@@ -31,6 +32,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
   const syncState = useSyncState();
   const install = useInstall();
   const testing = isTesting();
+  const role = useRole() ?? 'cashier'; // what is shown depends on the role; the database refuses the rest
   const [style, setStyleState] = useState(getStyle);
   const [syncing, setSyncing] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -42,7 +44,8 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
   const chooseLang = (next: Lang) => {
     if (next === lang) return;
     setLang(next);
-    void shopsRepo.update(shop.id, { language: shopLanguage(next) }); // remembered with the shop, and audited
+    // Remembered with the shop and audited. Only the owner may change the shop; for others the choice stays on this phone.
+    if (canChangeShop(role)) void shopsRepo.update(shop.id, { language: shopLanguage(next) });
   };
 
   // "Abhi save karo": send everything now and also check for changes from another phone
@@ -67,6 +70,13 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
       <ScreenHeader title={t('navSettings')} />
 
       <div className="flex flex-col gap-4 px-gutter pt-4">
+        {role !== 'owner' && (
+          <Card tone="soft">
+            <p className="text-label font-bold text-inkSoft">{t('yourRole')}</p>
+            <p className="text-title font-extrabold text-ink">{t(role === 'manager' ? 'roleManager' : 'roleCashier')}</p>
+          </Card>
+        )}
+
         <Card className="flex flex-col gap-3">
           <h2 className="text-label font-bold text-inkSoft">{t('langSection')}</h2>
           <div role="radiogroup" aria-label={t('langSection')} className="flex flex-col gap-3">
@@ -98,6 +108,11 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           <SwitchRow label={t('hideAmounts')} checked={hidden} onChange={toggle} />
         </Card>
 
+        {canManageStaff(role) && !testing && (
+          <BigButton full variant="ghost" icon="users" onClick={() => navigate('/settings/staff')}>{t('staffOpen')}</BigButton>
+        )}
+
+        {canChangeShop(role) && (
         <Card className="flex flex-col gap-3">
           {editing ? (
             <>
@@ -118,6 +133,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
             </>
           )}
         </Card>
+        )}
 
         {learned > 0 && (
           <Card className="flex flex-col gap-3">
@@ -165,6 +181,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
 
         <ContactsCard />
 
+        {canChangeShop(role) && (
         <Card className="flex flex-col gap-2">
           <h2 className="text-label font-bold text-inkSoft">{t('testTitle')}</h2>
           <SwitchRow
@@ -177,6 +194,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           />
           <p className="text-label text-inkSoft">{t('testBody')}</p>
         </Card>
+        )}
 
         {install.canPrompt && (
           <BigButton

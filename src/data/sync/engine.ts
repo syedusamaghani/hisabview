@@ -10,6 +10,8 @@ import type { Table } from 'dexie';
 import { outbox } from '../../lib/outbox';
 import { attachShop, requireUser } from '../context';
 import { db } from '../db';
+import { reportError } from '../../lib/report';
+import { storeMemberShop, storeRole } from '../roleStore';
 import { applyEntryChange, recomputeStat, statsRepo } from '../statsRepo';
 import type { Entry, Party, Shop, AuditRow } from '../types';
 import { changeTime, fromRemote, sameRow, toRemote } from './mapping';
@@ -138,7 +140,7 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     return local ? null : incoming; // the diary is add-only
   }
 
-  async function pullTable(remote: Remote, table: (typeof PULL_ORDER)[number], shopId: string, fresh: boolean) {
+  async function pullTable(remote: Remote, table: (typeof PULL_ORDER)[number], shopId: string, fresh: boolean): Promise<number> {
     const since = fresh ? null : await cursor(table);
     const rows = await remote.fetchRows(table, shopId, since);
     const t = tableOf(table);
@@ -177,13 +179,33 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     const times = rows.map((r) => changeTime(table, r)).filter((v): v is string => v !== null);
     if (times.length > 0) await db.sync_meta.put({ key: `pull:${table}`, value: times.reduce((a, b) => (a > b ? a : b)) });
     else if (rows.length > 0) await db.sync_meta.delete(`pull:${table}`);
+    return rows.length;
+  }
+
+  // Which role this login has, kept on the phone (a person who works in somebody else's shop also keeps WHICH shop)
+  async function rememberMembership(remote: Remote, userId: string, shop: Record<string, unknown>) {
+    if (shop.owner_user_id !== userId) await storeMemberShop(userId, shop.id as string);
+    const role = await remote.fetchMyRole(shop.id as string, userId);
+    if (role !== 'unknown') await storeRole(userId, role);
+  }
+
+  // The customer summaries are a shortcut that can always be worked out again from the entries. After new rows
+  // arrive, check they still agree, and quietly fix them (and tell us) if they ever do not.
+  async function checkBalances(shopId: string) {
+    const wrong = await statsRepo.verify(shopId);
+    if (wrong.length === 0) return;
+    await statsRepo.rebuildAll(shopId);
+    reportError(new Error(`balance summary was wrong for ${wrong.length} customer(s) and was rebuilt`), 'sync');
   }
 
   async function pullAll(remote: Remote, userId: string, fresh = false) {
     const shop = await remote.fetchMyShop(userId);
     if (!shop) return;
-    for (const table of PULL_ORDER) await pullTable(remote, table, shop.id as string, fresh);
+    let arrived = 0;
+    for (const table of PULL_ORDER) arrived += await pullTable(remote, table, shop.id as string, fresh);
     await mergeShop(shop);
+    await rememberMembership(remote, userId, shop);
+    if (arrived > 0) await checkBalances(shop.id as string);
   }
 
   // ---------- one round of syncing
@@ -202,7 +224,11 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     try {
       await reconcileShop(remote, userId);
       for (const table of PUSH_ORDER) await pushTable(remote, table);
-      if (withPull) await pullAll(remote, userId);
+      if (withPull) {
+        await pullAll(remote, userId);
+        const offset = await remote.clockOffset();
+        if (offset !== null) setSyncState({ clockOffsetMs: Math.round(offset) });
+      }
       await refreshCounts();
       const left = getSyncState();
       setSyncState({ phase: left.blocked > 0 ? 'problem' : 'idle', lastSyncAt: left.pending === 0 && left.blocked === 0 ? new Date().toISOString() : left.lastSyncAt });
@@ -276,11 +302,18 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     if (!remote) return 'error';
     try {
       const userId = requireUser();
+      // Somebody invited by the owner becomes a team member now, before we look for their shop
+      try {
+        await remote.acceptInvites();
+      } catch (e) {
+        if (!(e instanceof RemoteError) || e.kind !== 'rejected') throw e;
+      }
       const shop = await remote.fetchMyShop(userId);
       if (!shop) return 'none';
       await db.sync_meta.clear();
       for (const table of PULL_ORDER) await pullTable(remote, table, shop.id as string, true);
       await statsRepo.rebuildAll(shop.id as string); // a fresh phone: work every balance out again from the entries
+      await rememberMembership(remote, userId, shop);
       await mergeShop(shop); // last, so the app opens only when everything is in
       setSyncState({ lastSyncAt: new Date().toISOString() });
       return 'restored';

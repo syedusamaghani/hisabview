@@ -31,7 +31,7 @@ export function useEntrySnack() {
   const undo = async () => {
     const id = snack?.undoEntryId;
     if (!id) return;
-    await entriesRepo.cancel(id);
+    await entriesRepo.cancel(id, 'undo');
     setSnack({ message: 'entryCancelled' });
   };
 
