@@ -30,6 +30,8 @@ import { TodayScreen } from './screens/TodayScreen';
 
 // The voice screen (and the parser behind it) is loaded only when the mic is tapped
 const VoiceScreen = lazy(() => import('./screens/VoiceScreen'));
+// So are the Saman screens (items, buying, selling)
+const StockRoutes = lazy(() => import('./screens/stock/StockRoutes'));
 
 // restoring -> (name -> done -> old (optional)) -> home.
 // A person who already has a shop on this phone goes straight to home. A login with no shop on this
@@ -122,6 +124,13 @@ export default function SignedInApp() {
     return (
       <Suspense fallback={<main className="mx-auto min-h-screen max-w-app bg-primary" />}>
         <VoiceScreen />
+      </Suspense>
+    );
+  }
+  if (path === '/stock' || path.startsWith('/stock/')) {
+    return (
+      <Suspense fallback={<main className="mx-auto min-h-screen max-w-app" />}>
+        <StockRoutes path={path} />
       </Suspense>
     );
   }

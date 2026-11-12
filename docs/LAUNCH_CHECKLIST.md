@@ -21,6 +21,10 @@ Privacy policy page (give this link to Google): https://hisabview.usama-syedghan
 Do this after the two files above. Same way: **SQL Editor**, **New query**, open `supabase/migrations/0005_roles_audit_integrity.sql`, copy ALL the text, paste, **Run**. It must say "Success". Your existing khata is not touched; it only adds new things.
 After it: Settings has **Staff aur role** (owner only) where you add a Manager or Cashier by their Google email. Until you run it, the app works as before without staff.
 
+## 1c. Database: stock, purchases and suppliers (5 minutes)
+
+Same way again: **SQL Editor**, **New query**, open `supabase/migrations/0006_stock_purchases.sql`, copy ALL the text, paste, **Run**. It must say "Success". Your khata is not touched; it adds two new tables (products and stock movements) and lets entries be a purchase. Run it **before** you use the new **Saman** tab for real. If it shows an error, send me the full text of the error.
+
 ## 2. Contact email on the privacy page (2 minutes)
 
 The privacy policy tells people how to ask for their data to be deleted. It uses the app's **Hamein batayein** button, and can also show an email address.

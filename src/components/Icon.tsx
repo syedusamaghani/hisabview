@@ -128,6 +128,13 @@ const PATHS = {
   cloud: <path d="M7 19a5 5 0 0 1-.9-9.920A6.500 6.500 0 0 1 18.700 9.600 4.700 4.700 0 0 1 17.500 19z" />,
   chat: <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6.200L8 21v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />,
   stop: <rect x="5.500" y="5.500" width="13" height="13" rx="3" />,
+  box: (
+    <>
+      <path opacity=".55" d="M12 2.600 3.400 6.900 12 11.200l8.600-4.300z" />
+      <path d="M3 8.600v7.900a1 1 0 0 0 .6.9l7.400 3.700v-9.500z" />
+      <path d="M21 8.600v7.900a1 1 0 0 1-.6.900L13 21.100v-9.500z" />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof PATHS;

@@ -13,6 +13,8 @@ type Who = Role | 'revoked';
 export const CASHIER_UNDO_MS = 10 * 60_000;
 
 export const canEditCustomer = (role: Who): boolean => role === 'owner' || role === 'manager';
+// Items, buying, returning goods and fixing stock: owner and manager. A cashier only sells (and sees the stock).
+export const canManageStock = (role: Who): boolean => role === 'owner' || role === 'manager';
 export const canChangeShop = (role: Who): boolean => role === 'owner';
 export const canManageStaff = (role: Who): boolean => role === 'owner';
 

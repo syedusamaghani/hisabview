@@ -7,9 +7,10 @@ import { EmptyState } from '../components/EmptyState';
 import { Icon, type IconName } from '../components/Icon';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { CancelReasons } from '../components/CancelReasons';
-import { currentUserId, entriesRepo, partiesRepo, shopsRepo, useLive, useRole, type CancelReason, type Entry, type Party } from '../data';
+import { currentUserId, entriesRepo, partiesRepo, productsRepo, shopsRepo, tradeRepo, useLive, useRole, type CancelReason, type Entry, type Party } from '../data';
 import { isMethod, METHOD_TEXT } from '../lib/methods';
-import { canChangeEntry, canEditCustomer } from '../lib/permissions';
+import { canChangeEntry, canEditCustomer, canManageStock } from '../lib/permissions';
+import { qtyText } from './stock/stockText';
 import { useT } from '../i18n/i18n';
 import { partyBalance } from '../lib/balance';
 import { formatDay, formatTime } from '../lib/dates';
@@ -121,6 +122,8 @@ export function PartyScreen({ partyId }: { partyId: string }) {
         <div className="grid grid-cols-2 gap-2">
           <ActionTile icon="bell" label={t('remind')} onClick={remind} />
           <ActionTile icon="whatsapp" label={t('sendStatement')} onClick={sendStatement} />
+          {party.type === 'supplier' && canManageStock(role) && <ActionTile icon="box" label={t('tileBuy')} onClick={() => navigate(`/stock/buy?supplier=${party.id}`)} />}
+          {party.type === 'supplier' && canManageStock(role) && <ActionTile icon="undo" label={t('tileReturn')} onClick={() => navigate(`/stock/return?supplier=${party.id}`)} />}
           {canEditCustomer(role) && <ActionTile icon="edit" label={t('editCustomer')} onClick={() => navigate(`/party/${party.id}/edit`)} />}
           {canSpeak && <ActionTile icon={speaking ? 'stop' : 'speaker'} label={speaking ? t('ruko') : t('listen')} pressed={speaking} onClick={sunao} />}
         </div>
@@ -224,6 +227,13 @@ function HistoryRow({ entry, party, open, canChange, onToggle, onCancel }: { ent
   const cancelled = entry.status === 'cancelled';
   const opening = entry.kind === 'opening';
   const gave = entry.kind === 'diye' || (opening && party.type === 'customer');
+  const goods = entry.kind === 'purchase' || entry.kind === 'purchase_return';
+  // The items of a sale or purchase (loaded when the row is opened)
+  const items = useLive(async () => {
+    if (!open) return [];
+    const moves = await tradeRepo.movesOfEntry(entry.id);
+    return Promise.all(moves.map(async (m) => ({ move: m, product: await productsRepo.get(m.product_id) })));
+  }, [open, entry.id]);
 
   // Red = they owe me / money went out. Green = money came in. Dark = I owe them.
   const tone = cancelled ? 'neutral' : entry.kind === 'mile' ? 'in' : gave ? 'out' : 'neutral';
@@ -234,8 +244,8 @@ function HistoryRow({ entry, party, open, canChange, onToggle, onCancel }: { ent
       : gave
         ? 'bg-moneyOutSoft text-moneyOut'
         : 'bg-primarySoft text-primary';
-  const icon: IconName = entry.kind === 'mile' ? 'down' : opening && !gave ? 'down' : 'up';
-  const label = opening ? t('openingLabel') : entry.kind === 'mile' ? t('mile') : t('diye');
+  const icon: IconName = entry.kind === 'purchase' ? 'box' : entry.kind === 'purchase_return' ? 'undo' : entry.kind === 'mile' ? 'down' : opening && !gave ? 'down' : 'up';
+  const label = opening ? t('openingLabel') : entry.kind === 'purchase' ? t('purchaseLabel') : entry.kind === 'purchase_return' ? t('purchaseReturnLabel') : entry.kind === 'mile' ? t('mile') : t('diye');
 
   const body = (
     <div className="flex items-center gap-3">
@@ -250,6 +260,7 @@ function HistoryRow({ entry, party, open, canChange, onToggle, onCancel }: { ent
           </span>
         {cancelled && <span className="block text-label font-bold text-inkSoft">{t('cancelledLabel')}</span>}
         {!cancelled && isMethod(entry.method) && entry.method !== 'cash' && <span className="block text-label font-bold text-inkSoft">{t(METHOD_TEXT[entry.method])}</span>}
+        {entry.invoice_no && <span dir="auto" className="block truncate text-label text-inkSoft">{entry.invoice_no}</span>}
         {entry.note && <span dir="auto" className="block truncate text-label text-inkSoft">{entry.note}</span>}
       </span>
       <AmountText amount={entry.amount} tone={tone} room="120px" className={cancelled ? 'line-through' : undefined} />
@@ -273,7 +284,20 @@ function HistoryRow({ entry, party, open, canChange, onToggle, onCancel }: { ent
             <p className="text-body text-inkSoft">{t('askManager')}</p>
           ) : (
             <>
-              {changePath && <BigButton full icon="edit" onClick={() => { beginFlow(); navigate(changePath); }}>{t('badlo')}</BigButton>}
+              {items && items.length > 0 && (
+                <div>
+                  <p className="mb-1 text-label font-bold text-inkSoft">{t('goodsList')}</p>
+                  <ul className="flex flex-col gap-1">
+                    {items.map(({ move, product }) => (
+                      <li key={move.id} className="flex items-start justify-between gap-2 text-body">
+                        <span dir="auto" className="min-w-0 truncate font-bold">{product?.name ?? ''}</span>
+                        <bdi className="shrink-0 text-inkSoft">{product ? qtyText(t, Math.abs(move.qty_base), product) : Math.abs(move.qty_base)}</bdi>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {changePath && !(items && items.length > 0) && !goods && <BigButton full icon="edit" onClick={() => { beginFlow(); navigate(changePath); }}>{t('badlo')}</BigButton>}
               <BigButton full variant="ghost" onClick={() => setAsking(true)}>{t('cancelEntry')}</BigButton>
             </>
           )}

@@ -1,8 +1,11 @@
 // The server side of sync, described as a small interface so the engine can be tested without
 // internet. The real one (supabaseRemote) talks to Supabase; tests use a pretend server.
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { ADD_ONLY } from './mapping';
 
-export type SyncTable = 'shops' | 'parties' | 'entries' | 'audit_log';
+export type SyncTable = 'shops' | 'parties' | 'entries' | 'audit_log' | 'products' | 'stock_moves';
+// The two tables made by migration 0006. A server without it does not have them: the rest of the khata still syncs.
+export const STOCK_TABLES: SyncTable[] = ['products', 'stock_moves'];
 // Messages to us (add-only tables): see supabase/migrations/0004_feedback_errors.sql
 export type LogTable = 'feedback' | 'error_log';
 export type RemoteRow = Record<string, unknown>;
@@ -11,9 +14,10 @@ export type RemoteRow = Record<string, unknown>;
 //  network  = no internet or the server is not answering (try again later, lose nothing)
 //  auth     = the login has expired (try again later; the login code refreshes it)
 //  rejected = the server looked at this row and said no (a rule was broken); retrying will not help
+//  missing  = the table does not exist on the server (a migration has not been run yet)
 export class RemoteError extends Error {
   constructor(
-    public kind: 'network' | 'auth' | 'rejected',
+    public kind: 'network' | 'auth' | 'rejected' | 'missing',
     message: string,
     public code = '',
   ) {
@@ -44,6 +48,7 @@ type PgError = { message: string; code?: string; details?: string } | null;
 
 function fail(error: NonNullable<PgError>, status?: number): never {
   const code = error.code ?? '';
+  if (code === '42P01' || code === 'PGRST205') throw new RemoteError('missing', error.message, code);
   if (code === 'PGRST301' || code === '401' || status === 401 || /jwt/i.test(error.message)) throw new RemoteError('auth', error.message, code);
   // A real database answer has a code (23505, 42501, ...). No code = we never got an answer.
   if (!code) throw new RemoteError('network', error.message);
@@ -54,7 +59,7 @@ const PAGE = 1000;
 
 // Columns added by migration 0005. A server that has not run it yet does not know them: then they are left out
 // and the rest of the row still goes (the same cancel without its reason is better than a stuck entry).
-const NEWER_COLUMNS = ['cancel_reason', 'reason', 'method'];
+const NEWER_COLUMNS = ['cancel_reason', 'reason', 'method', 'ref_id', 'invoice_no'];
 const missingColumn = (error: NonNullable<PgError>) => error.code === '42703' || error.code === 'PGRST204';
 
 export function supabaseRemote(client: SupabaseClient): Remote {
@@ -105,7 +110,7 @@ export function supabaseRemote(client: SupabaseClient): Remote {
 
     async fetchRows(table, shopId, since) {
       // audit_log has no updated_at (rows are never changed), the others do (after migration 0003)
-      const timeColumn = table === 'audit_log' ? 'created_at' : 'updated_at';
+      const timeColumn = ADD_ONLY.includes(table) ? 'created_at' : 'updated_at';
       // The server writes its own diary lines too (origin = 'server', migration 0005). The phone keeps its own lines, so only those are fetched.
       let phoneDiaryOnly = table === 'audit_log';
       const read = async (useSince: boolean): Promise<RemoteRow[] | null> => {

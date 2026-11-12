@@ -5,20 +5,21 @@ import { navigate } from '../lib/router';
 import { BottomActionBar } from './BottomActionBar';
 import { Icon, type IconName } from './Icon';
 
-// The three main places of the app: Home, Customers, Settings. Big icons with a name under each.
-export type Tab = 'home' | 'customers' | 'settings';
+// The four main places of the app: Home, Customers, Stock, Settings. Big icons with a name under each.
+export type Tab = 'home' | 'customers' | 'stock' | 'settings';
 
-const TABS: { tab: Tab; icon: IconName; path: string; label: 'navHome' | 'navCustomers' | 'navSettings' }[] = [
+const TABS: { tab: Tab; icon: IconName; path: string; label: 'navHome' | 'navCustomers' | 'navStock' | 'navSettings' }[] = [
   { tab: 'home', icon: 'home', path: '/', label: 'navHome' },
   { tab: 'customers', icon: 'users', path: '/customers', label: 'navCustomers' },
+  { tab: 'stock', icon: 'box', path: '/stock', label: 'navStock' },
   { tab: 'settings', icon: 'gear', path: '/settings', label: 'navSettings' },
 ];
 
-// Just the row of three. Also shown on its own in the component gallery.
+// Just the row of four. Also shown on its own in the component gallery.
 export function NavTabs({ active, onSelect }: { active: Tab; onSelect: (tab: Tab) => void }) {
   const { t } = useT();
   return (
-    <nav className="grid grid-cols-3 gap-2" aria-label={t('appName')}>
+    <nav className="grid grid-cols-4 gap-1" aria-label={t('appName')}>
       {TABS.map(({ tab, icon, label }) => (
         <button
           key={tab}

@@ -3,7 +3,7 @@
 import Dexie, { type Table } from 'dexie';
 import { computeStats } from './stats';
 import { REAL_DB_NAME, TEST_DB_NAME, isTesting } from './testMode';
-import type { AuditRow, Entry, Party, PartyStat, Shop, SyncMeta } from './types';
+import type { AuditRow, Entry, Party, PartyStat, Product, ProductStat, Shop, StockMove, SyncMeta } from './types';
 
 export class HisabDB extends Dexie {
   shops!: Table<Shop, string>;
@@ -12,6 +12,9 @@ export class HisabDB extends Dexie {
   audit_log!: Table<AuditRow, string>;
   sync_meta!: Table<SyncMeta, string>;
   party_stats!: Table<PartyStat, string>;
+  products!: Table<Product, string>;
+  stock_moves!: Table<StockMove, string>;
+  product_stats!: Table<ProductStat, string>;
 
   constructor(name = REAL_DB_NAME) {
     super(name);
@@ -34,6 +37,12 @@ export class HisabDB extends Dexie {
         const entries = (await tx.table('entries').toArray()) as Entry[];
         await tx.table('party_stats').bulkPut(computeStats(parties, entries));
       });
+    // Version 4: stock. Products, their add-only movements, and a stock summary per product (rebuilt from the movements).
+    this.version(4).stores({
+      products: 'id, shop_id, pending_sync',
+      stock_moves: 'id, shop_id, product_id, entry_id, created_at, pending_sync',
+      product_stats: 'product_id, shop_id',
+    });
   }
 }
 

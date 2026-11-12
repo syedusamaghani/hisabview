@@ -6,6 +6,7 @@
 //  - positive = they owe me (Lene hain). negative = I owe them (Dene hain).
 //  - An 'opening' entry is the old balance. For a customer it counts as "they owe me",
 //    for a supplier as "I owe them" (so it counts negative).
+//  - purchase (goods bought on a supplier's account) counts negative, purchase_return positive.
 //  - Cancelled and draft entries are ignored. kharcha and cash_sale do not touch a balance.
 //  - party.opening_balance is an older way to store the starting amount. New data leaves it
 //    at 0, but it still counts if it is not 0, so no old record is lost.
@@ -17,6 +18,9 @@ export function effect(entry: BalanceEntry, partyType: string): number {
   if (entry.status !== 'active') return 0;
   if (entry.kind === 'diye') return entry.amount;
   if (entry.kind === 'mile') return -entry.amount;
+  // Goods from a supplier: we owe more. Goods sent back: we owe less.
+  if (entry.kind === 'purchase') return -entry.amount;
+  if (entry.kind === 'purchase_return') return entry.amount;
   if (entry.kind === 'opening') return partyType === 'supplier' ? -entry.amount : entry.amount;
   return 0;
 }

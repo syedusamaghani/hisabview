@@ -2,6 +2,7 @@ import { db } from './db';
 import { requireShop, requireUser } from './context';
 import { newId, nowIso } from './ids';
 import { snapshot, write } from './auditRepo';
+import { reverseMovesOf } from './productsRepo';
 import { applyEntryChange } from './statsRepo';
 import { MAX_AMOUNT, type CancelReason, type Entry, type EntryKind, type EntrySource, type PaymentMethod } from './types';
 
@@ -14,12 +15,42 @@ export type NewEntry = {
   source?: EntrySource;
   promise_date?: string | null;
   method?: PaymentMethod | null;
+  ref_id?: string | null;
+  invoice_no?: string | null;
 };
+
+// These always belong to a person (a customer, or the supplier for goods)
+const NEEDS_PERSON: EntryKind[] = ['diye', 'mile', 'opening', 'purchase', 'purchase_return'];
+
+// Cancel one entry inside a transaction: its stock goes back (reversal movements) and a payment made together with it is cancelled too
+async function cancelOne(id: string, reason?: CancelReason): Promise<Entry> {
+  const before = await db.entries.get(id);
+  if (!before || before.shop_id !== requireShop()) throw new Error('Entry not found');
+  if (before.status === 'cancelled') throw new Error('Entry is already cancelled');
+  await reverseMovesOf(id); // the goods go back first; the last steps below are plain saves
+  const after: Entry = { ...before, status: 'cancelled', cancelled_at: nowIso(), ...(reason ? { cancel_reason: reason } : {}), pending_sync: 1 };
+  await db.entries.put(after);
+  await write('entry', id, 'cancel', snapshot(before), snapshot(after), requireShop(), reason ?? null);
+  const party = before.party_id ? await db.parties.get(before.party_id) : undefined;
+  if (party) await applyEntryChange(party, before, after);
+  return after;
+}
+
+async function cancelInTx(id: string, reason?: CancelReason): Promise<Entry> {
+  const main = await cancelOne(id, reason);
+  if (main.party_id) {
+    const linked = (await db.entries.where('party_id').equals(main.party_id).toArray()).filter((e) => e.ref_id === id && e.status === 'active');
+    for (const e of linked) await cancelOne(e.id, reason);
+  }
+  return main;
+}
 
 export const entriesRepo = {
   async create(input: NewEntry): Promise<Entry> {
     if (!Number.isInteger(input.amount) || input.amount <= 0 || input.amount > MAX_AMOUNT) throw new Error('Amount is not valid');
-    if (['diye', 'mile', 'opening'].includes(input.kind) && !input.party_id) throw new Error('Choose a person');
+    if (NEEDS_PERSON.includes(input.kind) && !input.party_id) throw new Error('Choose a person');
+    if ((input.kind === 'kharcha' || input.kind === 'cash_sale') && input.party_id) throw new Error('A sale or expense has no person');
+    if (input.invoice_no && input.invoice_no.trim().length > 60) throw new Error('Bill number is too long');
     const entry: Entry = {
       id: newId(),
       shop_id: requireShop(),
@@ -32,6 +63,8 @@ export const entriesRepo = {
       status: 'active',
       promise_date: input.promise_date ?? null,
       ...(input.method ? { method: input.method } : {}),
+      ...(input.ref_id ? { ref_id: input.ref_id } : {}),
+      ...(input.invoice_no?.trim() ? { invoice_no: input.invoice_no.trim() } : {}),
       created_by: requireUser(),
       created_at: nowIso(),
       cancelled_at: null,
@@ -50,17 +83,7 @@ export const entriesRepo = {
 
   // "Wapas lo" / cancel. The entry stays in the database, marked cancelled.
   async cancel(id: string, reason?: CancelReason): Promise<Entry> {
-    return db.transaction('rw', db.entries, db.parties, db.audit_log, db.party_stats, async () => {
-      const before = await db.entries.get(id);
-      if (!before || before.shop_id !== requireShop()) throw new Error('Entry not found');
-      if (before.status === 'cancelled') throw new Error('Entry is already cancelled');
-      const after: Entry = { ...before, status: 'cancelled', cancelled_at: nowIso(), ...(reason ? { cancel_reason: reason } : {}), pending_sync: 1 };
-      await db.entries.put(after);
-      await write('entry', id, 'cancel', snapshot(before), snapshot(after), requireShop(), reason ?? null);
-      const party = before.party_id ? await db.parties.get(before.party_id) : undefined;
-      if (party) await applyEntryChange(party, before, after);
-      return after;
-    });
+    return db.transaction('rw', [db.entries, db.parties, db.audit_log, db.party_stats, db.products, db.stock_moves, db.product_stats], async () => cancelInTx(id, reason));
   },
 
   // The same entry saved a moment ago? (same person, kind and amount, still counting). Used to warn before a

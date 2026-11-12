@@ -12,7 +12,8 @@ export type Role = 'owner' | 'manager' | 'cashier';
 export type CancelReason = 'wrong_entry' | 'customer_refused' | 'other' | 'undo' | 'changed';
 export type PartyType = 'customer' | 'supplier';
 export type PaymentMethod = 'cash' | 'jazzcash' | 'easypaisa' | 'bank' | 'other';
-export type EntryKind = 'diye' | 'mile' | 'opening' | 'kharcha' | 'cash_sale';
+// purchase = goods bought from a supplier (we owe more), purchase_return = goods sent back (we owe less). Both need a supplier.
+export type EntryKind = 'diye' | 'mile' | 'opening' | 'kharcha' | 'cash_sale' | 'purchase' | 'purchase_return';
 export type EntrySource = 'voice' | 'manual' | 'import';
 export type EntryStatus = 'active' | 'cancelled' | 'draft';
 
@@ -55,10 +56,12 @@ export type Entry = {
   cancelled_at: string | null;
   cancel_reason?: CancelReason | null; // only set when cancelled
   method?: PaymentMethod | null; // how the money moved (empty on entries made before this existed)
+  ref_id?: string | null; // a payment made together with a purchase points at that purchase (they are cancelled together)
+  invoice_no?: string | null; // the supplier's bill number, for a purchase
   pending_sync: PendingSync;
 };
 
-export type AuditEntity = 'shop' | 'party' | 'entry';
+export type AuditEntity = 'shop' | 'party' | 'entry' | 'product';
 export type AuditAction = 'create' | 'edit' | 'cancel';
 
 export type AuditRow = {
@@ -74,6 +77,54 @@ export type AuditRow = {
   created_at: string;
   pending_sync: PendingSync;
 };
+
+// ---- stock (Phase 3)
+// Quantities are whole numbers of the product's base unit (see src/lib/stock.ts). Prices are whole rupees per unit.
+export type BaseUnit = 'piece' | 'gram' | 'ml';
+export type ProductUnit = { name: string; factor: number };
+export type StockMoveKind = 'opening' | 'purchase' | 'purchase_return' | 'sale' | 'adjust' | 'damaged' | 'lost' | 'reversal';
+
+export type Product = {
+  id: string;
+  shop_id: string;
+  name: string;
+  category: string | null;
+  barcode: string | null;
+  sku: string | null;
+  base_unit: BaseUnit;
+  units: ProductUnit[]; // packings added by the shopkeeper (carton = 144 piece); dozen, kg, litre are built in
+  price_unit: string; // the unit the two prices below are per ("piece", "kg", "carton")
+  cost_price: number; // what it costs me, per price_unit
+  sell_price: number; // what I sell it for, per price_unit
+  min_stock: number; // base units; at or below this the product is flagged low (0 = no alert)
+  image: string | null; // a small compressed photo (data address)
+  archived: boolean; // "deleted": hidden, never removed
+  created_at: string;
+  pending_sync: PendingSync;
+};
+
+// One movement of stock. Add-only: a mistake is corrected by another movement (a 'reversal' points at the one it undoes).
+export type StockMove = {
+  id: string;
+  shop_id: string;
+  product_id: string;
+  entry_id: string | null; // the sale or purchase it belongs to
+  party_id: string | null; // the supplier (purchase) or customer (sale on udhaar)
+  kind: StockMoveKind;
+  qty_base: number; // + adds stock, - removes it; never 0
+  unit: string; // the unit it was typed in
+  unit_factor: number;
+  unit_price: number | null; // per unit, whole rupees
+  line_total: number; // whole rupees
+  reason: string | null;
+  reverses: string | null;
+  created_by: string;
+  created_at: string;
+  pending_sync: PendingSync;
+};
+
+// Stock of every product, kept in step with the movements (rebuilt from them whenever needed)
+export type ProductStat = { product_id: string; shop_id: string; stock: number; last_at: string | null };
 
 // A small summary kept for every customer, so screens do not have to add up thousands of entries.
 // It is derived data: it can always be rebuilt from the entries (statsRepo.rebuildAll), and it is

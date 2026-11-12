@@ -12,6 +12,7 @@ export type FakeServer = Remote & {
   logs: Record<LogTable, Map<string, RemoteRow>>; // feedback and error reports
   offline: boolean; // true = every call fails like a missing internet connection
   supportsUpdatedAt: boolean; // false = migration 0003 was not run
+  supportsStock: boolean; // false = migration 0006 was not run (no products and stock_moves tables)
   calls: { op: string; table?: SyncTable | LogTable; rows?: number }[];
   // people who work in this shop without owning it: { loginId: { shopId, role } }
   team: Record<string, { shopId: string; role: RemoteRole }>;
@@ -23,7 +24,7 @@ export type FakeServer = Remote & {
 const reject = (message: string, code: string) => new RemoteError('rejected', message, code);
 
 export function createFakeServer(userId: string): FakeServer {
-  const tables: Record<SyncTable, Map<string, RemoteRow>> = { shops: new Map(), parties: new Map(), entries: new Map(), audit_log: new Map() };
+  const tables: Record<SyncTable, Map<string, RemoteRow>> = { shops: new Map(), parties: new Map(), entries: new Map(), audit_log: new Map(), products: new Map(), stock_moves: new Map() };
   const logs: Record<LogTable, Map<string, RemoteRow>> = { feedback: new Map(), error_log: new Map() };
   let clock = Date.parse('2026-11-04T00:00:00Z');
   const stamp = () => new Date((clock += 1000)).toISOString().replace('Z', '+00:00'); // Postgres style
@@ -34,6 +35,7 @@ export function createFakeServer(userId: string): FakeServer {
     logs,
     offline: false,
     supportsUpdatedAt: true,
+    supportsStock: true,
     calls: [],
     team: {},
     clockOffsetMs: 0,
@@ -60,6 +62,7 @@ export function createFakeServer(userId: string): FakeServer {
         logs[table] = staged;
         return;
       }
+      if ((table === 'products' || table === 'stock_moves') && !server.supportsStock) throw new RemoteError('missing', 'relation does not exist', '42P01');
       const staged = new Map(tables[table]);
       for (const raw of rows) {
         if (refuse?.(table, raw)) throw reject('refused for the test', '23514');
@@ -78,7 +81,15 @@ export function createFakeServer(userId: string): FakeServer {
           const other = [...staged.values()].find((s) => s.owner_user_id === row.owner_user_id && s.id !== id);
           if (other) throw reject('duplicate key value violates unique constraint (owner_user_id)', '23505');
         }
-        if (table === 'parties' || table === 'entries') {
+        if (table === 'stock_moves') {
+          if (old) {
+            if (options?.ignoreDuplicates) continue;
+            throw reject('stock movements cannot be changed', '42501');
+          }
+          if (!tables.products.has(row.product_id as string)) throw reject('product missing', '23503');
+          if (!Number.isInteger(row.qty_base) || row.qty_base === 0) throw reject('check constraint: qty_base', '23514');
+        }
+        if (table === 'parties' || table === 'entries' || table === 'products' || table === 'stock_moves') {
           const mine = tables.shops.get(row.shop_id as string)?.owner_user_id === userId || server.team[userId]?.shopId === row.shop_id;
           if (!tables.shops.has(row.shop_id as string) || !mine) throw reject('shop missing or not yours', '23503');
         }
@@ -98,7 +109,7 @@ export function createFakeServer(userId: string): FakeServer {
         }
         const stored: RemoteRow = { ...row, created_at: typeof row.created_at === 'string' ? (row.created_at as string).replace('Z', '+00:00') : row.created_at };
         if (typeof stored.cancelled_at === 'string') stored.cancelled_at = (stored.cancelled_at as string).replace('Z', '+00:00');
-        if (table !== 'audit_log' && server.supportsUpdatedAt) stored.updated_at = stamp();
+        if (table !== 'audit_log' && table !== 'stock_moves' && server.supportsUpdatedAt) stored.updated_at = stamp();
         staged.set(id, stored);
       }
       tables[table] = staged; // all or nothing, like one request
@@ -130,8 +141,10 @@ export function createFakeServer(userId: string): FakeServer {
     async fetchRows(table, shopId, since) {
       server.calls.push({ op: 'fetchRows', table });
       if (server.offline) throw new RemoteError('network', 'Failed to fetch');
-      const timeColumn = table === 'audit_log' ? 'created_at' : 'updated_at';
-      const useSince = since !== null && (table === 'audit_log' || server.supportsUpdatedAt);
+      if ((table === 'products' || table === 'stock_moves') && !server.supportsStock) throw new RemoteError('missing', 'relation does not exist', '42P01');
+      const addOnly = table === 'audit_log' || table === 'stock_moves';
+      const timeColumn = addOnly ? 'created_at' : 'updated_at';
+      const useSince = since !== null && (addOnly || server.supportsUpdatedAt);
       return [...tables[table].values()]
         .filter((r) => r.shop_id === shopId)
         .filter((r) => !useSince || Date.parse(r[timeColumn] as string) >= Date.parse(since as string))
