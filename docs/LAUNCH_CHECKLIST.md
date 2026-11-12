@@ -25,6 +25,10 @@ After it: Settings has **Staff aur role** (owner only) where you add a Manager o
 
 Same way again: **SQL Editor**, **New query**, open `supabase/migrations/0006_stock_purchases.sql`, copy ALL the text, paste, **Run**. It must say "Success". Your khata is not touched; it adds two new tables (products and stock movements) and lets entries be a purchase. Run it **before** you use the new **Saman** tab for real. If it shows an error, send me the full text of the error.
 
+## 1d. Database: expenses, cashbook and daily closing (5 minutes)
+
+Same way again: **SQL Editor**, **New query**, open `supabase/migrations/0007_cashbook_expenses.sql`, copy ALL the text, paste, **Run**. It must say "Success". Your khata is not touched; it adds expense categories, cash in / cash out of the drawer and the daily closing table. Run it **before** you use **Galla** or write expenses with a category for real. If it shows an error, send me the full text of the error.
+
 ## 2. Contact email on the privacy page (2 minutes)
 
 The privacy policy tells people how to ask for their data to be deleted. It uses the app's **Hamein batayein** button, and can also show an email address.

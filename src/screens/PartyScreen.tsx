@@ -4,6 +4,7 @@ import { BigButton } from '../components/BigButton';
 import { BottomActionBar } from '../components/BottomActionBar';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
+import { Chip } from '../components/Chip';
 import { Icon, type IconName } from '../components/Icon';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { CancelReasons } from '../components/CancelReasons';
@@ -13,6 +14,9 @@ import { canChangeEntry, canEditCustomer, canManageStock } from '../lib/permissi
 import { qtyText } from './stock/stockText';
 import { useT } from '../i18n/i18n';
 import { partyBalance } from '../lib/balance';
+import { creditLeft } from '../lib/credit';
+import { entryGroup, ledgerRows } from '../lib/ledger';
+import { formatRs } from '../lib/money';
 import { formatDay, formatTime } from '../lib/dates';
 import { cx } from '../lib/cx';
 import { TONES, reminderText, statementText } from '../lib/messages';
@@ -30,6 +34,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
     [partyId],
   );
   const [openId, setOpenId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'goods' | 'payments'>('all'); // which part of the account the list shows
   const [archiving, setArchiving] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const { snackbar, notify, hide } = useEntrySnack();
@@ -57,9 +62,14 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   }
 
   const balance = partyBalance(party, entries);
+  // The balance after every entry (the running balance), kept by entry
+  const after = new Map(ledgerRows(party, entries).map((r) => [r.entry.id, r.balance]));
+  const shown = filter === 'all' ? entries : entries.filter((e) => entryGroup(party.type, e.kind) === filter);
+  const limit = party.type === 'customer' ? party.credit_limit : null;
+  const room = creditLeft(limit, balance);
 
   // "Hisaab bhejo": the account in a few lines, ready in WhatsApp
-  const sendStatement = () => openWhatsApp(whatsappUrl(party.phone, statementText(lang, { name: party.name, shop: shopName }, entries, balance)));
+  const sendStatement = () => openWhatsApp(whatsappUrl(party.phone, statementText(lang, { name: party.name, shop: shopName }, party, entries)));
 
   // "Yaad dilao": a customer with a number and something owed goes straight to their WhatsApp chat with the
   // normal reminder typed. Otherwise the reminder screen helps (save the number first, or says nothing is owed).
@@ -113,6 +123,11 @@ export function PartyScreen({ partyId }: { partyId: string }) {
             {balance > 0 ? t('leneHain') : balance < 0 ? t('deneHain') : t('settled')}
           </p>
           <AmountText amount={Math.abs(balance)} size="xl" tone={balance > 0 ? 'out' : 'neutral'} />
+          {limit ? (
+            <p className="mt-2 text-label font-semibold text-inkSoft">
+              {t('creditLimitLine').replace('{limit}', formatRs(limit))} · {room === 0 ? t('creditOverLine').replace('{limit}', formatRs(limit)) : t('creditLeftLine').replace('{amount}', formatRs(room ?? 0))}
+            </p>
+          ) : null}
         </Card>
 
         {balance !== 0 && (
@@ -129,18 +144,32 @@ export function PartyScreen({ partyId }: { partyId: string }) {
         </div>
 
         <h2 className="pt-2 text-title font-extrabold text-ink">{t('historyTitle')}</h2>
+        {entries.length > 0 && (
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t('historyTitle')}>
+            {(['all', 'goods', 'payments'] as const).map((f) => (
+              <Chip key={f} aria-pressed={filter === f} className={filter === f ? 'border-primary bg-primarySoft' : undefined} onClick={() => setFilter(f)}>
+                {t(f === 'all' ? 'filterAll' : f === 'goods' ? 'filterGoods' : 'filterPayments')}
+              </Chip>
+            ))}
+          </div>
+        )}
         {entries.length === 0 ? (
           <Card tone="soft">
             <p className="text-body font-extrabold text-ink">{t('emptyTitle')}</p>
             <p className="text-body text-inkSoft">{t('emptyBody')}</p>
           </Card>
+        ) : shown.length === 0 ? (
+          <Card tone="soft">
+            <p className="text-body font-extrabold text-ink">{t('filterEmpty')}</p>
+          </Card>
         ) : (
           <ul className="flex flex-col gap-2">
-            {entries.map((entry) => (
+            {shown.map((entry) => (
               <HistoryRow
                 key={entry.id}
                 entry={entry}
                 party={party}
+                balanceAfter={after.get(entry.id) ?? null}
                 open={openId === entry.id}
                 canChange={canChangeEntry(role, entry, currentUserId())}
                 onToggle={() => {
@@ -215,7 +244,7 @@ function ActionTile({ icon, label, onClick, pressed }: { icon: IconName; label: 
   );
 }
 
-function HistoryRow({ entry, party, open, canChange, onToggle, onCancel }: { entry: Entry; party: Party; open: boolean; canChange: boolean; onToggle: () => void; onCancel: (reason: CancelReason) => void }) {
+function HistoryRow({ entry, party, balanceAfter, open, canChange, onToggle, onCancel }: { entry: Entry; party: Party; balanceAfter: number | null; open: boolean; canChange: boolean; onToggle: () => void; onCancel: (reason: CancelReason) => void }) {
   const { t, lang } = useT();
   const rowRef = useRef<HTMLLIElement>(null);
   const [asking, setAsking] = useState(false);
@@ -263,7 +292,15 @@ function HistoryRow({ entry, party, open, canChange, onToggle, onCancel }: { ent
         {entry.invoice_no && <span dir="auto" className="block truncate text-label text-inkSoft">{entry.invoice_no}</span>}
         {entry.note && <span dir="auto" className="block truncate text-label text-inkSoft">{entry.note}</span>}
       </span>
-      <AmountText amount={entry.amount} tone={tone} room="120px" className={cancelled ? 'line-through' : undefined} />
+      <span className="flex shrink-0 flex-col items-end">
+        <AmountText amount={entry.amount} tone={tone} room="120px" className={cancelled ? 'line-through' : undefined} />
+        {balanceAfter !== null && (
+          <span className="flex items-baseline gap-1 text-caption font-semibold text-inkSoft">
+            <span>{balanceAfter > 0 ? t('leneHain') : balanceAfter < 0 ? t('deneHain') : t('settled')}</span>
+            {balanceAfter !== 0 && <AmountText amount={Math.abs(balanceAfter)} size="s" tone="neutral" room="110px" />}
+          </span>
+        )}
+      </span>
     </div>
   );
 

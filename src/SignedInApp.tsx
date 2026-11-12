@@ -10,7 +10,7 @@ import { goBack, usePath } from './lib/router';
 import { AccessOffScreen } from './screens/AccessOffScreen';
 import { AddPartyScreen } from './screens/AddPartyScreen';
 import { StaffScreen } from './screens/StaffScreen';
-import { canManageStaff } from './lib/permissions';
+import { canManageCash, canManageStaff } from './lib/permissions';
 import { CustomersScreen } from './screens/CustomersScreen';
 import { DoneScreen } from './screens/DoneScreen';
 import { FeedbackScreen } from './screens/FeedbackScreen';
@@ -32,6 +32,8 @@ import { TodayScreen } from './screens/TodayScreen';
 const VoiceScreen = lazy(() => import('./screens/VoiceScreen'));
 // So are the Saman screens (items, buying, selling)
 const StockRoutes = lazy(() => import('./screens/stock/StockRoutes'));
+// And the cash drawer (Galla) and the expense list
+const CashRoutes = lazy(() => import('./screens/cash/CashRoutes'));
 
 // restoring -> (name -> done -> old (optional)) -> home.
 // A person who already has a shop on this phone goes straight to home. A login with no shop on this
@@ -134,6 +136,15 @@ export default function SignedInApp() {
       </Suspense>
     );
   }
+  if (path === '/cashbook' || path === '/cashbook/close' || path === '/expenses') {
+    return (
+      <Suspense fallback={<main className="mx-auto min-h-screen max-w-app" />}>
+        <CashRoutes path={path} />
+      </Suspense>
+    );
+  }
+  if (path === '/cashbook/withdraw' && role && canManageCash(role)) return <EntryScreen kind="withdrawal" />;
+  if (path === '/cashbook/deposit' && role && canManageCash(role)) return <EntryScreen kind="deposit" />;
   if (path === '/feedback') return <FeedbackScreen />;
   if (path === '/privacy') return <PrivacyScreen onBack={() => goBack('/settings')} />;
   if (path === '/today') return <TodayScreen />;

@@ -2,6 +2,7 @@ import { db } from './db';
 import { requireShop, requireUser } from './context';
 import { newId, nowIso } from './ids';
 import { snapshot, write } from './auditRepo';
+import { cleanCategory } from '../lib/expenses';
 import { reverseMovesOf } from './productsRepo';
 import { applyEntryChange } from './statsRepo';
 import { MAX_AMOUNT, type CancelReason, type Entry, type EntryKind, type EntrySource, type PaymentMethod } from './types';
@@ -17,10 +18,13 @@ export type NewEntry = {
   method?: PaymentMethod | null;
   ref_id?: string | null;
   invoice_no?: string | null;
+  category?: string | null; // for a kharcha: what it was for
 };
 
 // These always belong to a person (a customer, or the supplier for goods)
 const NEEDS_PERSON: EntryKind[] = ['diye', 'mile', 'opening', 'purchase', 'purchase_return'];
+// These never do (the shop's own money: sale, expense, cash put in or taken out of the drawer)
+const NO_PERSON: EntryKind[] = ['kharcha', 'cash_sale', 'withdrawal', 'deposit'];
 
 // Cancel one entry inside a transaction: its stock goes back (reversal movements) and a payment made together with it is cancelled too
 async function cancelOne(id: string, reason?: CancelReason): Promise<Entry> {
@@ -49,7 +53,11 @@ export const entriesRepo = {
   async create(input: NewEntry): Promise<Entry> {
     if (!Number.isInteger(input.amount) || input.amount <= 0 || input.amount > MAX_AMOUNT) throw new Error('Amount is not valid');
     if (NEEDS_PERSON.includes(input.kind) && !input.party_id) throw new Error('Choose a person');
-    if ((input.kind === 'kharcha' || input.kind === 'cash_sale') && input.party_id) throw new Error('A sale or expense has no person');
+    if (NO_PERSON.includes(input.kind) && input.party_id) throw new Error('A sale, expense or drawer entry has no person');
+    if ((input.kind === 'withdrawal' || input.kind === 'deposit') && input.method && input.method !== 'cash') throw new Error('Cash in the drawer is always cash');
+    const category = input.kind === 'kharcha' && input.category ? cleanCategory(input.category) : null;
+    if (input.category && input.kind !== 'kharcha') throw new Error('Only an expense has a category');
+    if (input.category && !category) throw new Error('Category is not valid');
     if (input.invoice_no && input.invoice_no.trim().length > 60) throw new Error('Bill number is too long');
     const entry: Entry = {
       id: newId(),
@@ -65,6 +73,7 @@ export const entriesRepo = {
       ...(input.method ? { method: input.method } : {}),
       ...(input.ref_id ? { ref_id: input.ref_id } : {}),
       ...(input.invoice_no?.trim() ? { invoice_no: input.invoice_no.trim() } : {}),
+      ...(category ? { category } : {}),
       created_by: requireUser(),
       created_at: nowIso(),
       cancelled_at: null,
@@ -127,6 +136,18 @@ export const entriesRepo = {
   async listSince(iso: string): Promise<Entry[]> {
     const shop = requireShop();
     return db.entries.where('created_at').aboveOrEqual(iso).filter((e) => e.shop_id === shop).toArray();
+  },
+
+  // Entries made from one moment up to (not including) another, for the cashbook of one day or a month of expenses
+  async listBetween(fromIso: string, toIso: string): Promise<Entry[]> {
+    const shop = requireShop();
+    return db.entries.where('created_at').between(fromIso, toIso, true, false).filter((e) => e.shop_id === shop).toArray();
+  },
+
+  // Every kharcha ever written (read through the kind index, not the whole khata), for the list of categories used before
+  async listKharcha(): Promise<Entry[]> {
+    const shop = requireShop();
+    return db.entries.where('kind').equals('kharcha').filter((e) => e.shop_id === shop && e.status === 'active').toArray();
   },
 
   // All entries of the shop. Slow on a big khata: screens use statsRepo (balances) and listSince/listRecent instead.

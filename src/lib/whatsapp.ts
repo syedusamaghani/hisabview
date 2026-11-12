@@ -18,6 +18,13 @@ export function whatsappUrl(phone: string | null | undefined, text: string): str
   return `https://wa.me/${normalizePhone(phone) ?? ''}?text=${encodeURIComponent(text)}`;
 }
 
+// The phone's own messages app with the text already typed (for a customer who is not on WhatsApp).
+// Nothing is sent until the shopkeeper presses send there. No cost from us (their own SMS plan applies).
+export function smsUrl(phone: string | null | undefined, text: string): string {
+  const number = normalizePhone(phone);
+  return `sms:${number ? `+${number}` : ''}?body=${encodeURIComponent(text)}`;
+}
+
 // Must be called straight from a tap, or the phone may block the new window.
 // On an Android phone the WhatsApp app is opened directly on the chat (no web page, no "open with" question).
 // If the app does not take over within a moment, the normal wa.me link is opened instead.

@@ -3,7 +3,8 @@ import { text, type Lang } from '../i18n/translations';
 import { TONES, balanceLine, receiptText, reminderText, statementText, todayText } from './messages';
 
 const who = { name: 'Aslam', shop: 'Ahmed Store' };
-const e = (kind: string, amount: number, created_at: string, status = 'active') => ({ kind, amount, status, created_at });
+let seq = 0;
+const e = (kind: string, amount: number, created_at: string, status = 'active') => ({ id: `e${++seq}`, party_id: 'p1', kind, amount, status, created_at });
 
 describe('reminders', () => {
   it('fill the name, shop and amount in all three tones', () => {
@@ -50,24 +51,47 @@ describe('receipt', () => {
 });
 
 describe('statement', () => {
-  it('lists the last entries oldest first, skips cancelled ones, ends with the balance', () => {
+  const customer = { type: 'customer', opening_balance: 0 };
+  it('lists every entry oldest first with the balance after it, skips cancelled ones, ends with the balance', () => {
     const list = [
       e('diye', 300, '2026-11-02T10:00:00Z'),
       e('mile', 100, '2026-11-03T10:00:00Z'),
       e('diye', 999, '2026-11-03T11:00:00Z', 'cancelled'),
       e('opening', 1000, '2026-11-01T10:00:00Z'),
     ];
-    const lines = statementText('ro', who, list, 1200).split('\n');
+    const lines = statementText('ro', who, customer, list).split('\n');
     expect(lines[0]).toBe('Ahmed Store: Aslam ka hisaab');
-    expect(lines.slice(2, 5)).toEqual(['1 Nov: Purana hisaab Rs 1,000', '2 Nov: Diye Rs 300', '3 Nov: Mile Rs 100']);
+    expect(lines.slice(2, 5)).toEqual([
+      '1 Nov: Purana hisaab Rs 1,000 | Baqi: Rs 1,000',
+      '2 Nov: Diye Rs 300 | Baqi: Rs 1,300',
+      '3 Nov: Mile Rs 100 | Baqi: Rs 1,200',
+    ]);
     expect(lines.at(-1)).toBe('Ab tak ka baqi hisaab: Rs 1,200.');
     expect(lines.join('\n')).not.toContain('999');
   });
-  it('keeps only the latest lines when there are many', () => {
-    const many = Array.from({ length: 20 }, (_, i) => e('diye', i + 1, `2026-10-${String(i + 1).padStart(2, '0')}T10:00:00Z`));
-    const body = statementText('ro', who, many, 210, 5).split('\n');
-    expect(body.filter((l) => l.includes('Diye')).length).toBe(5);
-    expect(body.join('\n')).toContain('Rs 20');
+  it('the last running balance is the same as the final balance line', () => {
+    const list = [e('diye', 500, '2026-11-01T10:00:00Z'), e('mile', 200, '2026-11-02T10:00:00Z'), e('diye', 50, '2026-11-03T10:00:00Z')];
+    const text = statementText('ro', who, { type: 'customer', opening_balance: 70 }, list);
+    expect(text).toContain('| Baqi: Rs 420');
+    expect(text.split('\n').at(-1)).toBe('Ab tak ka baqi hisaab: Rs 420.');
+  });
+  it('when there are too many lines it keeps the newest and carries the earlier balance in', () => {
+    const many = Array.from({ length: 40 }, (_, i) => e('diye', 10, `2026-10-${String((i % 28) + 1).padStart(2, '0')}T${String(Math.floor(i / 28) + 10)}:00:00Z`));
+    const body = statementText('ro', who, customer, many, 700).split('\n');
+    const shown = body.filter((l) => l.includes('Diye Rs 10'));
+    expect(shown.length).toBeLessThan(40);
+    expect(shown.length).toBeGreaterThan(3);
+    expect(body.some((l) => l.startsWith('Pehle ka hisaab'))).toBe(true);
+    // the carried balance + the lines shown = the final balance
+    const carried = Number(/Rs ([\d,]+)/.exec(body.find((l) => l.startsWith('Pehle ka hisaab')) as string)?.[1].replace(',', ''));
+    expect(carried + shown.length * 10).toBe(400);
+    expect(body.at(-1)).toBe('Ab tak ka baqi hisaab: Rs 400.');
+  });
+  it('a supplier statement shows purchases and payments the same way', () => {
+    const list = [e('purchase', 2880, '2026-11-01T10:00:00Z'), e('diye', 1000, '2026-11-01T10:05:00Z')];
+    const text = statementText('ro', who, { type: 'supplier', opening_balance: 0 }, list);
+    expect(text).toContain('Advance: Rs 2,880');
+    expect(text).toContain('Advance: Rs 1,880');
   });
 });
 

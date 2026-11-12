@@ -9,7 +9,8 @@ import { useT } from '../i18n/i18n';
 import { partyBalance } from '../lib/balance';
 import { TONES, reminderText } from '../lib/messages';
 import { goBack, navigate } from '../lib/router';
-import { openWhatsApp, normalizePhone, whatsappUrl } from '../lib/whatsapp';
+import { BigButton } from '../components/BigButton';
+import { openWhatsApp, normalizePhone, smsUrl, whatsappUrl } from '../lib/whatsapp';
 import { PhoneCard } from './PhoneCard';
 
 // Yaad dilao: three polite-to-firm messages. One tap on a tone opens WhatsApp with the message typed.
@@ -72,6 +73,17 @@ export function RemindScreen({ partyId }: { partyId: string }) {
                 );
               })}
             </ul>
+            <BigButton
+              full
+              variant="ghost"
+              icon="chat"
+              onClick={() => {
+                const normal = TONES.find((x) => x.tone === 'normal')!;
+                window.location.href = smsUrl(party.phone, reminderText(normal.body, lang, { name: party.name, shop: shopName }, owed));
+              }}
+            >
+              {t('remindSms')}
+            </BigButton>
           </>
         )}
       </div>

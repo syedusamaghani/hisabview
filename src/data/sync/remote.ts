@@ -3,9 +3,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ADD_ONLY } from './mapping';
 
-export type SyncTable = 'shops' | 'parties' | 'entries' | 'audit_log' | 'products' | 'stock_moves';
+export type SyncTable = 'shops' | 'parties' | 'entries' | 'audit_log' | 'products' | 'stock_moves' | 'cash_closings';
 // The two tables made by migration 0006. A server without it does not have them: the rest of the khata still syncs.
 export const STOCK_TABLES: SyncTable[] = ['products', 'stock_moves'];
+// The table made by migration 0007 (the daily cash closing). Also optional: the rest of the khata syncs without it.
+export const CASH_TABLES: SyncTable[] = ['cash_closings'];
 // Messages to us (add-only tables): see supabase/migrations/0004_feedback_errors.sql
 export type LogTable = 'feedback' | 'error_log';
 export type RemoteRow = Record<string, unknown>;
@@ -59,7 +61,7 @@ const PAGE = 1000;
 
 // Columns added by migration 0005. A server that has not run it yet does not know them: then they are left out
 // and the rest of the row still goes (the same cancel without its reason is better than a stuck entry).
-const NEWER_COLUMNS = ['cancel_reason', 'reason', 'method', 'ref_id', 'invoice_no'];
+const NEWER_COLUMNS = ['cancel_reason', 'reason', 'method', 'ref_id', 'invoice_no', 'category'];
 const missingColumn = (error: NonNullable<PgError>) => error.code === '42703' || error.code === 'PGRST204';
 
 export function supabaseRemote(client: SupabaseClient): Remote {

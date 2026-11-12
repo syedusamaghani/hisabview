@@ -11,7 +11,8 @@ import { CancelReasons } from '../components/CancelReasons';
 import { ClockBanner } from '../components/ClockBanner';
 import { currentUserId, entriesRepo, partiesRepo, shopsRepo, useLive, useRole, type CancelReason, type Entry } from '../data';
 import { isMethod, METHOD_TEXT } from '../lib/methods';
-import { canChangeEntry } from '../lib/permissions';
+import { categoryLabel } from '../lib/expenses';
+import { canChangeEntry, canManageCash } from '../lib/permissions';
 import { useT } from '../i18n/i18n';
 import { cx } from '../lib/cx';
 import { formatDay, formatTime } from '../lib/dates';
@@ -77,6 +78,11 @@ export function TodayScreen() {
 
         <BigButton full variant="ghost" icon="whatsapp" onClick={send} disabled={!view}>{t('sendStatement')}</BigButton>
 
+        <div className="grid grid-cols-2 gap-3">
+          {canManageCash(role) && <BigButton variant="ghost" icon="wallet" onClick={() => start('/cashbook')}>{t('tileCashbook')}</BigButton>}
+          <BigButton variant="ghost" icon="note" onClick={() => start('/expenses')}>{t('tileExpenses')}</BigButton>
+        </div>
+
         <h2 className="pt-1 text-title font-extrabold text-ink">{t('todayEntries')}</h2>
         {view && view.list.length === 0 && (
           <Card tone="soft">
@@ -122,8 +128,8 @@ function Stat({ label, amount, tone }: { label: string; amount: number; tone: 'i
   );
 }
 
-// One entry of today. Tap it to cancel it (it stays in the history, marked cancelled).
-function TodayRow({ entry, name, open, canChange, onToggle, onCancel }: { entry: Entry; name: string; open: boolean; canChange: boolean; onToggle: () => void; onCancel: (reason: CancelReason) => void }) {
+// One entry of a day (today's list, the cashbook, the expenses). Tap it to cancel it (it stays in the history, marked cancelled).
+export function TodayRow({ entry, name, showDay, open, canChange, onToggle, onCancel }: { entry: Entry; name: string; showDay?: boolean; open: boolean; canChange: boolean; onToggle: () => void; onCancel: (reason: CancelReason) => void }) {
   const { t, lang } = useT();
   const rowRef = useRef<HTMLLIElement>(null);
   const [asking, setAsking] = useState(false);
@@ -134,9 +140,11 @@ function TodayRow({ entry, name, open, canChange, onToggle, onCancel }: { entry:
   }, [open, asking]);
 
   const cancelled = entry.status === 'cancelled';
-  const inn = entry.kind === 'mile' || entry.kind === 'cash_sale';
+  const inn = entry.kind === 'mile' || entry.kind === 'cash_sale' || entry.kind === 'deposit';
   const icon: IconName = inn ? 'down' : 'up';
-  const kindLabel = t(entry.kind === 'mile' ? 'mile' : entry.kind === 'cash_sale' ? 'saleLabel' : entry.kind === 'kharcha' ? 'kharchaLabel' : 'diye');
+  const kindLabel = t(
+    entry.kind === 'mile' ? 'mile' : entry.kind === 'cash_sale' ? 'saleLabel' : entry.kind === 'kharcha' ? 'kharchaLabel' : entry.kind === 'withdrawal' ? 'withdrawLabel' : entry.kind === 'deposit' ? 'depositLabel' : 'diye',
+  );
 
   const body = (
     <div className="flex items-center gap-3">
@@ -152,9 +160,11 @@ function TodayRow({ entry, name, open, canChange, onToggle, onCancel }: { entry:
         <span dir="auto" className="block truncate text-body font-extrabold">{name || kindLabel}</span>
         <span className="block text-label text-inkSoft">
           {name && <>{kindLabel} · </>}
+          {showDay && <>{formatDay(entry.created_at, lang)} </>}
           <span className="whitespace-nowrap"><bdi>{formatTime(entry.created_at, lang)}</bdi></span>
         </span>
         {cancelled && <span className="block text-label font-bold text-inkSoft">{t('cancelledLabel')}</span>}
+        {entry.kind === 'kharcha' && entry.category && <span dir="auto" className="block truncate text-label font-bold text-inkSoft">{categoryLabel(entry.category, t)}</span>}
         {!cancelled && isMethod(entry.method) && entry.method !== 'cash' && <span className="block text-label font-bold text-inkSoft">{t(METHOD_TEXT[entry.method])}</span>}
         {entry.note && <span dir="auto" className="block truncate text-label text-inkSoft">{entry.note}</span>}
       </span>

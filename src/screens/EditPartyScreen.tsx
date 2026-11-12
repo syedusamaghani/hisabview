@@ -27,6 +27,7 @@ function EditForm({ party }: { party: Party }) {
   const [name, setName] = useState(party.name);
   const [identifier, setIdentifier] = useState(party.identifier ?? '');
   const [phone, setPhone] = useState(party.phone ?? '');
+  const [limit, setLimit] = useState(party.credit_limit ? String(party.credit_limit) : ''); // udhaar limit, digits only (empty = no limit)
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -43,7 +44,7 @@ function EditForm({ party }: { party: Party }) {
     setSaving(true);
     setFailed(false);
     try {
-      await partiesRepo.update(party.id, { name, identifier: identifier.trim() || null, phone: phone.trim() || null });
+      await partiesRepo.update(party.id, { name, identifier: identifier.trim() || null, phone: phone.trim() || null, ...(party.type === 'customer' ? { credit_limit: Number(limit) > 0 ? Number(limit) : null } : {}) });
       setSaved(true);
     } catch {
       setFailed(true);
@@ -81,6 +82,17 @@ function EditForm({ party }: { party: Party }) {
           onChange={(e) => setPhone(e.target.value)}
           right={contactPickerSupported() ? <IconButton icon="userPlus" label={t('pickContact')} onClick={pick} /> : undefined}
         />
+        {party.type === 'customer' && (
+          <TextField
+            label={t('creditLimitLabel')}
+            hint={t('creditLimitHelp')}
+            inputMode="numeric"
+            dir="ltr"
+            value={limit}
+            maxLength={9}
+            onChange={(e) => setLimit(e.target.value.replace(/\D/g, ''))}
+          />
+        )}
         {failed && (
           <Card tone="soft" role="alert">
             <p className="text-body font-bold">{t('errorGeneric')}</p>

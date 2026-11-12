@@ -27,6 +27,7 @@ export function AddPartyScreen() {
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [phone, setPhone] = useState('');
+  const [limit, setLimit] = useState(''); // udhaar limit, digits only (empty = no limit)
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -51,7 +52,7 @@ export function AddPartyScreen() {
     setSaving(true);
     setFailed(false);
     try {
-      const { party } = await partiesRepo.create({ name, identifier, phone });
+      const { party } = await partiesRepo.create({ name, identifier, phone, credit_limit: Number(limit) > 0 ? Number(limit) : null });
       setSavedId(party.id);
     } catch {
       setFailed(true);
@@ -128,6 +129,16 @@ export function AddPartyScreen() {
           maxLength={20}
           onChange={(e) => setPhone(e.target.value)}
           right={contactPickerSupported() ? <IconButton icon="userPlus" label={t('pickContact')} onClick={pick} /> : undefined}
+        />
+
+        <TextField
+          label={t('creditLimitLabel')}
+          hint={t('creditLimitHelp')}
+          inputMode="numeric"
+          dir="ltr"
+          value={limit}
+          maxLength={9}
+          onChange={(e) => setLimit(e.target.value.replace(/\D/g, ''))}
         />
 
         {failed && (

@@ -8,6 +8,8 @@ export { auditRepo } from './auditRepo';
 export { productsRepo } from './productsRepo';
 export type { ProductFields, StockRow } from './productsRepo';
 export { tradeRepo } from './tradeRepo';
+export { cashRepo } from './cashRepo';
+export type { NewClosing } from './cashRepo';
 export type { TradeLine, TradeResult } from './tradeRepo';
 export type * from './types';
 export { MAX_AMOUNT } from './types';

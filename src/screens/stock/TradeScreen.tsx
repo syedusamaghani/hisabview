@@ -11,9 +11,11 @@ import { SaveSuccess } from '../../components/SaveSuccess';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SearchBar } from '../../components/SearchBar';
 import { TextField } from '../../components/TextField';
-import { partiesRepo, productsRepo, tradeRepo, statsRepo, useLive, useRole, type Product, type TradeResult } from '../../data';
+import { entriesRepo, partiesRepo, productsRepo, tradeRepo, statsRepo, useLive, useRole, type Product, type TradeResult } from '../../data';
 import { useT } from '../../i18n/i18n';
 import type { TextKey } from '../../i18n/translations';
+import { partyBalance } from '../../lib/balance';
+import { overCreditLimit } from '../../lib/credit';
 import { formatRs } from '../../lib/money';
 import type { Method } from '../../lib/methods';
 import { canManageStock } from '../../lib/permissions';
@@ -151,6 +153,12 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
     const drafts = lines.map((l) => ({ product_id: l.product.id, unit: l.unit, qty_base: l.qty_base, unit_price: l.unit_price }));
     // Two warnings, each shown once: pressing "Theek hai" again saves anyway
     if (!warning) {
+      // Udhaar above the customer's limit: warned first, since it is money
+      if (mode === 'sell' && how === 'udhaar' && customerId) {
+        const customer = await partiesRepo.get(customerId);
+        const over = customer ? overCreditLimit(customer.credit_limit, partyBalance(customer, await entriesRepo.listForParty(customerId)), total) : null;
+        if (over !== null) return setWarning(t('creditWarn').replace('{limit}', formatRs(over)));
+      }
       if (mode !== 'buy') {
         const short = await tradeRepo.shortages(drafts);
         if (short.length > 0) {

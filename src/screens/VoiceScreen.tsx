@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { entriesRepo, partiesRepo, statsRepo, useLive } from '../data';
+import { overCreditLimit } from '../lib/credit';
 import { goBack, navigate, setFlash } from '../lib/router';
 import { finishEntryFlow } from '../lib/phoneAsk';
 import { splitByLastContact } from '../lib/recent';
@@ -39,6 +40,7 @@ export default function VoiceScreen() {
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [limitWarn, setLimitWarn] = useState<{ sig: string; limit: number } | null>(null); // the udhaar goes above the customer's limit: warned once
   const [warned, setWarned] = useState<string | null>(null); // 'customer|amount' of an entry we already warned about (saved a moment ago)
 
   const transcript = useRef('');
@@ -224,6 +226,13 @@ export default function VoiceScreen() {
         if (saving) return;
         const kind = chosen ?? entry.kind;
         setFailed(false);
+        // Udhaar above the customer's limit? Warn once; pressing again saves it.
+        const limitSig = `${party?.id ?? ''}|${entry.amount}`;
+        const over = party && kind === 'diye' && party.type === 'customer' ? overCreditLimit(party.credit_limit, data.stats[party.id]?.balance ?? 0, entry.amount) : null;
+        if (over !== null && limitWarn?.sig !== limitSig) {
+          setLimitWarn({ sig: limitSig, limit: over });
+          return;
+        }
         // The same entry two minutes ago? Warn once; pressing again saves it.
         const sig = `${party?.id ?? ''}|${entry.amount}`;
         if (warned !== sig && (await entriesRepo.findRecentDuplicate({ kind, party_id: party?.id ?? null, amount: entry.amount }))) {
@@ -264,6 +273,7 @@ export default function VoiceScreen() {
           saved={saved}
           kindPending={kindPending}
           duplicate={warned === `${party?.id ?? ''}|${entry.amount}`}
+          creditLimit={limitWarn?.sig === `${party?.id ?? ''}|${entry.amount}` ? limitWarn.limit : null}
           onSave={save}
           onEditParty={() => {
             // Wrong person heard: pick again (the amount and Diye/Mile are kept)

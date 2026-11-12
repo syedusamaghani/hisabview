@@ -15,15 +15,18 @@ import { storeMemberShop, storeRole } from '../roleStore';
 import { applyEntryChange, recomputeStat, statsRepo } from '../statsRepo';
 import { productsRepo } from '../productsRepo';
 import type { Entry, Party, Product, Shop, AuditRow } from '../types';
-import { changeTime, fromRemote, sameRow, toRemote } from './mapping';
-import { RemoteError, STOCK_TABLES, type Remote, type SyncTable } from './remote';
+import { ADD_ONLY, changeTime, fromRemote, sameRow, toRemote } from './mapping';
+import { CASH_TABLES, RemoteError, STOCK_TABLES, type Remote, type SyncTable } from './remote';
 import { getSyncState, setSyncState } from './status';
 
 const PUSH_ORDER: SyncTable[] = ['shops', 'parties', 'entries', 'audit_log'];
 const PULL_ORDER = ['parties', 'entries', 'audit_log'] as const;
 // Products and stock movements (migration 0006) go after everything else: a server without them must never hold back the khata
 const STOCK_PULL = ['products', 'stock_moves'] as const;
-type PullTable = (typeof PULL_ORDER)[number] | (typeof STOCK_PULL)[number];
+// The daily cash closing (migration 0007) is its own optional group too: a server with 0006 but not 0007 must still sync stock
+const CASH_PULL = ['cash_closings'] as const;
+type PullTable = (typeof PULL_ORDER)[number] | (typeof STOCK_PULL)[number] | (typeof CASH_PULL)[number];
+type Group = 'stock' | 'cash';
 const BATCH = 100;
 const PULL_EVERY_MS = 5 * 60_000;
 const NORMAL_RETRY_MS = 60_000;
@@ -37,7 +40,7 @@ export type RestoreResult = 'restored' | 'none' | 'offline' | 'error';
 
 export function createSync(getRemote: () => Promise<Remote | null>) {
   const blocked = new Set<string>(); // rows the server refused (this session)
-  let stockMissing = false; // the server has no products / stock_moves tables yet (this session)
+  const missing = new Set<Group>(); // optional tables the server does not have yet (this session): stock = migration 0006, cash = 0007
   let running: Promise<SyncResult> | null = null;
   let again = false;
 
@@ -45,17 +48,18 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
 
   async function totalPending(): Promise<number> {
     let n = 0;
-    for (const t of stockMissing ? PUSH_ORDER : [...PUSH_ORDER, ...STOCK_TABLES]) n += await tableOf(t).where('pending_sync').equals(1).count();
+    const tables = [...PUSH_ORDER, ...(missing.has('stock') ? [] : STOCK_TABLES), ...(missing.has('cash') ? [] : CASH_TABLES)];
+    for (const t of tables) n += await tableOf(t).where('pending_sync').equals(1).count();
     return n;
   }
 
-  // Run a step that needs the stock tables. If the server does not have them, remember it and carry on without.
-  async function stockStep(run: () => Promise<unknown>): Promise<void> {
-    if (stockMissing) return;
+  // Run a step that needs an optional group of tables. If the server does not have them, remember it and carry on without.
+  async function groupStep(group: Group, run: () => Promise<unknown>): Promise<void> {
+    if (missing.has(group)) return;
     try {
       await run();
     } catch (e) {
-      if (e instanceof RemoteError && e.kind === 'missing') stockMissing = true;
+      if (e instanceof RemoteError && e.kind === 'missing') missing.add(group);
       else throw e;
     }
   }
@@ -79,7 +83,7 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
   }
 
   async function sendBatch(remote: Remote, table: SyncTable, rows: AnyRow[]) {
-    await remote.upsert(table, rows.map((r) => toRemote(table, r)), { ignoreDuplicates: table === 'audit_log' || table === 'stock_moves' });
+    await remote.upsert(table, rows.map((r) => toRemote(table, r)), { ignoreDuplicates: ADD_ONLY.includes(table) });
     await markSynced(table, rows);
   }
 
@@ -113,8 +117,8 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     const theirs = await remote.fetchMyShop(userId);
     if (!theirs || theirs.id === local.id) return;
     const adopted = fromRemote<Shop>('shops', theirs);
-    await db.transaction('rw', [db.shops, db.parties, db.entries, db.audit_log, db.party_stats, db.products, db.stock_moves, db.product_stats], async () => {
-      for (const t of ['parties', 'entries', 'audit_log', 'products', 'stock_moves'] as const) {
+    await db.transaction('rw', [db.shops, db.parties, db.entries, db.audit_log, db.party_stats, db.products, db.stock_moves, db.product_stats, db.cash_closings], async () => {
+      for (const t of ['parties', 'entries', 'audit_log', 'products', 'stock_moves', 'cash_closings'] as const) {
         await tableOf(t).where('shop_id').equals(local.id).modify({ shop_id: adopted.id, pending_sync: 1 });
       }
       await db.party_stats.where('shop_id').equals(local.id).modify({ shop_id: adopted.id });
@@ -165,7 +169,7 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     for (let i = 0; i < rows.length; i += 500) {
       const chunk = rows.slice(i, i + 500);
       // The customer summaries (party_stats) are updated in the same transaction as the rows they come from
-      await db.transaction('rw', [db.parties, db.entries, db.audit_log, db.party_stats, db.products, db.stock_moves], async () => {
+      await db.transaction('rw', [db.parties, db.entries, db.audit_log, db.party_stats, db.products, db.stock_moves, db.cash_closings], async () => {
         if (fresh) {
           // A fresh phone: write the whole chunk at once (fast). The summaries are rebuilt afterwards.
           const incomings = chunk.map((raw) => fromRemote<AnyRow>(table, raw));
@@ -222,8 +226,11 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     let arrived = 0;
     for (const table of PULL_ORDER) arrived += await pullTable(remote, table, shop.id as string, fresh);
     let stockArrived = 0;
-    await stockStep(async () => {
+    await groupStep('stock', async () => {
       for (const table of STOCK_PULL) stockArrived += await pullTable(remote, table, shop.id as string, fresh);
+    });
+    await groupStep('cash', async () => {
+      for (const table of CASH_PULL) await pullTable(remote, table, shop.id as string, fresh);
     });
     if (stockArrived > 0) await productsRepo.rebuildStats(shop.id as string); // the stock of each product = the sum of its movements
     await mergeShop(shop);
@@ -247,8 +254,11 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     try {
       await reconcileShop(remote, userId);
       for (const table of PUSH_ORDER) await pushTable(remote, table);
-      await stockStep(async () => {
+      await groupStep('stock', async () => {
         for (const table of STOCK_TABLES) await pushTable(remote, table);
+      });
+      await groupStep('cash', async () => {
+        for (const table of CASH_TABLES) await pushTable(remote, table);
       });
       if (withPull) {
         await pullAll(remote, userId);
@@ -338,8 +348,11 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
       if (!shop) return 'none';
       await db.sync_meta.clear();
       for (const table of PULL_ORDER) await pullTable(remote, table, shop.id as string, true);
-      await stockStep(async () => {
+      await groupStep('stock', async () => {
         for (const table of STOCK_PULL) await pullTable(remote, table, shop.id as string, true);
+      });
+      await groupStep('cash', async () => {
+        for (const table of CASH_PULL) await pullTable(remote, table, shop.id as string, true);
       });
       await productsRepo.rebuildStats(shop.id as string);
       await statsRepo.rebuildAll(shop.id as string); // a fresh phone: work every balance out again from the entries

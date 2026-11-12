@@ -13,7 +13,8 @@ export type CancelReason = 'wrong_entry' | 'customer_refused' | 'other' | 'undo'
 export type PartyType = 'customer' | 'supplier';
 export type PaymentMethod = 'cash' | 'jazzcash' | 'easypaisa' | 'bank' | 'other';
 // purchase = goods bought from a supplier (we owe more), purchase_return = goods sent back (we owe less). Both need a supplier.
-export type EntryKind = 'diye' | 'mile' | 'opening' | 'kharcha' | 'cash_sale' | 'purchase' | 'purchase_return';
+// withdrawal = cash taken out of the drawer, deposit = cash put in (no customer, always cash)
+export type EntryKind = 'diye' | 'mile' | 'opening' | 'kharcha' | 'cash_sale' | 'purchase' | 'purchase_return' | 'withdrawal' | 'deposit';
 export type EntrySource = 'voice' | 'manual' | 'import';
 export type EntryStatus = 'active' | 'cancelled' | 'draft';
 
@@ -58,10 +59,11 @@ export type Entry = {
   method?: PaymentMethod | null; // how the money moved (empty on entries made before this existed)
   ref_id?: string | null; // a payment made together with a purchase points at that purchase (they are cancelled together)
   invoice_no?: string | null; // the supplier's bill number, for a purchase
+  category?: string | null; // what a kharcha was for: a built-in code (rent, electricity, ...) or a name the shopkeeper typed
   pending_sync: PendingSync;
 };
 
-export type AuditEntity = 'shop' | 'party' | 'entry' | 'product';
+export type AuditEntity = 'shop' | 'party' | 'entry' | 'product' | 'cash_closing';
 export type AuditAction = 'create' | 'edit' | 'cancel';
 
 export type AuditRow = {
@@ -118,6 +120,22 @@ export type StockMove = {
   line_total: number; // whole rupees
   reason: string | null;
   reverses: string | null;
+  created_by: string;
+  created_at: string;
+  pending_sync: PendingSync;
+};
+
+// ---- cashbook (Phase 4)
+// The end-of-day count of the cash drawer. Add-only: counting again the same day is a new closing (the newest one counts).
+export type CashClosing = {
+  id: string;
+  shop_id: string;
+  day: string; // the Pakistan day, "2026-11-12"
+  opening_cash: number; // in the drawer when the day began
+  expected_cash: number; // opening + cash in - cash out, as the app worked it out
+  counted_cash: number; // what the shopkeeper really counted
+  difference: number; // counted - expected (below 0 = cash is missing)
+  note: string | null;
   created_by: string;
   created_at: string;
   pending_sync: PendingSync;

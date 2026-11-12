@@ -3,7 +3,7 @@
 import Dexie, { type Table } from 'dexie';
 import { computeStats } from './stats';
 import { REAL_DB_NAME, TEST_DB_NAME, isTesting } from './testMode';
-import type { AuditRow, Entry, Party, PartyStat, Product, ProductStat, Shop, StockMove, SyncMeta } from './types';
+import type { AuditRow, CashClosing, Entry, Party, PartyStat, Product, ProductStat, Shop, StockMove, SyncMeta } from './types';
 
 export class HisabDB extends Dexie {
   shops!: Table<Shop, string>;
@@ -15,6 +15,7 @@ export class HisabDB extends Dexie {
   products!: Table<Product, string>;
   stock_moves!: Table<StockMove, string>;
   product_stats!: Table<ProductStat, string>;
+  cash_closings!: Table<CashClosing, string>;
 
   constructor(name = REAL_DB_NAME) {
     super(name);
@@ -42,6 +43,11 @@ export class HisabDB extends Dexie {
       products: 'id, shop_id, pending_sync',
       stock_moves: 'id, shop_id, product_id, entry_id, created_at, pending_sync',
       product_stats: 'product_id, shop_id',
+    });
+    // Version 5: the daily cash closing, and a search by kind (the list of expense categories used before)
+    this.version(5).stores({
+      cash_closings: 'id, shop_id, day, created_at, pending_sync',
+      entries: 'id, shop_id, party_id, [party_id+status], created_at, kind, pending_sync',
     });
   }
 }
