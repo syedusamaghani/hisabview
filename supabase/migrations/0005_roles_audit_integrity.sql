@@ -131,8 +131,17 @@ revoke all on public.branches, public.shop_members, public.shop_invites, public.
 revoke insert, update, delete on public.shop_members, public.shop_invites, public.activity_log from authenticated;
 revoke delete on public.branches from authenticated;
 
-drop policy shops_select on public.shops;
-drop policy shops_update on public.shops;
+-- Remove the old policies of these four tables, whatever they are called, and make the new ones below.
+-- (Nothing is lost: the new policies cover read, add and change, and delete stays impossible.)
+do $$
+declare p record;
+begin
+  for p in select policyname, tablename from pg_policies
+            where schemaname = 'public' and tablename in ('shops', 'parties', 'entries', 'audit_log') loop
+    execute format('drop policy %I on public.%I', p.policyname, p.tablename);
+  end loop;
+end $$;
+
 create policy shops_select on public.shops for select to authenticated using (id in (select public.my_shop_ids()));
 -- Only the owner changes the shop's settings
 create policy shops_update on public.shops for update to authenticated
@@ -140,25 +149,17 @@ create policy shops_update on public.shops for update to authenticated
 
 -- People and entries: every member of the shop may read and add. Who may CHANGE them is decided by the
 -- guard triggers below (a cashier can resend the same row, but cannot alter or cancel it).
-drop policy parties_select on public.parties;
-drop policy parties_insert on public.parties;
-drop policy parties_update on public.parties;
 create policy parties_select on public.parties for select to authenticated using (shop_id in (select public.my_shop_ids()));
 create policy parties_insert on public.parties for insert to authenticated with check (shop_id in (select public.my_shop_ids()));
 create policy parties_update on public.parties for update to authenticated
   using (shop_id in (select public.my_shop_ids())) with check (shop_id in (select public.my_shop_ids()));
 
-drop policy entries_select on public.entries;
-drop policy entries_insert on public.entries;
-drop policy entries_update on public.entries;
 create policy entries_select on public.entries for select to authenticated using (shop_id in (select public.my_shop_ids()));
 create policy entries_insert on public.entries for insert to authenticated
   with check (shop_id in (select public.my_shop_ids()) and created_by = (select auth.uid()));
 create policy entries_update on public.entries for update to authenticated
   using (shop_id in (select public.my_shop_ids())) with check (shop_id in (select public.my_shop_ids()));
 
-drop policy audit_select on public.audit_log;
-drop policy audit_insert on public.audit_log;
 create policy audit_select on public.audit_log for select to authenticated using (shop_id in (select public.my_shop_ids()));
 create policy audit_insert on public.audit_log for insert to authenticated
   with check (shop_id in (select public.my_shop_ids()) and actor = (select auth.uid()) and origin = 'phone');
