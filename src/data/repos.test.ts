@@ -220,3 +220,13 @@ describe('another shop', () => {
     await expect(entriesRepo.cancel(entry.id)).rejects.toThrow();
   });
 });
+
+describe('payment method', () => {
+  it('keeps how the money moved; an entry without one stays empty (cash is only the default on screen)', async () => {
+    const { ali } = await startShop();
+    const jazz = await entriesRepo.create({ kind: 'mile', party_id: ali.id, amount: 300, method: 'jazzcash' });
+    const plain = await entriesRepo.create({ kind: 'mile', party_id: ali.id, amount: 100 });
+    expect((await entriesRepo.get(jazz.id))?.method).toBe('jazzcash');
+    expect((await entriesRepo.get(plain.id))?.method).toBeUndefined();
+  });
+});

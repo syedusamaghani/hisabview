@@ -449,3 +449,17 @@ describe('settling a whole balance ("hisaab clear karo")', () => {
     expect(questionText(q, 'ur')).toContain('Saeed');
   });
 });
+
+describe('numbers: English shop talk', () => {
+  it('"two fifty" is 250 and "five fifty" is 550, not 50', () => {
+    expect(amountOf('two fifty')).toBe(250);
+    expect(amountOf('five fifty')).toBe(550);
+    expect(amountOf('nine ninety')).toBe(990);
+  });
+  it('the long forms and a plain tens word still work', () => {
+    expect(amountOf('two hundred fifty')).toBe(250);
+    expect(amountOf('fifty')).toBe(50);
+    expect(amountOf('two thousand five hundred')).toBe(2500);
+    expect(amountOf('fifteen hundred')).toBe(1500);
+  });
+});

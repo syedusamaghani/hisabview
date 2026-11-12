@@ -11,6 +11,7 @@ export type Role = 'owner' | 'manager' | 'cashier';
 // Why an entry was cancelled (the shopkeeper's three answers, plus the two the app writes itself)
 export type CancelReason = 'wrong_entry' | 'customer_refused' | 'other' | 'undo' | 'changed';
 export type PartyType = 'customer' | 'supplier';
+export type PaymentMethod = 'cash' | 'jazzcash' | 'easypaisa' | 'bank' | 'other';
 export type EntryKind = 'diye' | 'mile' | 'opening' | 'kharcha' | 'cash_sale';
 export type EntrySource = 'voice' | 'manual' | 'import';
 export type EntryStatus = 'active' | 'cancelled' | 'draft';
@@ -53,6 +54,7 @@ export type Entry = {
   created_at: string;
   cancelled_at: string | null;
   cancel_reason?: CancelReason | null; // only set when cancelled
+  method?: PaymentMethod | null; // how the money moved (empty on entries made before this existed)
   pending_sync: PendingSync;
 };
 

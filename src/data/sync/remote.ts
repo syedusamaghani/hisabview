@@ -54,7 +54,7 @@ const PAGE = 1000;
 
 // Columns added by migration 0005. A server that has not run it yet does not know them: then they are left out
 // and the rest of the row still goes (the same cancel without its reason is better than a stuck entry).
-const NEWER_COLUMNS = ['cancel_reason', 'reason'];
+const NEWER_COLUMNS = ['cancel_reason', 'reason', 'method'];
 const missingColumn = (error: NonNullable<PgError>) => error.code === '42703' || error.code === 'PGRST204';
 
 export function supabaseRemote(client: SupabaseClient): Remote {

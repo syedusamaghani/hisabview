@@ -336,4 +336,11 @@ export const english: Record<TextKey, string> = {
   staffOpen: 'Staff and roles',
   accessOffTitle: 'Your access is switched off',
   accessOffBody: 'The shop owner has switched off your access. Talk to them.',
+
+  methodTitle: 'Paid how?',
+  methodCash: 'Cash',
+  methodJazz: 'JazzCash',
+  methodEasy: 'Easypaisa',
+  methodBank: 'Bank',
+  lastAmount: 'Last time: {amount}',
 };

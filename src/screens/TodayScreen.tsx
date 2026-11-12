@@ -10,6 +10,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { CancelReasons } from '../components/CancelReasons';
 import { ClockBanner } from '../components/ClockBanner';
 import { currentUserId, entriesRepo, partiesRepo, shopsRepo, useLive, useRole, type CancelReason, type Entry } from '../data';
+import { isMethod, METHOD_TEXT } from '../lib/methods';
 import { canChangeEntry } from '../lib/permissions';
 import { useT } from '../i18n/i18n';
 import { cx } from '../lib/cx';
@@ -154,6 +155,7 @@ function TodayRow({ entry, name, open, canChange, onToggle, onCancel }: { entry:
           <span className="whitespace-nowrap"><bdi>{formatTime(entry.created_at, lang)}</bdi></span>
         </span>
         {cancelled && <span className="block text-label font-bold text-inkSoft">{t('cancelledLabel')}</span>}
+        {!cancelled && isMethod(entry.method) && entry.method !== 'cash' && <span className="block text-label font-bold text-inkSoft">{t(METHOD_TEXT[entry.method])}</span>}
         {entry.note && <span dir="auto" className="block truncate text-label text-inkSoft">{entry.note}</span>}
       </span>
       <AmountText amount={entry.amount} tone={cancelled ? 'neutral' : inn ? 'in' : 'out'} room="120px" className={cancelled ? 'line-through' : undefined} />

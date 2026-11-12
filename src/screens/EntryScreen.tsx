@@ -6,6 +6,7 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { Chip } from '../components/Chip';
 import { Icon } from '../components/Icon';
+import { MethodPicker } from '../components/MethodPicker';
 import { NumberKeypad } from '../components/NumberKeypad';
 import { SaveSuccess } from '../components/SaveSuccess';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -14,6 +15,8 @@ import { useT } from '../i18n/i18n';
 import type { TextKey } from '../i18n/translations';
 import { partyBalance } from '../lib/balance';
 import { cx } from '../lib/cx';
+import { formatRs } from '../lib/money';
+import type { Method } from '../lib/methods';
 import { TextField } from '../components/TextField';
 import { goBack, navigate, setFlash } from '../lib/router';
 import { finishEntryFlow } from '../lib/phoneAsk';
@@ -55,6 +58,7 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
   const [note, setNote] = useState(() => (changing ? (query.get('note') ?? '') : ''));
   const [noteOpen, setNoteOpen] = useState(() => !!(changing && query.get('note')));
   const newId = useRef<string | null>(null);
+  const [method, setMethod] = useState<Method>('cash'); // cash unless one tap says otherwise
   const [duplicate, setDuplicate] = useState(false); // the same entry was saved a moment ago: warned once, the next tap saves
 
   const home = partyId ? `/party/${partyId}` : '/today';
@@ -72,6 +76,8 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
 
   // Red = money went out (diye, kharcha). Green = money came in (mile, sale).
   const out = kind === 'diye' || kind === 'kharcha';
+  // A repeat customer: the amount of the last time (same kind, still counting) is one tap away
+  const lastAmount = entries.find((e) => e.kind === kind && e.status === 'active' && e.id !== changing)?.amount ?? 0;
   const label = t(KIND_TEXT[kind]);
   const newBalance = party ? partyBalance(party, entries) + (kind === 'diye' ? amount : kind === 'mile' ? -amount : 0) : 0;
 
@@ -86,7 +92,7 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
     setSaving(true);
     try {
       // On a retry the new entry already exists: only the cancel is left to do
-      if (!newId.current) newId.current = (await entriesRepo.create({ kind, party_id: party?.id ?? null, amount, note })).id;
+      if (!newId.current) newId.current = (await entriesRepo.create({ kind, party_id: party?.id ?? null, amount, note, method })).id;
       if (changing) await entriesRepo.cancel(changing, 'changed').catch((e) => { if (!/already cancelled/.test(String(e))) throw e; });
       setFlash({ kind: 'undoEntry', entryId: newId.current });
       setSaved(true);
@@ -126,6 +132,9 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
             )}
           </Card>
           <div className="mt-4">
+            <MethodPicker value={method} onChange={setMethod} />
+          </div>
+          <div className="mt-4">
             {noteOpen ? (
               <TextField label={t('noteLabel')} placeholder={t('notePlaceholder')} value={note} maxLength={300} autoFocus onChange={(e) => setNote(e.target.value)} />
             ) : (
@@ -161,6 +170,11 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
         <div className="text-center">
           <AmountText amount={amount} size="xl" tone={out ? 'out' : 'in'} reveal />
         </div>
+        {lastAmount > 0 && amount === 0 && (
+          <div className="flex justify-center">
+            <Chip onClick={() => setAmount(lastAmount)}>{t('lastAmount').replace('{amount}', formatRs(lastAmount))}</Chip>
+          </div>
+        )}
         <NumberKeypad value={amount} onChange={setAmount} />
       </div>
       <BottomActionBar>

@@ -5,7 +5,7 @@ import type { SyncTable, RemoteRow } from './remote';
 const FIELDS: Record<SyncTable, string[]> = {
   shops: ['id', 'owner_user_id', 'shop_name', 'language', 'created_at'],
   parties: ['id', 'shop_id', 'name', 'identifier', 'phone', 'type', 'credit_limit', 'opening_balance', 'created_at', 'archived'],
-  entries: ['id', 'shop_id', 'party_id', 'kind', 'amount', 'note', 'transcript', 'source', 'status', 'promise_date', 'created_by', 'created_at', 'cancelled_at', 'cancel_reason'],
+  entries: ['id', 'shop_id', 'party_id', 'kind', 'amount', 'note', 'transcript', 'source', 'status', 'promise_date', 'created_by', 'created_at', 'cancelled_at', 'cancel_reason', 'method'],
   audit_log: ['id', 'shop_id', 'entity', 'entity_id', 'action', 'before_value', 'after_value', 'actor', 'reason', 'created_at'],
 };
 

@@ -122,6 +122,16 @@ function addRuns(tokens: Token[], start: number, end: number, runs: Run[]) {
     const strong = slice.some((t) => t.digits !== null || t.tag?.t === 'mult') || (value !== null && value >= 10);
     return { start: s, end: e, value, strong };
   };
+  // English shop talk: "two fifty" means 250 and "five fifty" means 550 (a single number word, then a tens word, no "hundred").
+  // Without this the two words were read as two separate numbers and the bigger one (50) won: a wrong amount.
+  if (end - start === 2) {
+    const a = tokens[start];
+    const b = tokens[start + 1];
+    if (/^(one|two|three|four|five|six|seven|eight|nine)$/.test(a.text) && /^(twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)$/.test(b.text) && a.tag?.t === 'unit' && b.tag?.t === 'unit') {
+      runs.push({ start, end, value: (a.tag.v as number) * 100 + (b.tag.v as number), strong: true });
+      return;
+    }
+  }
   const whole = make(start, end);
   if (whole.value !== null || end - start < 2) {
     runs.push(whole);

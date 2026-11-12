@@ -169,6 +169,12 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Auth: Google only through Supabase (no passwords are stored by us); the session is saved and refreshed automatically; if refreshing fails the person is logged out and sees the login screen, the khata stays on the phone. Session length is a Supabase dashboard setting.
 - Not built: branch screens, payment-method picker, stock, a screen for the activity log.
 
+## Phase 2: fast entry (built)
+- Repeat customer in 4 steps: type (Diye/Mile) -> customer (recent first) -> amount -> Theek hai. On the amount screen a chip "Pichli baar: Rs N" (last active entry of the same kind for that customer) fills the amount in one tap.
+- Payment method: `MethodPicker` on the check screen (Cash already chosen; JazzCash / Easypaisa / Bank one tap). Saved on the entry (`entries.method`, migration 0005; left out by the sync if the server has not run 0005 yet). History rows show a non-cash method. Not on the voice check card (voice saves cash/empty). src/lib/methods.ts.
+- Voice: stays as an optional shortcut (decision from the Phase 0 diagnosis), NOT behind a Beta switch, because it never saves without the check card (Theek hai, or Diye/Mile buttons) and manual entry never depends on it. English shop talk added: "two fifty" = 250, "five fifty" = 550 (it used to read 50). The shop's own customers (and chosen phonebook contacts) are the dictionary. Products/quantities are NOT parsed (no product list exists).
+- Not built: product list, last price per product, Purchase, stock (product decision pending).
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).

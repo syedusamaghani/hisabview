@@ -526,6 +526,14 @@ const base = {
   staffOpen: { ro: 'Staff aur role', ur: 'عملہ اور کردار' },
   accessOffTitle: { ro: 'Aap ka access band hai', ur: 'آپ کی رسائی بند ہے' },
   accessOffBody: { ro: 'Dukaan ke malik ne aap ka access band kar diya hai. Unse baat karein.', ur: 'دکان کے مالک نے آپ کی رسائی بند کر دی ہے۔ ان سے بات کریں۔' },
+
+  // How the money moved, and the repeat amount (Phase 2)
+  methodTitle: { ro: 'Paisa kaise?', ur: 'پیسے کیسے؟' },
+  methodCash: { ro: 'Cash', ur: 'کیش' },
+  methodJazz: { ro: 'JazzCash', ur: 'جیز کیش' },
+  methodEasy: { ro: 'Easypaisa', ur: 'ایزی پیسہ' },
+  methodBank: { ro: 'Bank', ur: 'بینک' },
+  lastAmount: { ro: 'Pichli baar: {amount}', ur: 'پچھلی بار: {amount}' },
 } as const;
 
 export type TextKey = keyof typeof base;

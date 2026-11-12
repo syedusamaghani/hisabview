@@ -3,7 +3,7 @@ import { requireShop, requireUser } from './context';
 import { newId, nowIso } from './ids';
 import { snapshot, write } from './auditRepo';
 import { applyEntryChange } from './statsRepo';
-import { MAX_AMOUNT, type CancelReason, type Entry, type EntryKind, type EntrySource } from './types';
+import { MAX_AMOUNT, type CancelReason, type Entry, type EntryKind, type EntrySource, type PaymentMethod } from './types';
 
 export type NewEntry = {
   kind: EntryKind;
@@ -13,6 +13,7 @@ export type NewEntry = {
   transcript?: string | null;
   source?: EntrySource;
   promise_date?: string | null;
+  method?: PaymentMethod | null;
 };
 
 export const entriesRepo = {
@@ -30,6 +31,7 @@ export const entriesRepo = {
       source: input.source ?? 'manual',
       status: 'active',
       promise_date: input.promise_date ?? null,
+      ...(input.method ? { method: input.method } : {}),
       created_by: requireUser(),
       created_at: nowIso(),
       cancelled_at: null,
