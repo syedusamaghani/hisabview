@@ -9,6 +9,7 @@ export { productsRepo } from './productsRepo';
 export type { ProductFields, StockRow } from './productsRepo';
 export { tradeRepo } from './tradeRepo';
 export { cashRepo } from './cashRepo';
+export { reportRepo } from './reportRepo';
 export type { NewClosing } from './cashRepo';
 export type { TradeLine, TradeResult } from './tradeRepo';
 export type * from './types';

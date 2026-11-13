@@ -34,6 +34,8 @@ const VoiceScreen = lazy(() => import('./screens/VoiceScreen'));
 const StockRoutes = lazy(() => import('./screens/stock/StockRoutes'));
 // And the cash drawer (Galla) and the expense list
 const CashRoutes = lazy(() => import('./screens/cash/CashRoutes'));
+// And the business dashboard and the profit screen
+const ReportRoutes = lazy(() => import('./screens/report/ReportRoutes'));
 
 // restoring -> (name -> done -> old (optional)) -> home.
 // A person who already has a shop on this phone goes straight to home. A login with no shop on this
@@ -140,6 +142,13 @@ export default function SignedInApp() {
     return (
       <Suspense fallback={<main className="mx-auto min-h-screen max-w-app" />}>
         <CashRoutes path={path} />
+      </Suspense>
+    );
+  }
+  if (path === '/dashboard' || path === '/profit') {
+    return (
+      <Suspense fallback={<main className="mx-auto min-h-screen max-w-app" />}>
+        <ReportRoutes path={path} />
       </Suspense>
     );
   }

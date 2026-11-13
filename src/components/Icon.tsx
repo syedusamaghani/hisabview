@@ -129,6 +129,7 @@ const PATHS = {
   chat: <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6.200L8 21v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />,
   stop: <rect x="5.500" y="5.500" width="13" height="13" rx="3" />,
   wallet: <path fillRule="evenodd" d="M5 5h12.500a1 1 0 0 1 0 2H5.500a.5.5 0 0 0-.5.500V8h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm11 8a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3z" />,
+  chart: <path d="M4 20V11h4v9zm6 0V4h4v16zm6 0v-6h4v6z" />,
   box: (
     <>
       <path opacity=".55" d="M12 2.600 3.400 6.900 12 11.200l8.600-4.300z" />

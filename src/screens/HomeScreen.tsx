@@ -11,10 +11,11 @@ import { HideAmountsButton } from '../components/IconButton';
 import { Icon } from '../components/Icon';
 import { MicButton } from '../components/MicButton';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { entriesRepo, partiesRepo, statsRepo, useLive, type Entry } from '../data';
+import { entriesRepo, partiesRepo, statsRepo, useLive, useRole, type Entry } from '../data';
 import { useT } from '../i18n/i18n';
 import { totals } from '../lib/balance';
 import { cx } from '../lib/cx';
+import { canSeeProfit } from '../lib/permissions';
 import { formatDay, formatTime } from '../lib/dates';
 import { beginFlow, navigate } from '../lib/router';
 import { pakistanDayStart, todaySummary } from '../lib/today';
@@ -29,6 +30,7 @@ import { useEntrySnack } from './useEntrySnack';
 export function HomeScreen({ shopName }: { shopName: string }) {
   const { t, lang } = useT();
   const { snackbar } = useEntrySnack();
+  const role = useRole() ?? 'cashier';
 
   const data = useLive(
     // Only what Home shows is read: the customers, their summaries, the 5 newest entries and today's entries.
@@ -90,6 +92,19 @@ export function HomeScreen({ shopName }: { shopName: string }) {
             <AmountText amount={view?.sum.deneHain ?? 0} size="l" room="210px" />
           </Card>
         </div>
+
+        {/* Profit shows what goods cost, so only the owner and a manager get the door to it */}
+        {canSeeProfit(role) && (
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="flex min-h-tapLg items-center gap-3 rounded-card border-[1.5px] border-line bg-surface px-4 text-start shadow-card focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-accent"
+          >
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primarySoft text-primary"><Icon name="chart" size={24} /></span>
+            <span className="flex-1 text-body font-extrabold text-ink">{t('dashTitle')}</span>
+            <Icon name="back" size={26} className="rotate-180 text-primary rtl:rotate-0" />
+          </button>
+        )}
 
         <Card pattern className="flex flex-col gap-3">
           {/* The title opens the full Aaj ka hisaab page */}
