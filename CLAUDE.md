@@ -198,6 +198,13 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Credit limit (src/lib/credit.ts): field on add / edit customer (optional), shown on the customer page, ONE warning (never a block) in EntryScreen, the voice check card and a sale on udhaar; the second tap saves. Reminders: SMS button on the Yaad dilao screen (`smsUrl`, sms: link).
 - Not built: PDF or link statements (text only), per-supplier credit limits, bank deposit as a move between cash and bank (use withdrawal + a bank-method entry), a screen for the activity log, cashier access to the cashbook, closing a day edits (a mistake = count again).
 
+## Phase 5: profit and loss, dashboard (built; no migration)
+- No new SQL: profit is worked out on the phone from entries and the add-only stock_moves. Pure rules in src/lib/profit.ts (tests: src/lib/profit.test.ts, src/data/profit.test.ts with real tradeRepo flows); reading in src/data/reportRepo.ts; screens in the lazy chunk src/screens/report (/dashboard "Karobar", /profit), reached from a Karobar card on Home (owner and manager only: canSeeProfit).
+- Cost method = WEIGHTED AVERAGE (documented at the top of profit.ts): replayCosts goes through every movement in time order; a sale takes stock value x qty / stock qty; a later price change does not change older sales; the last piece takes the leftover rupees; free goods (price 0) lower the average; oversold pieces use the product's cost price; a cancelled sale's reversal returns goods at the cost they left at; damaged/lost/negative stock count = loss at average cost.
+- Sale = cash_sale or Diye written WITH goods (Saman). A plain typed cash sale is shown ("plain sales") but kept OUT of profit (cost unknown). A plain Diye to a customer is udhaar, not a sale. gross = itemised sales - cost; net = gross - kharcha - stock loss. Cash flow (money in/out, cash vs digital) is separate and uses the cashbook moneyMove rule.
+- Ranges: Today / Yesterday / This week (Monday start) / This month / custom, kept in the page address (?r=week). Trend buckets day/week/month; the dashboard chart shows at least 7 days. Charts are inline SVG (TrendChart, SplitBar in screens/report/parts.tsx).
+- Not built: separate "customer return" entry (cancel the sale instead), discount field (type the lower price), FIFO, tax, a fallback margin for plain sales, PDF profit report.
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).
