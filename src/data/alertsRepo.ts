@@ -1,5 +1,7 @@
 // Reads what the alerts need and keeps the on/off choices. The choices are saved on this phone (sync_meta), per login,
 // so each person (and each phone) picks what they want to hear about. Alerts themselves are never stored.
+import { movement } from '../lib/movers';
+import { PRICE_ALERT_DAYS, priceChanges, purchaseBuys } from '../lib/pricing';
 import { ALERT_KINDS, buildAlerts, DEFAULT_PREFS, RECENT_DAYS, CLOSING_DAYS, type Alert, type AlertPrefs } from '../lib/alerts';
 import { requireShop, requireUser } from './context';
 import { db } from './db';
@@ -32,32 +34,38 @@ export const alertsRepo = {
     const userId = requireUser();
     const sinceIso = new Date(now - RECENT_DAYS * 86_400_000).toISOString();
     const closingFrom = new Date(now - (CLOSING_DAYS + 1) * 86_400_000).toISOString();
-    const [prefs, stock, products, parties, stats, recentMoves, audit, closings, promised] = await Promise.all([
+    const [prefs, stock, products, parties, stats, allMoves, audit, closings, promised] = await Promise.all([
       getAlertPrefs(userId),
       productsRepo.listStock(),
       db.products.where('shop_id').equals(shop).toArray(),
       db.parties.where('shop_id').equals(shop).toArray(),
       statsRepo.all(),
-      db.stock_moves.where('created_at').aboveOrEqual(sinceIso).filter((m) => m.shop_id === shop && (m.kind === 'sale' || m.kind === 'reversal')).toArray(),
+      db.stock_moves.where('shop_id').equals(shop).toArray(), // add-only; the speed of the price and sales-rate guesses needs the history
       db.audit_log.where('created_at').aboveOrEqual(sinceIso).filter((a) => a.shop_id === shop).toArray(),
       db.cash_closings.where('created_at').aboveOrEqual(closingFrom).filter((c) => c.shop_id === shop).toArray(),
       db.entries.where('kind').equals('diye').filter((e) => e.shop_id === shop && e.status === 'active' && !!e.promise_date).toArray(),
     ]);
     const balances: Record<string, number> = {};
     for (const p of parties) balances[p.id] = stats[p.id]?.balance ?? 0;
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    const recentMoves = allMoves.filter((m) => (m.kind === 'sale' || m.kind === 'reversal') && m.created_at >= sinceIso);
+    const stockNow: Record<string, number> = {};
+    for (const r of stock) stockNow[r.product.id] = r.stock;
     const alerts = buildAlerts(
       {
         now,
         userId,
         lowStock: stock.filter((r) => r.low).map((r) => ({ product: r.product, stock: r.stock })),
         recentSales: recentMoves,
-        products: new Map(products.map((p) => [p.id, p])),
+        products: productMap,
         audit,
         closings,
         entries: promised,
         parties,
         balances,
         summary,
+        priceChanges: priceChanges(purchaseBuys(allMoves, productMap), productMap, now - PRICE_ALERT_DAYS * 86_400_000),
+        runningOut: movement(allMoves, products, stockNow, now).runningOut,
       },
       prefs,
     );

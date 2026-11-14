@@ -7,7 +7,7 @@
 //             is a separate 'diye' entry to the supplier, linked to the purchase (cancelled together)
 //   return    'purchase_return' on the supplier's account (we owe less); stock goes down; money handed
 //             back by the supplier is a separate 'mile' entry, linked to the return
-import { lineTotal, priceInUnit, unitFactor } from '../lib/stock';
+import { allocateDiscount, lineTotal, priceInUnit, unitFactor } from '../lib/stock';
 import { snapshot, write } from './auditRepo';
 import { requireShop } from './context';
 import { db } from './db';
@@ -64,9 +64,17 @@ export const tradeRepo = {
     return (await db.entries.where('party_id').equals(supplierId).toArray()).find((e) => e.kind === 'purchase' && e.status === 'active' && e.invoice_no === no);
   },
 
-  async sale(input: { lines: TradeLine[]; party_id?: string | null; method?: PaymentMethod | null; note?: string | null }): Promise<TradeResult> {
+  // `discount` = rupees taken off the whole bill. The sale is written for the rupees really asked; the discount is shared over the
+  // lines so every line total is what was really taken (the list price stays in unit_price, so the discount can always be worked out).
+  // Free goods (a scheme like 10+1) are simply a line at Rs 0: they leave the stock and carry their cost, but bring no money.
+  async sale(input: { lines: TradeLine[]; party_id?: string | null; method?: PaymentMethod | null; note?: string | null; discount?: number }): Promise<TradeResult> {
     return db.transaction('rw', TABLES(), async () => {
-      const { rows, total } = await price(input.lines);
+      const priced = await price(input.lines);
+      const discount = input.discount ?? 0;
+      if (!Number.isInteger(discount) || discount < 0 || discount >= priced.total) throw new Error('Discount is not valid');
+      const cut = allocateDiscount(priced.rows.map((r) => r.total), discount);
+      const rows = priced.rows.map((r, i) => ({ ...r, total: r.total - cut[i] }));
+      const total = priced.total - discount;
       const entry = await entriesRepo.create({ kind: input.party_id ? 'diye' : 'cash_sale', party_id: input.party_id ?? null, amount: total, note: input.note, method: input.party_id ? null : input.method });
       const moves: StockMove[] = [];
       for (const r of rows) moves.push(await addMove({ product: r.product, kind: 'sale', qty_base: -r.line.qty_base, unit: r.line.unit, unit_price: r.line.unit_price, line_total: r.total, entry_id: entry.id, party_id: input.party_id ?? null }));
@@ -88,7 +96,8 @@ export const tradeRepo = {
         const priceFactor = unitFactor(r.product, r.product.price_unit) ?? 1;
         const cost = priceInUnit(r.line.unit_price, r.factor, priceFactor);
         const fresh = (await db.products.get(r.product.id)) as Product;
-        if (cost !== fresh.cost_price) {
+        // Free bonus goods (Rs 0) lower the average cost in the profit rules but are not a new price: the cost price stays
+        if (r.line.unit_price > 0 && cost !== fresh.cost_price) {
           const after: Product = { ...fresh, cost_price: cost, pending_sync: 1 };
           await db.products.put(after);
           await write('product', fresh.id, 'edit', snapshot(fresh), snapshot(after), requireShop(), 'purchase price');

@@ -120,3 +120,24 @@ export function stockByProduct(moves: readonly { product_id: string; qty_base: n
   for (const m of moves) out[m.product_id] = (out[m.product_id] ?? 0) + m.qty_base;
   return out;
 }
+
+// A discount on a whole bill, shared out over its lines in proportion to what each line costs, in whole rupees that add up
+// exactly to the discount (largest remainder). A line never gets more than its own total, and a free line (Rs 0) gets nothing.
+// So every line total shows the real rupees taken, and product-wise profit stays right.
+export function allocateDiscount(totals: readonly number[], discount: number): number[] {
+  const sum = totals.reduce((n, t) => n + t, 0);
+  if (!Number.isInteger(discount) || discount < 0 || discount > sum) throw new Error('Discount is not valid');
+  if (discount === 0 || sum === 0) return totals.map(() => 0);
+  const base = totals.map((t) => Math.floor((t * discount) / sum));
+  let left = discount - base.reduce((n, b) => n + b, 0);
+  const order = totals
+    .map((t, i) => ({ i, rest: (t * discount) % sum }))
+    .filter((o) => totals[o.i] > base[o.i])
+    .sort((a, b) => b.rest - a.rest || a.i - b.i);
+  for (const o of order) {
+    if (left === 0) break;
+    base[o.i] += 1;
+    left -= 1;
+  }
+  return base;
+}

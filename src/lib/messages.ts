@@ -92,3 +92,19 @@ export function todayText(lang: Lang, shop: string, now: Date, s: TodaySummary):
     `${tr('todayKharcha', lang)}: ${formatRs(s.kharcha)}`,
   ].join('\n');
 }
+
+export type SaleReceiptLine = { name: string; qty: string; amount: number; free: boolean };
+
+// The bill of a sale made from Saman: every item, any discount, the total, and (for a sale on udhaar) where the account stands.
+// Lines show the usual price; the discount line takes the difference off, so the lines add up to the total.
+export function saleReceiptText(lang: Lang, who: { shop: string; customer: string | null }, lines: readonly SaleReceiptLine[], discount: number, total: number, balance: number | null): string {
+  const out = [tr('msgSaleHead', lang, { shop: who.shop })];
+  if (who.customer) out.push(tr('msgSaleCustomer', lang, { name: who.customer }));
+  out.push('');
+  for (const l of lines) out.push(l.free ? tr('msgSaleFree', lang, { name: l.name, qty: l.qty }) : tr('msgSaleLine', lang, { name: l.name, qty: l.qty, amount: l.amount.toLocaleString('en-US') }));
+  if (discount > 0) out.push(tr('msgSaleDiscount', lang, { amount: discount.toLocaleString('en-US') }));
+  out.push(tr('msgSaleTotal', lang, { amount: total.toLocaleString('en-US') }));
+  if (balance !== null) out.push('', balanceLine(balance, lang));
+  out.push('', tr('msgSaleThanks', lang));
+  return out.join('\n');
+}

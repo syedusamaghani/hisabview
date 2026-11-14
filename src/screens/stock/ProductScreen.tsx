@@ -10,7 +10,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { Sheet } from '../../components/Sheet';
 import { SaveSuccess } from '../../components/SaveSuccess';
 import { TextField } from '../../components/TextField';
-import { partiesRepo, productsRepo, useLive, useRole, type Product, type StockMove, type StockMoveKind } from '../../data';
+import { moversRepo, partiesRepo, productsRepo, useLive, useRole, type Product, type StockMove, type StockMoveKind } from '../../data';
 import { useT } from '../../i18n/i18n';
 import type { TextKey } from '../../i18n/translations';
 import { cx } from '../../lib/cx';
@@ -18,6 +18,7 @@ import { formatDay, formatTime } from '../../lib/dates';
 import { canManageStock } from '../../lib/permissions';
 import { goBack, navigate } from '../../lib/router';
 import { allUnits, toBase, unitFactor } from '../../lib/stock';
+import { formatRs } from '../../lib/money';
 import { fill, qtyText, unitLabel } from './stockText';
 
 const MOVE_TEXT: Record<StockMoveKind, TextKey> = {
@@ -42,8 +43,9 @@ export function ProductScreen({ productId }: { productId: string }) {
       moves: await productsRepo.movesFor(productId),
       names: Object.fromEntries((await partiesRepo.listAll()).map((p) => [p.id, p.name])),
       stock: (await productsRepo.listStock(true)).find((r) => r.product.id === productId),
+      rates: manager ? await moversRepo.supplierRates(productId) : [], // what each supplier charges (cost, so owner and manager only)
     }),
-    [productId],
+    [productId, manager],
   );
   const [filter, setFilter] = useState<'all' | 'buy'>('all');
   const [adjusting, setAdjusting] = useState(false);
@@ -51,7 +53,7 @@ export function ProductScreen({ productId }: { productId: string }) {
   const [done, setDone] = useState(false);
 
   if (!data) return <main className="mx-auto min-h-screen max-w-app" />;
-  const { product, moves, names, stock } = data;
+  const { product, moves, names, stock, rates } = data;
   if (!product || !stock) {
     return (
       <main className="mx-auto min-h-screen max-w-app">
@@ -95,6 +97,24 @@ export function ProductScreen({ productId }: { productId: string }) {
               <BigButton full variant="ghost" icon="archive" onClick={() => setHiding(true)}>{t('productHide')}</BigButton>
             )}
           </div>
+        )}
+
+        {manager && (
+          <Card className="flex flex-col gap-2">
+            <h2 className="text-body font-extrabold text-ink">{t('spTitle')}</h2>
+            {rates.length === 0 && <p className="text-body text-inkSoft">{t('spNone')}</p>}
+            <ul className="flex flex-col gap-1">
+              {rates.map((r) => (
+                <li key={r.supplier_id ?? 'none'} className="flex items-baseline justify-between gap-3">
+                  <span className="min-w-0">
+                    <span dir="auto" className="block truncate text-body font-bold text-ink">{r.name ?? t('spNoName')}</span>
+                    {r.cheapest && <span className="text-label font-extrabold text-moneyIn">{t('spCheapest')}</span>}
+                  </span>
+                  <bdi className="shrink-0 text-body font-extrabold text-ink">{fill(t('spPer'), { rate: formatRs(r.rate), unit: unitLabel(t, product.price_unit) })}</bdi>
+                </li>
+              ))}
+            </ul>
+          </Card>
         )}
 
         <h2 className="pt-2 text-title font-extrabold text-ink">{t('pHistory')}</h2>

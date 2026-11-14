@@ -17,6 +17,8 @@ const entry = (o: Partial<Entry>): Entry => ({
 const move = (o: Partial<StockMove>): StockMove => ({
   id: `m${++n}`, shop_id: 's', product_id: 'p1', entry_id: null, party_id: null, kind: 'sale', qty_base: -1, unit: 'piece', unit_factor: 1,
   unit_price: 15, line_total: 15, reason: null, reverses: null, created_by: SARA, created_at: iso(1), pending_sync: 0, ...o,
+  // a test that only says the price also gets the rupees that price really takes
+  ...(o.line_total === undefined && o.unit_price != null ? { line_total: Math.round((o.unit_price * Math.abs(o.qty_base ?? -1)) / (o.unit_factor ?? 1)) } : {}),
 });
 const audit = (o: Partial<AuditRow>): AuditRow => ({
   id: `a${++n}`, shop_id: 's', entity: 'entry', entity_id: 'x', action: 'create', before_value: null, after_value: null, actor: SARA, created_at: iso(1), pending_sync: 0, ...o,
@@ -147,6 +149,6 @@ describe('alerts', () => {
     expect(needsAttention(all)).toBe(2);
     const off = buildAlerts(base, { ...DEFAULT_PREFS, lowStock: false, summary: false });
     expect(off.map((a) => a.kind)).toEqual(['cashMismatch']);
-    expect(buildAlerts(base, { lowStock: false, discount: false, cancelled: false, cashMismatch: false, overdue: false, summary: false })).toEqual([]);
+    expect(buildAlerts(base, { lowStock: false, runningOut: false, discount: false, priceChange: false, cancelled: false, cashMismatch: false, overdue: false, overLimit: false, summary: false })).toEqual([]);
   });
 });

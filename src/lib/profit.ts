@@ -24,6 +24,7 @@
 // Profit is not cash: udhaar sales are profit before the money comes, and buying stock is cash out but not a cost yet.
 import { dayKeyOf, dayStartOf, addDays, moneyMove, type DayKey, type PartyKinds } from './cashbook';
 import { METHODS, type Method } from './methods';
+import { lineTotal } from './stock';
 
 export type CostMove = {
   id: string;
@@ -32,6 +33,8 @@ export type CostMove = {
   kind: string; // opening | purchase | purchase_return | sale | adjust | damaged | lost | reversal
   qty_base: number;
   line_total: number;
+  unit_price?: number | null; // the list price the line was written at (a sale line: the discount is list total - line_total)
+  unit_factor?: number;
   reverses: string | null;
   created_at: string;
 };
@@ -108,6 +111,8 @@ export type Report = {
   expenses: number;
   stockLoss: number; // damaged, lost or missing goods at cost
   netProfit: number; // grossProfit - expenses - stockLoss
+  discountGiven: number; // rupees taken off sales bills (already inside sales and profit; shown for information)
+  freeCost: number; // cost of goods given free (a scheme like 10+1); already inside cost and profit
   udhaarGiven: number; // Diye to customers with no goods written (money lent, not a sale)
   // cash flow (the money, not the profit)
   moneyIn: number;
@@ -129,7 +134,7 @@ export function summarize(input: ReportInput, fromMs: number, toMs: number): Rep
     return at >= fromMs && at < toMs;
   };
   const r: Report = {
-    fromMs, toMs, itemisedSales: 0, plainSales: 0, totalSales: 0, cogs: 0, grossProfit: 0, expenses: 0, stockLoss: 0, netProfit: 0, udhaarGiven: 0,
+    fromMs, toMs, itemisedSales: 0, plainSales: 0, totalSales: 0, cogs: 0, grossProfit: 0, expenses: 0, stockLoss: 0, netProfit: 0, discountGiven: 0, freeCost: 0, udhaarGiven: 0,
     moneyIn: 0, moneyOut: 0, inByMethod: zeroMethods(), outByMethod: zeroMethods(), cashReceived: 0, digitalReceived: 0, salesCount: 0, byProduct: [],
   };
   const undone = new Set(input.moves.map((m) => m.reverses).filter((v): v is string => v !== null));
@@ -167,6 +172,8 @@ export function summarize(input: ReportInput, fromMs: number, toMs: number): Rep
         row.cost += cost;
         products.set(m.product_id, row);
         r.cogs += cost;
+        if (m.unit_price) r.discountGiven += Math.max(0, lineTotal(m.qty_base, m.unit_price, m.unit_factor ?? 1) - m.line_total);
+        if (m.unit_price === 0 && m.line_total === 0) r.freeCost += cost;
       }
     } else if (e.kind === 'cash_sale') {
       r.plainSales += e.amount;

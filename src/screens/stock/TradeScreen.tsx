@@ -11,7 +11,7 @@ import { SaveSuccess } from '../../components/SaveSuccess';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SearchBar } from '../../components/SearchBar';
 import { TextField } from '../../components/TextField';
-import { entriesRepo, partiesRepo, productsRepo, tradeRepo, statsRepo, useLive, useRole, type Product, type TradeResult } from '../../data';
+import { entriesRepo, moversRepo, partiesRepo, productsRepo, tradeRepo, statsRepo, useLive, useRole, type Product, type TradeResult } from '../../data';
 import { useT } from '../../i18n/i18n';
 import type { TextKey } from '../../i18n/translations';
 import { partyBalance } from '../../lib/balance';
@@ -28,7 +28,7 @@ import { fill, qtyText, unitLabel } from './stockText';
 // Saving writes the money entry, the stock movements, the supplier balance and the diary in ONE transaction.
 export type TradeMode = 'buy' | 'sell' | 'return';
 
-type Draft = { product: Product; unit: string; qtyText: string; qty_base: number; unit_price: number };
+type Draft = { product: Product; unit: string; qtyText: string; qty_base: number; unit_price: number; free?: boolean };
 type Stage = 'lines' | 'pick' | 'line' | 'details' | 'check';
 
 const TITLE: Record<TradeMode, TextKey> = { buy: 'tBuyTitle', sell: 'tSellTitle', return: 'tReturnTitle' };
@@ -69,6 +69,8 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
   const [qty, setQty] = useState('');
   const [unit, setUnit] = useState('');
   const [rate, setRate] = useState('');
+  const [freeQty, setFreeQty] = useState(''); // goods given or received free with this line (a scheme like 10+1)
+  const [lastRate, setLastRate] = useState<string | null>(null);
   // details
   const [supplierId, setSupplierId] = useState<string | null>(preset);
   const [newSupplier, setNewSupplier] = useState('');
@@ -81,6 +83,7 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [customerQuery, setCustomerQuery] = useState('');
   const [method, setMethod] = useState<Method>('cash');
+  const [discountText, setDiscountText] = useState('');
   // check and save
   const [problem, setProblem] = useState<TextKey | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
@@ -98,6 +101,8 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
     return (data?.rows ?? []).filter((r) => !q || [r.product.name, r.product.barcode, r.product.sku, r.product.category].some((v) => v?.toLowerCase().includes(q)));
   }, [data, query]);
 
+  const discount = mode === 'sell' ? Number(digits(discountText) || '0') : 0;
+  const payable = total - discount; // what the customer really pays (a sale with a discount)
   const supplierName = supplierId ? suppliers.find((s) => s.id === supplierId)?.name : newSupplier.trim();
   const customerName = customerId ? data?.parties.find((p) => p.id === customerId)?.name : undefined;
   const paid = mode === 'buy' ? (pay === 'full' ? total : pay === 'part' ? Number(digits(paidText) || '0') : 0) : mode === 'return' ? (refund === 'yes' ? Number(digits(refundText) || String(total)) : 0) : 0;
@@ -120,8 +125,15 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
     setUnit(u);
     setRate(String(defaultRate(product, u, mode)));
     setQty('');
+    setFreeQty('');
+    setLastRate(null);
     setProblem(null);
     setStage('line');
+    if (mode === 'buy') {
+      void moversRepo.lastRate(product.id, supplierId).then((last) => {
+        if (last) setLastRate(fill(t('tLastRate'), { rate: formatRs(last.rate), who: last.supplier ? ` (${last.supplier})` : '' }));
+      });
+    }
   };
 
   const changeUnit = (u: string) => {
@@ -133,7 +145,11 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
   const addLine = () => {
     if (!adding) return;
     if (qtyBase === null) return setProblem('tQtyBad');
-    setLines([...lines, { product: adding, unit, qtyText: qty.trim(), qty_base: qtyBase, unit_price: Number(digits(rate) || '0') }]);
+    const free = freeQty.trim() ? toBase(freeQty, factorOf(unit)) : null;
+    if (freeQty.trim() && free === null) return setProblem('tQtyBad');
+    const paidLine: Draft = { product: adding, unit, qtyText: qty.trim(), qty_base: qtyBase, unit_price: Number(digits(rate) || '0') };
+    // free goods are a second line at Rs 0: they move the stock and carry their cost, but bring no money
+    setLines([...lines, paidLine, ...(free !== null ? [{ product: adding, unit, qtyText: freeQty.trim(), qty_base: free, unit_price: 0, free: true }] : [])]);
     setAdding(null);
     setProblem(null);
     setStage('lines');
@@ -143,6 +159,7 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
     setWarning(null);
     if (mode !== 'sell' && !supplierId && !newSupplier.trim()) return setProblem('tSupplier');
     if (mode === 'sell' && how === 'udhaar' && !customerId) return setProblem('tPickCustomer');
+    if (mode === 'sell' && discount >= total) return setProblem('tDiscountBad');
     if (paid > total || (mode === 'buy' && pay === 'part' && paid < 1)) return setProblem('tFailed');
     setProblem(null);
     setStage('check');
@@ -156,7 +173,7 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
       // Udhaar above the customer's limit: warned first, since it is money
       if (mode === 'sell' && how === 'udhaar' && customerId) {
         const customer = await partiesRepo.get(customerId);
-        const over = customer ? overCreditLimit(customer.credit_limit, partyBalance(customer, await entriesRepo.listForParty(customerId)), total) : null;
+        const over = customer ? overCreditLimit(customer.credit_limit, partyBalance(customer, await entriesRepo.listForParty(customerId)), payable) : null;
         if (over !== null) return setWarning(t('creditWarn').replace('{limit}', formatRs(over)));
       }
       if (mode !== 'buy') {
@@ -178,7 +195,7 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
           ? await tradeRepo.purchase({ supplier_id: supplier!, lines: drafts, invoice_no: invoice, paid, method: paid > 0 ? method : null })
           : mode === 'return'
             ? await tradeRepo.purchaseReturn({ supplier_id: supplier!, lines: drafts, invoice_no: invoice, refund: paid, method: paid > 0 ? method : null })
-            : await tradeRepo.sale({ lines: drafts, party_id: how === 'udhaar' ? customerId : null, method: how === 'cash' ? method : null });
+            : await tradeRepo.sale({ lines: drafts, party_id: how === 'udhaar' ? customerId : null, method: how === 'cash' ? method : null, discount });
       setFlash({ kind: 'undoEntry', entryId: done.entry.id });
       setResult(done);
       setSupplierId(supplier);
@@ -216,7 +233,7 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
                 <span className="min-w-0 flex-1 text-start">
                   <span dir="auto" className="block truncate text-body font-extrabold">{l.product.name}</span>
                   <bdi className="block text-label text-inkSoft">
-                    {l.qtyText} {unitLabel(t, l.unit)} × {formatRs(l.unit_price)}
+                    {l.qtyText} {unitLabel(t, l.unit)} {l.free ? `· ${t('tFreeMark')}` : `× ${formatRs(l.unit_price)}`}
                   </bdi>
                 </span>
                 <AmountText amount={lineTotal(l.qty_base, l.unit_price, unitFactor(l.product, l.unit) ?? 1)} size="s" tone="neutral" room="110px" />
@@ -260,6 +277,12 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
             </div>
           </div>
           <TextField label={fill(t('tRate'), { unit: unitLabel(t, unit) })} inputMode="numeric" value={rate} onChange={(e) => setRate(digits(e.target.value))} />
+          {mode !== 'return' && (
+            <div>
+              <TextField label={t('tFree')} inputMode="decimal" value={freeQty} onChange={(e) => setFreeQty(e.target.value)} hint={t('tFreeHint')} />
+            </div>
+          )}
+          {lastRate && <p className="text-label font-bold text-inkSoft">{lastRate}</p>}
           {previewTotal > 0 && (
             <Card tone="soft" className="flex items-center justify-between">
               <span className="text-body font-extrabold">{t('tTotal')}</span>
@@ -317,6 +340,7 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
                 <ChoiceCard title={t('tSaleCash')} selected={how === 'cash'} onSelect={() => setHow('cash')} />
                 <ChoiceCard title={t('tSaleUdhaar')} selected={how === 'udhaar'} onSelect={() => setHow('udhaar')} />
               </div>
+              <TextField label={t('tDiscount')} hint={t('tDiscountHint')} inputMode="numeric" value={discountText} onChange={(e) => setDiscountText(digits(e.target.value))} />
               {how === 'cash' && <MethodPicker value={method} onChange={setMethod} />}
               {how === 'udhaar' && (
                 <>
@@ -343,15 +367,27 @@ export function TradeScreen({ mode }: { mode: TradeMode }) {
                 <li key={i} className="flex items-start justify-between gap-2">
                   <span className="min-w-0 text-start">
                     <span dir="auto" className="block truncate text-body font-bold">{l.product.name}</span>
-                    <bdi className="block text-label text-inkSoft">{l.qtyText} {unitLabel(t, l.unit)} × {formatRs(l.unit_price)}</bdi>
+                    <bdi className="block text-label text-inkSoft">{l.qtyText} {unitLabel(t, l.unit)} {l.free ? `· ${t('tFreeMark')}` : `× ${formatRs(l.unit_price)}`}</bdi>
                   </span>
                   <AmountText amount={lineTotal(l.qty_base, l.unit_price, unitFactor(l.product, l.unit) ?? 1)} size="s" tone="neutral" reveal room="110px" />
                 </li>
               ))}
             </ul>
+            {discount > 0 && (
+              <>
+                <div className="flex items-center justify-between border-t-[1.5px] border-line pt-2">
+                  <span className="text-body font-bold text-inkSoft">{t('tBillSum')}</span>
+                  <AmountText amount={total} size="m" tone="neutral" reveal />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-body font-bold text-inkSoft">{t('tDiscountRow')}</span>
+                  <AmountText amount={discount} size="m" tone="out" reveal />
+                </div>
+              </>
+            )}
             <div className="flex items-center justify-between border-t-[1.5px] border-line pt-2">
-              <span className="text-body font-extrabold">{t('tTotal')}</span>
-              <AmountText amount={total} size="l" tone="neutral" reveal />
+              <span className="text-body font-extrabold">{discount > 0 ? t('tToPay') : t('tTotal')}</span>
+              <AmountText amount={payable} size="l" tone="neutral" reveal />
             </div>
             {mode === 'buy' && total - paid > 0 && (
               <div className="flex items-center justify-between">

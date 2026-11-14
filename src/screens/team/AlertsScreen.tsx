@@ -16,10 +16,13 @@ import { useTeam, useWho, WHAT_TEXT } from './parts';
 
 const KIND_TEXT: Record<AlertKind, TextKey> = {
   lowStock: 'kLowStock',
+  runningOut: 'kRunningOut',
   discount: 'kDiscount',
+  priceChange: 'kPriceChange',
   cancelled: 'kCancelled',
   cashMismatch: 'kCashMismatch',
   overdue: 'kOverdue',
+  overLimit: 'kOverLimit',
   summary: 'kSummary',
 };
 
@@ -53,6 +56,17 @@ export function AlertsScreen() {
     switch (a.kind) {
       case 'lowStock':
         return fill(t('alLow'), { name: a.product?.name ?? '', qty: a.product ? qtyText(t, a.stock ?? 0, a.product) : '' });
+      case 'runningOut':
+        return fill(t((a.daysLeft ?? 0) === 0 ? 'alRunningNow' : 'alRunning'), { name: a.product?.name ?? '', days: String(a.daysLeft ?? 0), qty: a.product ? qtyText(t, a.stock ?? 0, a.product) : '', reorder: a.product ? qtyText(t, a.reorder ?? 0, a.product) : '' });
+      case 'priceChange': {
+        const c = a.change;
+        if (!c) return '';
+        const who = a.party ? fill(t('alFrom'), { name: a.party }) : '';
+        const line = fill(t(c.pct > 0 ? 'alPriceUp' : 'alPriceDown'), { name: c.product.name, from: rs(c.from), to: rs(c.to), pct: String(Math.abs(c.pct)), who });
+        return c.belowCost && c.pct > 0 ? line + t('alPriceLoss') : line;
+      }
+      case 'overLimit':
+        return fill(t('alOverLimit'), { name: a.party ?? '', amount: rs(a.amount ?? 0), limit: rs(a.limit ?? 0) });
       case 'discount':
         return fill(t('alDisc'), { name: a.product?.name ?? '', price: rs(a.price ?? 0), list: rs(a.list ?? 0), pct: String(a.pct ?? 0), who: who(a.actor) });
       case 'cancelled':
@@ -84,7 +98,7 @@ export function AlertsScreen() {
         )}
         <ul className="flex flex-col gap-3">
           {data?.alerts.map((a) => {
-            const go = a.kind === 'lowStock' && a.product ? `/stock/${a.product.id}` : a.kind === 'cashMismatch' ? '/cashbook' : null;
+            const go = a.product ? `/stock/${a.product.id}` : a.change ? `/stock/${a.change.product.id}` : a.partyId ? `/party/${a.partyId}` : a.kind === 'cashMismatch' ? '/cashbook' : null;
             const body = (
               <>
                 <span className="block text-label font-bold text-inkSoft">{t(KIND_TEXT[a.kind])}</span>

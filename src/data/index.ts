@@ -12,6 +12,7 @@ export { cashRepo } from './cashRepo';
 export { reportRepo } from './reportRepo';
 export { teamRepo, loadTeam, cachedTeam } from './teamRepo';
 export type { Teammate } from './teamRepo';
+export { moversRepo } from './moversRepo';
 export { alertsRepo, getAlertPrefs, setAlertPrefs } from './alertsRepo';
 export type { NewClosing } from './cashRepo';
 export type { TradeLine, TradeResult } from './tradeRepo';

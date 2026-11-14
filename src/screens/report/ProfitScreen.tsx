@@ -88,6 +88,12 @@ export function ProfitScreen() {
             <Line label={t('pExpenses')} amount={r?.expenses ?? 0} tone="out" />
             <Line label={t('pLoss')} amount={r?.stockLoss ?? 0} tone="out" />
           </ul>
+          {r && (r.discountGiven > 0 || r.freeCost > 0) && (
+            <ul className="flex flex-col gap-2 border-t-[1.5px] border-line pt-3">
+              {r.discountGiven > 0 && <Line label={t('pDiscount')} amount={r.discountGiven} />}
+              {r.freeCost > 0 && <Line label={t('pFree')} amount={r.freeCost} />}
+            </ul>
+          )}
           <div className="border-t-[1.5px] border-line pt-3">
             <p className="text-label font-semibold text-inkSoft">{net < 0 ? t('pNetLoss') : t('pNet')}</p>
             <AmountText amount={Math.abs(net)} size="xl" tone={net < 0 ? 'out' : 'in'} />
