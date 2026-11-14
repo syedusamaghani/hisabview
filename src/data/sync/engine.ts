@@ -14,6 +14,7 @@ import { reportError } from '../../lib/report';
 import { storeMemberShop, storeRole } from '../roleStore';
 import { applyEntryChange, recomputeStat, statsRepo } from '../statsRepo';
 import { productsRepo } from '../productsRepo';
+import { conflictsRepo, type ConflictTable } from '../conflicts';
 import type { Entry, Party, Product, Shop, AuditRow } from '../types';
 import { ADD_ONLY, changeTime, fromRemote, sameRow, toRemote } from './mapping';
 import { CASH_TABLES, RemoteError, STOCK_TABLES, type Remote, type SyncTable } from './remote';
@@ -172,6 +173,7 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     const t = tableOf(table);
     for (let i = 0; i < rows.length; i += 500) {
       const chunk = rows.slice(i, i + 500);
+      const clashes: [AnyRow, AnyRow][] = []; // the phone kept its own change over a different one from the server: written down below
       // The customer summaries (party_stats) are updated in the same transaction as the rows they come from
       await db.transaction('rw', [db.parties, db.entries, db.audit_log, db.party_stats, db.products, db.stock_moves, db.cash_closings], async () => {
         if (fresh) {
@@ -190,7 +192,10 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
           const incoming = fromRemote<AnyRow>(table, raw);
           const local = await t.get(incoming.id);
           const next = decide(table, local, incoming);
-          if (!next) continue;
+          if (!next) {
+            if (local && local.pending_sync === 1 && (table === 'parties' || table === 'products')) clashes.push([local, incoming]);
+            continue;
+          }
           await t.put(next);
           if (table === 'parties') await recomputeStat(next as unknown as Party);
           if (table === 'entries') {
@@ -200,6 +205,8 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
           }
         }
       });
+      // Not silent: both versions are kept on record for the owner to review (Settings)
+      for (const [mine, theirs] of clashes) await conflictsRepo.record(shopId, table as ConflictTable, mine, theirs);
     }
     // Remember how far we got. A server without "updated_at" gives no time, so next time is a full download.
     const times = rows.map((r) => changeTime(table, r)).filter((v): v is string => v !== null);
@@ -257,6 +264,10 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     setSyncState({ phase: 'syncing' });
     try {
       await reconcileShop(remote, userId);
+      // Bring the server's news FIRST, so that a customer or item changed on two phones is noticed before this phone's
+      // version is sent on top of the other one (it is written down for the owner: see src/data/conflicts.ts)
+      // (only when a customer or item is waiting to go: otherwise one pull after the push is enough)
+      if (withPull && (await db.parties.where('pending_sync').equals(1).count()) + (await db.products.where('pending_sync').equals(1).count()) > 0) await pullAll(remote, userId);
       for (const table of PUSH_ORDER) await pushTable(remote, table);
       await groupStep('stock', async () => {
         for (const table of STOCK_TABLES) await pushTable(remote, table);

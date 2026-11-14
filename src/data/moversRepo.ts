@@ -2,13 +2,14 @@
 import { movement } from '../lib/movers';
 import { purchaseBuys, supplierRates, type SupplierRate } from '../lib/pricing';
 import { requireShop } from './context';
+import { shopMoves } from './moves';
 import { db } from './db';
 import { productsRepo } from './productsRepo';
 
 export const moversRepo = {
   async load(now = Date.now()) {
     const shop = requireShop();
-    const [moves, rows] = await Promise.all([db.stock_moves.where('shop_id').equals(shop).toArray(), productsRepo.listStock()]);
+    const [moves, rows] = await Promise.all([shopMoves(shop), productsRepo.listStock()]);
     const stock: Record<string, number> = {};
     for (const r of rows) stock[r.product.id] = r.stock;
     return movement(moves, rows.map((r) => r.product), stock, now);

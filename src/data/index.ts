@@ -26,3 +26,7 @@ export { isTesting, startTesting, stopTesting } from './testMode';
 export { sync, describeSync, useSyncState } from './sync';
 export type { SyncState, SyncView, RestoreResult, SyncResult } from './sync';
 export type { NewParty, OpeningBalance, PartyChanges } from './partiesRepo';
+export { exportShop, restoreFromBackup, backupFileName, BackupError } from './backupFile';
+export type { RestoreSummary } from './backupFile';
+export { conflictsRepo } from './conflicts';
+export type { Conflict } from './conflicts';

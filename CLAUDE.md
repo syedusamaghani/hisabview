@@ -230,6 +230,14 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - Export: Excel = src/lib/xlsx.ts (own small writer + fflate zip, numbers stay numbers). PDF = src/lib/pdf.ts wraps A4 JPEG pages that the browser draws on a canvas (src/screens/report/exportReport.ts), so Urdu letters join; it is an image PDF (text not selectable). Shared with navigator.share (WhatsApp is in the Share sheet) or saved as a download. No server, no paid service. New dependency: fflate (free, small).
 - Not built: expired-products report (expiry dates are not stored; needs the batch work deferred in Phase 7).
 
+## Phase 9: reliability, speed, final checks
+- Offline day: src/data/sync/dayFlow.test.ts runs a whole day (opening cash, purchase, cash/digital/udhaar sales, expense, customer payment, cancel, closing) with no internet, syncs it, restores a second phone and checks every number (dashboard, cash drawer, balances, stock, 11 reports) is identical. Also: the line dying half way through sending, and a bill that fails half way saves nothing.
+- Sync now pulls BEFORE it pushes when a customer or item is waiting to go, so a clash is noticed first. A customer/item changed on two phones keeps this phone's change AND the other version is written down (src/data/conflicts.ts, shown in Settings > "Do phone se alag badlav"). Entries, stock movements and closings are never overwritten (frozen / add-only), so they cannot clash.
+- ConnectionBar (top of every screen): only shows when there is no internet (with how many entries are waiting) or the server refused something. Calm "Save ho gaya" stays on Home and Settings.
+- Backup file: src/data/backupFile.ts (Settings > Backup file; owner only). Restore adds only missing records, validates the whole file first, never overwrites. docs/RESTORE.md is the restore procedure.
+- Speed: a Dexie .filter() on a big range is ~10x slower than toArray() then Array.filter; stock movements are read with src/data/moves.ts (table scan + filter). Measured in Chromium at 6x slower CPU with 20,000 sales: month report 4.3 s -> 0.8 s, 60 days 9.5 s -> 1.2 s, alerts 0.6 s. Report staff figures reuse the already-loaded entries (no second read).
+- Not done / known limits: no expiry (needs batches), D4 (two ways to store an old balance) still both read, a half-sent purchase can show on the server for a moment as a bill without goods until the next round finishes (it heals itself), conflict notes can show a false alarm when the same phone edits a record twice before a pull, the PDF is an image.
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).

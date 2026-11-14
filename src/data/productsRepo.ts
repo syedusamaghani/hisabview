@@ -5,6 +5,7 @@ import { MAX_IMAGE_CHARS } from '../lib/image';
 import { allUnits, defaultPriceUnit, isLowStock, lineTotal, MAX_FACTOR, MAX_QTY_BASE, MAX_UNIT_PRICE, signOk, unitFactor, valuation } from '../lib/stock';
 import { snapshot, write } from './auditRepo';
 import { requireShop, requireUser } from './context';
+import { shopMoves } from './moves';
 import { db } from './db';
 import { newId, nowIso } from './ids';
 import type { BaseUnit, Product, ProductStat, ProductUnit, StockMove, StockMoveKind } from './types';
@@ -228,7 +229,7 @@ export const productsRepo = {
   // Work every product's stock out again from the movements (the movements are the truth)
   async rebuildStats(shopId = requireShop()): Promise<void> {
     await db.transaction('rw', db.products, db.stock_moves, db.product_stats, async () => {
-      const [products, moves] = await Promise.all([db.products.where('shop_id').equals(shopId).toArray(), db.stock_moves.where('shop_id').equals(shopId).toArray()]);
+      const [products, moves] = await Promise.all([db.products.where('shop_id').equals(shopId).toArray(), shopMoves(shopId)]);
       const stats = new Map<string, ProductStat>(products.map((p) => [p.id, { product_id: p.id, shop_id: shopId, stock: 0, last_at: null }]));
       for (const m of moves) {
         const s = stats.get(m.product_id);

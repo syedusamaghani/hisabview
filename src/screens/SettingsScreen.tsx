@@ -8,11 +8,12 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { SwitchRow } from '../components/SwitchRow';
 import { TextField } from '../components/TextField';
 import { describeSync, isTesting, shopsRepo, startTesting, stopTesting, sync, useRole, useSyncState, type Shop } from '../data';
-import { canChangeShop, canManageStaff } from '../lib/permissions';
+import { canChangeShop, canEditCustomer, canManageStaff } from '../lib/permissions';
 import { getStyle, setStyle } from '../design/style';
 import { STYLE_IDS } from '../design/tokens';
 import { useT } from '../i18n/i18n';
 import { ContactsCard } from './ContactsCard';
+import { BackupFileCard, ConflictsCard } from './BackupFileCard';
 import { shopLanguage, type Lang } from '../i18n/translations';
 import { formatDay, formatTime } from '../lib/dates';
 import { APP_VERSION } from '../lib/report';
@@ -178,6 +179,9 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           <BigButton full variant="ghost" icon="cloud" disabled={syncing} onClick={saveNow}>{t('backupNow')}</BigButton>
         </Card>
         )}
+
+        {!testing && canChangeShop(role) && <BackupFileCard shop={shop} />}
+        {!testing && canEditCustomer(role) && <ConflictsCard shopId={shop.id} />}
 
         <ContactsCard />
 

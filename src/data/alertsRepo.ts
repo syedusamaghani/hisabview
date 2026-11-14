@@ -4,6 +4,7 @@ import { movement } from '../lib/movers';
 import { PRICE_ALERT_DAYS, priceChanges, purchaseBuys } from '../lib/pricing';
 import { ALERT_KINDS, buildAlerts, DEFAULT_PREFS, RECENT_DAYS, CLOSING_DAYS, type Alert, type AlertPrefs } from '../lib/alerts';
 import { requireShop, requireUser } from './context';
+import { shopMoves } from './moves';
 import { db } from './db';
 import { productsRepo } from './productsRepo';
 import { statsRepo } from './statsRepo';
@@ -40,10 +41,10 @@ export const alertsRepo = {
       db.products.where('shop_id').equals(shop).toArray(),
       db.parties.where('shop_id').equals(shop).toArray(),
       statsRepo.all(),
-      db.stock_moves.where('shop_id').equals(shop).toArray(), // add-only; the speed of the price and sales-rate guesses needs the history
-      db.audit_log.where('created_at').aboveOrEqual(sinceIso).filter((a) => a.shop_id === shop).toArray(),
-      db.cash_closings.where('created_at').aboveOrEqual(closingFrom).filter((c) => c.shop_id === shop).toArray(),
-      db.entries.where('kind').equals('diye').filter((e) => e.shop_id === shop && e.status === 'active' && !!e.promise_date).toArray(),
+      shopMoves(shop), // add-only; the speed of the price and sales-rate guesses needs the history
+      db.audit_log.where('created_at').aboveOrEqual(sinceIso).toArray().then((rows) => rows.filter((a) => a.shop_id === shop)),
+      db.cash_closings.where('created_at').aboveOrEqual(closingFrom).toArray().then((rows) => rows.filter((c) => c.shop_id === shop)),
+      db.entries.where('kind').equals('diye').toArray().then((rows) => rows.filter((e) => e.shop_id === shop && e.status === 'active' && !!e.promise_date)),
     ]);
     const balances: Record<string, number> = {};
     for (const p of parties) balances[p.id] = stats[p.id]?.balance ?? 0;

@@ -50,8 +50,8 @@ export const teamRepo = {
     const toIso = new Date(toMs).toISOString();
     const [entries, moves, audit] = await Promise.all([
       entriesRepo.listBetween(fromIso, toIso),
-      db.stock_moves.where('created_at').between(fromIso, toIso, true, false).filter((m) => m.shop_id === shop && m.kind === 'sale').toArray(),
-      db.audit_log.where('created_at').between(fromIso, toIso, true, false).filter((a) => a.shop_id === shop).toArray(),
+      db.stock_moves.where('created_at').between(fromIso, toIso, true, false).toArray().then((rows) => rows.filter((m) => m.shop_id === shop && m.kind === 'sale')),
+      db.audit_log.where('created_at').between(fromIso, toIso, true, false).toArray().then((rows) => rows.filter((a) => a.shop_id === shop)),
     ]);
     return { stats: staffStats(entries, audit, saleEntryIds(moves), fromMs, toMs), entries };
   },

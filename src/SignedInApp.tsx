@@ -4,6 +4,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { ScreenHeader } from './components/ScreenHeader';
 import { attachShop, currentUserId, isTesting, shopsRepo, sync, useLive, useRole } from './data';
 import { TestBanner } from './components/TestBanner';
+import { ConnectionBar } from './components/ConnectionBar';
 import { useT } from './i18n/i18n';
 import { shopLanguage } from './i18n/translations';
 import { goBack, usePath } from './lib/router';
@@ -184,6 +185,7 @@ export default function SignedInApp() {
   return (
     <>
       <TestBanner />
+      <ConnectionBar />
       <div key={path} className="animate-fade">
         {screen}
       </div>
