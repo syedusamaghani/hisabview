@@ -224,6 +224,12 @@ Reference mockups: public/design/desi-*.html (live at /design/desi-home.html etc
 - WhatsApp bill: `receiptLink` (screens/whatsappActions.ts) now also builds a bill for a sale from Saman (cash or udhaar): items at the usual price, free ones marked, a discount line, the total, and the customer's balance for udhaar; goes to the customer's number, or opens WhatsApp's chat picker for a cash sale. The snackbar after a sale shows the WhatsApp button. Texts: msgSale* in translations.ts.
 - Tests: src/lib/kiryana.test.ts (pure), src/data/kiryana.test.ts (real flows: discount + free piece -> stock, sales, cost, profit; cancel; refused discount; free purchase goods; supplier rates; the bill).
 
+## Phase 8: reports and export
+- 12 reports at /reports (src/lib/reports.ts builds them, pure). No report has its own formula: money totals come from summarize() (profit.ts), totals() (balance.ts) and the stock values the dashboard uses; src/data/reports.test.ts checks every report total equals the dashboard for the same days.
+- Roles (reportsFor): cashier = stock and low stock only (no cost/value column); owner and manager = all. Customer/supplier balances and stock are "as of now" (the days do not apply).
+- Export: Excel = src/lib/xlsx.ts (own small writer + fflate zip, numbers stay numbers). PDF = src/lib/pdf.ts wraps A4 JPEG pages that the browser draws on a canvas (src/screens/report/exportReport.ts), so Urdu letters join; it is an image PDF (text not selectable). Shared with navigator.share (WhatsApp is in the Share sheet) or saved as a download. No server, no paid service. New dependency: fflate (free, small).
+- Not built: expired-products report (expiry dates are not stored; needs the batch work deferred in Phase 7).
+
 ## Tech stack (zero running cost)
 - Vite + React + TypeScript + Tailwind CSS.
 - vite-plugin-pwa (manifest, service worker, installable, offline shell).

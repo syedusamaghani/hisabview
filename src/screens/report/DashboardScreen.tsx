@@ -204,6 +204,7 @@ export function DashboardScreen() {
         <BigButton full variant="ghost" icon="chart" onClick={() => navigate(`/profit${pickedQuery(picked)}`)}>{t('dMore')}</BigButton>
 
         <div className="flex flex-col gap-3">
+          <BigButton full variant="ghost" icon="note" onClick={() => navigate(`/reports${pickedQuery(picked)}`)}>{t('dReports')}</BigButton>
           <BigButton full variant="ghost" icon="chart" onClick={() => navigate('/movers')}>{t('dMovers')}</BigButton>
           <BigButton full variant="ghost" icon="bell" onClick={() => navigate('/alerts')}>
             {t('dAlertsBtn')}{alertCount > 0 && <> · <bdi>{fill(t('dAlertsCount'), { n: String(alertCount) })}</bdi></>}

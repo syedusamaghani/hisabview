@@ -1,9 +1,14 @@
 // Reads what the profit and dashboard screens need. Nothing is changed here, only read.
+import { buildReportData, type ReportData } from '../lib/reports';
 import { rangeMs, replayCosts, type DayRange, type ReportInput } from '../lib/profit';
 import { unitFactor } from '../lib/stock';
 import { requireShop } from './context';
 import { db } from './db';
 import { entriesRepo } from './entriesRepo';
+import { partiesRepo } from './partiesRepo';
+import { productsRepo } from './productsRepo';
+import { statsRepo } from './statsRepo';
+import { teamRepo } from './teamRepo';
 
 export const reportRepo = {
   // The entries of the days, every stock movement (the cost of a sale depends on what came before it), and the names.
@@ -25,5 +30,13 @@ export const reportRepo = {
       partyKinds: new Map(parties.map((p) => [p.id, p.type])),
       names: new Map(products.map((p) => [p.id, p.name])),
     };
+  },
+
+  // Everything the Reports screen lists, read the same way the dashboard reads it (same functions, same numbers)
+  async forReports(range: DayRange): Promise<ReportData> {
+    const [input, stock, parties, stats, staff] = await Promise.all([this.load(range), productsRepo.listStock(), partiesRepo.listAll(), statsRepo.all(), teamRepo.staffWork(range)]);
+    const balances: Record<string, number> = {};
+    for (const p of parties) if (!p.archived) balances[p.id] = stats[p.id]?.balance ?? 0;
+    return buildReportData(range, input, stock, parties, balances, staff.stats);
   },
 };

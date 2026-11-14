@@ -154,7 +154,7 @@ export default function SignedInApp() {
       </Suspense>
     );
   }
-  if (path === '/dashboard' || path === '/profit' || path === '/movers') {
+  if (path === '/dashboard' || path === '/profit' || path === '/movers' || path === '/reports') {
     return (
       <Suspense fallback={<main className="mx-auto min-h-screen max-w-app" />}>
         <ReportRoutes path={path} />

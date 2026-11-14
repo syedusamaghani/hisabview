@@ -87,7 +87,7 @@ export function replayCosts(moves: readonly CostMove[], products: readonly CostP
   return out;
 }
 
-export type ReportEntry = { id: string; kind: string; amount: number; status: string; method?: string | null; party_id: string | null; created_at: string; category?: string | null };
+export type ReportEntry = { id: string; kind: string; amount: number; status: string; method?: string | null; party_id: string | null; created_at: string; category?: string | null; invoice_no?: string | null; note?: string | null };
 export type ReportInput = {
   entries: readonly ReportEntry[];
   moves: readonly CostMove[];
