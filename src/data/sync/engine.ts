@@ -28,7 +28,11 @@ const CASH_PULL = ['cash_closings'] as const;
 type PullTable = (typeof PULL_ORDER)[number] | (typeof STOCK_PULL)[number] | (typeof CASH_PULL)[number];
 type Group = 'stock' | 'cash';
 const BATCH = 100;
-const PULL_EVERY_MS = 5 * 60_000;
+// While the app is on screen it asks the server for news about once a minute, so an owner who is away sees a cashier's
+// sale within about a minute (changes are incremental when migration 0003 is run). In the background: every 5 minutes.
+const PULL_EVERY_MS = 45_000;
+const PULL_EVERY_HIDDEN_MS = 5 * 60_000;
+const pullEvery = () => (typeof document !== 'undefined' && document.visibilityState === 'hidden' ? PULL_EVERY_HIDDEN_MS : PULL_EVERY_MS);
 const NORMAL_RETRY_MS = 60_000;
 
 // A way to treat the four tables the same
@@ -380,7 +384,7 @@ export function createSync(getRemote: () => Promise<Remote | null>) {
     };
     const run = async (forcePull = false) => {
       if (stopped) return;
-      const due = forcePull || Date.now() - lastPull > PULL_EVERY_MS;
+      const due = forcePull || Date.now() - lastPull > pullEvery();
       const result = await syncNow({ pull: due });
       await flushOutbox().catch(() => undefined);
       if (stopped) return;

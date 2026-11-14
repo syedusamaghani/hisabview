@@ -19,7 +19,9 @@ export const canManageStock = (role: Who): boolean => role === 'owner' || role =
 export const canManageCash = (role: Who): boolean => role === 'owner' || role === 'manager';
 // Profit and the business dashboard show what goods cost, so a cashier does not see them.
 export const canSeeProfit = (role: Who): boolean => role === 'owner' || role === 'manager';
-export const canChangeShop = (role: Who): boolean => role === 'owner';
+// Who did what (staff work, the activity feed) and the alerts: owner and manager. The server's activity_log has the same rule.
+export const canSeeTeamWork = (role: Who): boolean => role === 'owner' || role === 'manager';
+export const canChangeShop =(role: Who): boolean => role === 'owner';
 export const canManageStaff = (role: Who): boolean => role === 'owner';
 
 // Cancel or "Badlo" an entry that is already saved

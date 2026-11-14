@@ -7,7 +7,8 @@ import { HideBanner } from '../../components/HideBanner';
 import { Icon } from '../../components/Icon';
 import { HideAmountsButton } from '../../components/IconButton';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { entriesRepo, partiesRepo, productsRepo, reportRepo, statsRepo, useLive, useRole } from '../../data';
+import { needsAttention } from '../../lib/alerts';
+import { alertsRepo, entriesRepo, partiesRepo, productsRepo, reportRepo, statsRepo, useLive, useRole } from '../../data';
 import { useT } from '../../i18n/i18n';
 import { totals } from '../../lib/balance';
 import { addDays } from '../../lib/cashbook';
@@ -40,6 +41,9 @@ export function DashboardScreen() {
     return { input, stock, parties, stats, today };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickedKey(picked), role]);
+
+  // How many alerts need a look (the daily summary is only news and is not counted)
+  const alertCount = useLive(async () => (canSeeProfit(role) ? needsAttention((await alertsRepo.load(null)).alerts) : 0), [role]) ?? 0;
 
   const view = useMemo(() => {
     if (!data) return null;
@@ -198,6 +202,14 @@ export function DashboardScreen() {
         </button>
 
         <BigButton full variant="ghost" icon="chart" onClick={() => navigate(`/profit${pickedQuery(picked)}`)}>{t('dMore')}</BigButton>
+
+        <div className="flex flex-col gap-3">
+          <BigButton full variant="ghost" icon="bell" onClick={() => navigate('/alerts')}>
+            {t('dAlertsBtn')}{alertCount > 0 && <> · <bdi>{fill(t('dAlertsCount'), { n: String(alertCount) })}</bdi></>}
+          </BigButton>
+          <BigButton full variant="ghost" icon="users" onClick={() => navigate('/team')}>{t('dTeamWork')}</BigButton>
+          <BigButton full variant="ghost" icon="note" onClick={() => navigate('/activity')}>{t('dActivity')}</BigButton>
+        </div>
       </div>
 
       <BottomActionBar>

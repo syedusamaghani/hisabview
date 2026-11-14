@@ -4,6 +4,7 @@ import { balancesByParty } from '../../lib/balance';
 import { entriesRepo } from '../entriesRepo';
 import { partiesRepo } from '../partiesRepo';
 import { shopsRepo } from '../shopsRepo';
+import { teamRepo } from '../teamRepo';
 import { db } from '../db';
 import { requireShop, setDataContext } from '../context';
 import { createSync } from './engine';
@@ -327,6 +328,38 @@ describe('staff: somebody who works in the owner shop', () => {
     server.team[STAFF] = { shopId: shop.id, role: 'revoked' };
     await staffSync.syncNow({ pull: true });
     expect(await shopsRepo.myRole()).toBe('revoked');
+  });
+
+  it('the owner, on another phone, sees the cashier\'s sale and who cancelled it, after one pull', async () => {
+    const { shop } = await startShop();
+    await sync.syncNow();
+    // the cashier's phone: restore, write a sale, send it
+    await wipePhone();
+    setDataContext({ userId: STAFF, shopId: null });
+    server.team[STAFF] = { shopId: shop.id, role: 'cashier' };
+    const cashierSync = createSync(async () => server);
+    await cashierSync.restore();
+    setDataContext({ userId: STAFF, shopId: shop.id });
+    const sale = await entriesRepo.create({ kind: 'cash_sale', party_id: null, amount: 777 });
+    expect(await cashierSync.syncNow()).toBe('ok');
+    // the owner's other phone: it pulls, and the feed names the cashier
+    await wipePhone();
+    const ownerSync = createSync(async () => server);
+    expect(await ownerSync.restore()).toBe('restored');
+    setDataContext({ userId: USER, shopId: shop.id });
+    const feed = await teamRepo.feed({ user: STAFF, action: null, what: 'sale' });
+    expect(feed).toHaveLength(1);
+    expect(feed[0]).toMatchObject({ actor: STAFF, action: 'create', amount: 777 });
+    // the owner cancels it with a reason; the cashier's phone then shows who did it
+    await entriesRepo.cancel(sale.id, 'wrong_entry');
+    await ownerSync.syncNow();
+    await wipePhone();
+    setDataContext({ userId: STAFF, shopId: null });
+    await createSync(async () => server).restore();
+    setDataContext({ userId: STAFF, shopId: shop.id });
+    const seen = await teamRepo.feed({ user: null, action: 'cancel', what: null });
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toMatchObject({ actor: USER, reason: 'wrong_entry', amount: 777 });
   });
 
   it('the owner is always the owner, even offline', async () => {
