@@ -1,17 +1,20 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { setDataContext } from '../data/context';
+import { getGuestId, makeGuestId } from '../lib/guest';
 
 // Who is logged in. Google sign-in only, handled by Supabase.
 //  loading = still checking     signedOut = show the login screen
 //  signedIn = ready             unavailable = the app was built without Supabase settings
 
-type Status = 'loading' | 'signedOut' | 'signedIn' | 'unavailable';
+//  guest = using the app without a login (the khata is only on this phone until the person logs in)
+type Status = 'loading' | 'signedOut' | 'signedIn' | 'unavailable' | 'guest';
 
 type Auth = {
   status: Status;
   email: string | null;
   failed: boolean; // the last login or logout attempt did not work
   signInWithGoogle: () => Promise<void>;
+  continueAsGuest: () => void;
   signOut: () => Promise<void>;
 };
 
@@ -29,7 +32,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     import('../lib/supabase').then(({ supabase }) => {
       if (stopped) return;
       if (!supabase) {
-        setStatus('unavailable');
+        // No server settings in this build: a person who started as a guest can still use the khata
+        const guest = getGuestId();
+        if (guest) {
+          setDataContext({ userId: guest, shopId: null });
+          setStatus('guest');
+        } else setStatus('unavailable');
         return;
       }
       // Fires once at start with the saved login (if any), and again on every login or logout
@@ -39,9 +47,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setEmail(session.user.email ?? null);
           setStatus('signedIn');
         } else {
-          setDataContext(null);
+          const guest = getGuestId();
           setEmail(null);
-          setStatus('signedOut');
+          if (guest) {
+            setDataContext({ userId: guest, shopId: null });
+            setStatus('guest');
+          } else {
+            setDataContext(null);
+            setStatus('signedOut');
+          }
         }
       });
       unsubscribe = () => data.subscription.unsubscribe();
@@ -69,6 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Start without a login: the khata is written on this phone under a private guest id
+  const continueAsGuest = useCallback(() => {
+    setDataContext({ userId: makeGuestId(), shopId: null });
+    setStatus('guest');
+  }, []);
+
   const signOut = useCallback(async () => {
     setFailed(false);
     try {
@@ -79,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const value = useMemo(() => ({ status, email, failed, signInWithGoogle, signOut }), [status, email, failed, signInWithGoogle, signOut]);
+  const value = useMemo(() => ({ status, email, failed, signInWithGoogle, continueAsGuest, signOut }), [status, email, failed, signInWithGoogle, continueAsGuest, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

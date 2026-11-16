@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { describeSync, isTesting, useSyncState } from '../data';
 import { useT } from '../i18n/i18n';
 import { navigate } from '../lib/router';
+import { useAuth } from '../state/auth';
 import { Icon } from './Icon';
 
 // A thin bar at the top of EVERY screen, only when something needs the shopkeeper to know:
@@ -22,7 +23,8 @@ export function ConnectionBar() {
       window.removeEventListener('offline', down);
     };
   }, []);
-  if (isTesting()) return null;
+  const { status } = useAuth();
+  if (isTesting() || status === 'guest') return null; // a guest khata is only on this phone: there is nothing to wait for
 
   if (describeSync(sync) === 'problem') {
     return (

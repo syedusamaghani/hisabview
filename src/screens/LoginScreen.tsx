@@ -9,7 +9,7 @@ import { useAuth } from '../state/auth';
 // One screen, one button: log in with Google.
 export function LoginScreen() {
   const { t } = useT();
-  const { status, failed, signInWithGoogle } = useAuth();
+  const { status, failed, signInWithGoogle, continueAsGuest } = useAuth();
   const notReady = status === 'unavailable';
 
   return (
@@ -21,9 +21,9 @@ export function LoginScreen() {
           <h1 className="text-title font-extrabold">{t('loginTitle')}</h1>
           <p className="text-body text-inkSoft">{t('loginBody')}</p>
         </Card>
-        {(failed || notReady) && (
+        {failed && (
           <Card tone="soft" className="mt-4" role="alert">
-            <p className="text-body font-bold">{notReady ? t('loginNotReady') : t('loginError')}</p>
+            <p className="text-body font-bold">{t('loginError')}</p>
           </Card>
         )}
         <a href="/privacy" className="mt-4 flex min-h-tap items-center justify-center text-label font-bold text-primary underline">
@@ -31,9 +31,15 @@ export function LoginScreen() {
         </a>
       </div>
       <BottomActionBar>
-        <BigButton full size="lg" icon="person" disabled={notReady || status === 'loading'} onClick={signInWithGoogle}>
-          {t('loginGoogle')}
-        </BigButton>
+        <div className="flex flex-col gap-3">
+          <BigButton full size="lg" onClick={continueAsGuest}>
+            {t('loginGuest')}
+          </BigButton>
+          <p className="text-center text-label text-inkSoft">{t('loginGuestHint')}</p>
+          <BigButton full variant="ghost" icon="person" disabled={notReady || status === 'loading'} onClick={signInWithGoogle}>
+            {t('loginGoogle')}
+          </BigButton>
+        </div>
       </BottomActionBar>
     </main>
   );

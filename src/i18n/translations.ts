@@ -1054,6 +1054,26 @@ const base = {
   bulkPhotoHint: { ro: 'Tasveer phone mein hi padhi jati hai, kahin nahi jati. Pehli baar ek chhoti si cheez download hogi (internet chahiye). Saaf, seedhi aur roshan tasveer lein. Haath ki likhai mein galtiyan ho sakti hain, table mein theek kar lein.', ur: 'تصویر فون میں ہی پڑھی جاتی ہے، کہیں نہیں جاتی۔ پہلی بار ایک چھوٹی سی چیز ڈاؤن لوڈ ہو گی (انٹرنیٹ چاہیے)۔ صاف، سیدھی اور روشن تصویر لیں۔ ہاتھ کی لکھائی میں غلطیاں ہو سکتی ہیں، ٹیبل میں ٹھیک کر لیں۔' },
   bulkPhotoFail: { ro: 'Tasveer padhi nahi ja saki. Dobara koshish karein ya list paste karein.', ur: 'تصویر پڑھی نہیں جا سکی۔ دوبارہ کوشش کریں یا لسٹ پیسٹ کریں۔' },
   bulkPhotoOffline: { ro: 'Pehli baar tasveer padhne ke liye internet chahiye. Internet on karke dobara koshish karein.', ur: 'پہلی بار تصویر پڑھنے کے لیے انٹرنیٹ چاہیے۔ انٹرنیٹ آن کر کے دوبارہ کوشش کریں۔' },
+
+  // Simple mode, guest, small mic (Phase 10)
+  loginGuest: { ro: 'Bina login ke shuru karein', ur: 'بغیر لاگ ان کے شروع کریں' },
+  loginGuestHint: { ro: 'Login baad mein, jab chahein. Tab tak hisaab is phone mein mehfooz rehta hai.', ur: 'لاگ ان بعد میں، جب چاہیں۔ تب تک حساب اسی فون میں محفوظ رہتا ہے۔' },
+  saveAskTitle: { ro: 'Apna hisaab mehfooz karein', ur: 'اپنا حساب محفوظ کریں' },
+  saveAskBody: { ro: 'Aap ne kai entries likh li hain, aur ye sirf is phone mein hain. Google se login karein to hisaab internet par bhi mehfooz ho jayega, aur phone kho jaye to wapas aa jayega. Jo likha hai wo sab saath chala jayega.', ur: 'آپ نے کئی اندراجات لکھ لیے ہیں، اور یہ صرف اس فون میں ہیں۔ گوگل سے لاگ ان کریں تو حساب انٹرنیٹ پر بھی محفوظ ہو جائے گا، اور فون کھو جائے تو واپس آ جائے گا۔ جو لکھا ہے وہ سب ساتھ چلا جائے گا۔' },
+  saveAskYes: { ro: 'Google se mehfooz karein', ur: 'گوگل سے محفوظ کریں' },
+  saveAskLater: { ro: 'Baad mein', ur: 'بعد میں' },
+  guestBackupBody: { ro: 'Abhi aap bina login ke hain: hisaab sirf is phone mein hai. Google se login karein to ye internet par bhi mehfooz ho jayega.', ur: 'ابھی آپ بغیر لاگ ان کے ہیں: حساب صرف اس فون میں ہے۔ گوگل سے لاگ ان کریں تو یہ انٹرنیٹ پر بھی محفوظ ہو جائے گا۔' },
+  simpleSwitch: { ro: 'Dukaan ke aur kaam chalu karein', ur: 'دکان کے اور کام چالو کریں' },
+  simpleHint: { ro: 'Saman, galla, munafa, staff, khabrein aur reports. Band hon to sirf khata (Diye / Mile) dikhta hai.', ur: 'سامان، گلا، منافع، سٹاف، خبریں اور رپورٹس۔ بند ہوں تو صرف کھاتہ (دیے / ملے) دکھتا ہے۔' },
+  voiceFullSwitch: { ro: 'Awaaz se poori entry (Beta)', ur: 'آواز سے پوری اندراج (بیٹا)' },
+  voiceFullHint: { ro: 'Home par bada mic aa jata hai: poori baat bolein, jaise "Aslam ko 500 diye". Kabhi kabhi galat sunta hai, isliye save se pehle check hota hai.', ur: 'ہوم پر بڑا مائک آ جاتا ہے: پوری بات بولیں، جیسے "اسلم کو 500 دیے"۔ کبھی کبھی غلط سنتا ہے، اس لیے محفوظ کرنے سے پہلے چیک ہوتا ہے۔' },
+  amountMic: { ro: 'Bol kar likhein', ur: 'بول کر لکھیں' },
+  amountListening: { ro: 'Sun raha hoon... dabayein', ur: 'سن رہا ہوں... دبائیں' },
+  amountWorking: { ro: 'Samajh raha hoon...', ur: 'سمجھ رہا ہوں...' },
+  amountHeard: { ro: 'Suna: {amount}. Theek na ho to neeche se badal lein.', ur: 'سنا: {amount}۔ ٹھیک نہ ہو تو نیچے سے بدل لیں۔' },
+  amountNotHeard: { ro: 'Number samajh nahi aaya. Dobara bolein ya neeche likhein.', ur: 'نمبر سمجھ نہیں آیا۔ دوبارہ بولیں یا نیچے لکھیں۔' },
+  amountMicDenied: { ro: 'Mic ki ijazat nahi mili. Number neeche likhein.', ur: 'مائک کی اجازت نہیں ملی۔ نمبر نیچے لکھیں۔' },
+  amountMicOffline: { ro: 'Awaaz ke liye internet chahiye. Number neeche likhein.', ur: 'آواز کے لیے انٹرنیٹ چاہیے۔ نمبر نیچے لکھیں۔' },
 } as const;
 
 export type TextKey = keyof typeof base;

@@ -3,6 +3,7 @@ import { cx } from '../lib/cx';
 import { useT } from '../i18n/i18n';
 import { navigate } from '../lib/router';
 import { BottomActionBar } from './BottomActionBar';
+import { useSimpleMode } from '../data';
 import { Icon, type IconName } from './Icon';
 
 // The four main places of the app: Home, Customers, Stock, Settings. Big icons with a name under each.
@@ -16,11 +17,12 @@ const TABS: { tab: Tab; icon: IconName; path: string; label: 'navHome' | 'navCus
 ];
 
 // Just the row of four. Also shown on its own in the component gallery.
-export function NavTabs({ active, onSelect }: { active: Tab; onSelect: (tab: Tab) => void }) {
+export function NavTabs({ active, onSelect, hide = [] }: { active: Tab; onSelect: (tab: Tab) => void; hide?: Tab[] }) {
   const { t } = useT();
+  const tabs = TABS.filter((x) => !hide.includes(x.tab));
   return (
-    <nav className="grid grid-cols-4 gap-1" aria-label={t('appName')}>
-      {TABS.map(({ tab, icon, label }) => (
+    <nav className={cx('grid gap-1', tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-4')} aria-label={t('appName')}>
+      {tabs.map(({ tab, icon, label }) => (
         <button
           key={tab}
           type="button"
@@ -43,6 +45,7 @@ export function NavTabs({ active, onSelect }: { active: Tab; onSelect: (tab: Tab
 // The bar fixed at the bottom of a main screen. "children" sit above the three tabs
 // (for example the Diye / mic / Mile dock on Home).
 export function BottomNav({ active, children }: { active: Tab; children?: ReactNode }) {
+  const simple = useSimpleMode(); // simple mode has no Saman tab
   const go = (tab: Tab) => {
     if (tab === active) return;
     // replace, so the Back button does not walk through every tab you visited
@@ -51,7 +54,7 @@ export function BottomNav({ active, children }: { active: Tab; children?: ReactN
   return (
     <BottomActionBar>
       {children && <div className="pb-3">{children}</div>}
-      <NavTabs active={active} onSelect={go} />
+      <NavTabs active={active} onSelect={go} hide={simple ? ['stock'] : []} />
     </BottomActionBar>
   );
 }

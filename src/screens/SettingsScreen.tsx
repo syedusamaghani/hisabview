@@ -7,7 +7,8 @@ import { ChoiceCard } from '../components/ChoiceCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SwitchRow } from '../components/SwitchRow';
 import { TextField } from '../components/TextField';
-import { describeSync, isTesting, shopsRepo, startTesting, stopTesting, sync, useRole, useSyncState, type Shop } from '../data';
+import { describeSync, isTesting, setSimpleMode, shopsRepo, startTesting, stopTesting, sync, useRole, useSimpleMode, useSyncState, type Shop } from '../data';
+import { setVoiceFull, useVoiceFull } from '../lib/voiceFull';
 import { canChangeShop, canEditCustomer, canManageStaff } from '../lib/permissions';
 import { getStyle, setStyle } from '../design/style';
 import { STYLE_IDS } from '../design/tokens';
@@ -29,7 +30,10 @@ const STYLE_TEXT = { bold: 'styleBold', desi: 'styleDesi', calm: 'styleCalm' } a
 export function SettingsScreen({ shop }: { shop: Shop }) {
   const { t, lang, setLang } = useT();
   const { hidden, toggle } = usePrivacy();
-  const { signOut, email } = useAuth();
+  const { signOut, email, status, signInWithGoogle } = useAuth();
+  const guest = status === 'guest'; // no login yet: the khata is only on this phone
+  const simple = useSimpleMode();
+  const voiceFull = useVoiceFull();
   const syncState = useSyncState();
   const install = useInstall();
   const testing = isTesting();
@@ -109,7 +113,20 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           <SwitchRow label={t('hideAmounts')} checked={hidden} onChange={toggle} />
         </Card>
 
-        {canManageStaff(role) && !testing && (
+        {/* Simple mode hides stock, cashbook, profit, staff, alerts and reports until this is switched on */}
+        {canChangeShop(role) && (
+          <Card className="flex flex-col gap-2">
+            <SwitchRow label={t('simpleSwitch')} checked={!simple} onChange={(on) => setSimpleMode(shop.id, !on)} />
+            <p className="text-label text-inkSoft">{t('simpleHint')}</p>
+          </Card>
+        )}
+
+        <Card className="flex flex-col gap-2">
+          <SwitchRow label={t('voiceFullSwitch')} checked={voiceFull} onChange={setVoiceFull} />
+          <p className="text-label text-inkSoft">{t('voiceFullHint')}</p>
+        </Card>
+
+        {canManageStaff(role) && !testing && !guest && !simple && (
           <BigButton full variant="ghost" icon="users" onClick={() => navigate('/settings/staff')}>{t('staffOpen')}</BigButton>
         )}
 
@@ -153,7 +170,15 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           </Card>
         )}
 
-        {!testing && (
+        {!testing && guest && (
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-body font-extrabold text-ink">{t('backupTitle')}</h2>
+            <p className="text-label text-inkSoft">{t('guestBackupBody')}</p>
+            <BigButton full icon="cloud" onClick={() => void signInWithGoogle()}>{t('saveAskYes')}</BigButton>
+          </Card>
+        )}
+
+        {!testing && !guest && (
         <Card className="flex flex-col gap-3">
           <h2 className="text-body font-extrabold text-ink">{t('backupTitle')}</h2>
           <SyncBadge className="!text-inkSoft" />
@@ -222,7 +247,7 @@ export function SettingsScreen({ shop }: { shop: Shop }) {
           {t('privacyLink')}
         </button>
 
-        {loggingOut ? (
+        {guest ? null : loggingOut ? (
           <Card tone="soft" className="flex flex-col gap-3">
             <p className="text-body font-bold">{t('logoutAsk')}</p>
             <BigButton full onClick={signOut}>{t('yesLogout')}</BigButton>

@@ -2,6 +2,7 @@ import { describeSync, isTesting, useSyncState, type SyncView } from '../data';
 import { useT } from '../i18n/i18n';
 import type { TextKey } from '../i18n/translations';
 import { cx } from '../lib/cx';
+import { useAuth } from '../state/auth';
 import { Icon } from './Icon';
 
 // A small line under the shop name: is the khata also safe on the internet?
@@ -18,7 +19,8 @@ export function SyncBadge({ className }: { className?: string }) {
   const { t } = useT();
   const state = useSyncState();
   const view = describeSync(state);
-  if (isTesting()) return null; // the testing khata is never sent anywhere
+  const { status } = useAuth();
+  if (isTesting() || status === 'guest') return null; // the testing khata and a guest khata are never sent anywhere
   return (
     <p role="status" className={cx('flex items-center gap-1.5 text-caption font-semibold', view === 'synced' ? 'text-headerSub' : 'text-chipInk', className)}>
       <Icon name="cloud" size={18} />

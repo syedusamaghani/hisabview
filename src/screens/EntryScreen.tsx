@@ -11,7 +11,8 @@ import { MethodPicker } from '../components/MethodPicker';
 import { NumberKeypad } from '../components/NumberKeypad';
 import { SaveSuccess } from '../components/SaveSuccess';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { entriesRepo, partiesRepo, useLive } from '../data';
+import { entriesRepo, partiesRepo, useLive, useSimpleMode } from '../data';
+import { AmountMic } from '../components/AmountMic';
 import { useT } from '../i18n/i18n';
 import type { TextKey } from '../i18n/translations';
 import { partyBalance } from '../lib/balance';
@@ -44,6 +45,7 @@ const KIND_TEXT: Record<EntryKind, TextKey> = { diye: 'diye', mile: 'mile', cash
 // Step 1: type the amount. Step 2: check it, then "Theek hai" saves it. Wapas lo comes after.
 export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKind }) {
   const { t } = useT();
+  const simple = useSimpleMode(); // simple mode: no payment-method question
   const data = useLive(
     async () => (partyId ? { party: (await partiesRepo.get(partyId)) ?? null, entries: await entriesRepo.listForParty(partyId) } : { party: null, entries: [] }),
     [partyId],
@@ -151,7 +153,7 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
               <CategoryPicker value={category} onChange={setCategory} custom={customCats ?? []} />
             </div>
           )}
-          {!drawer && (
+          {!drawer && !simple && (
             <div className="mt-4">
               <MethodPicker value={method} onChange={setMethod} />
             </div>
@@ -202,6 +204,7 @@ export function EntryScreen({ partyId, kind }: { partyId?: string; kind: EntryKi
             <Chip onClick={() => setAmount(lastAmount)}>{t('lastAmount').replace('{amount}', formatRs(lastAmount))}</Chip>
           </div>
         )}
+        <AmountMic onAmount={setAmount} />
         <NumberKeypad value={amount} onChange={setAmount} />
       </div>
       <BottomActionBar>

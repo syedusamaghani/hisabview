@@ -29,4 +29,6 @@ export type { NewParty, OpeningBalance, PartyChanges } from './partiesRepo';
 export { exportShop, restoreFromBackup, backupFileName, BackupError } from './backupFile';
 export type { RestoreSummary } from './backupFile';
 export { conflictsRepo } from './conflicts';
+export { adoptGuestData, entryCount } from './guestRepo';
+export { ensureSimpleMode, setSimpleMode, useSimpleMode, hiddenInSimple } from './simpleMode';
 export type { Conflict } from './conflicts';

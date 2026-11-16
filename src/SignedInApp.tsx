@@ -2,12 +2,15 @@
 // screens (language, login) stay small and fast.
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { ScreenHeader } from './components/ScreenHeader';
-import { attachShop, currentUserId, isTesting, shopsRepo, sync, useLive, useRole } from './data';
+import { adoptGuestData, attachShop, currentUserId, ensureSimpleMode, hiddenInSimple, isTesting, shopsRepo, sync, useLive, useRole, useSimpleMode } from './data';
 import { TestBanner } from './components/TestBanner';
 import { ConnectionBar } from './components/ConnectionBar';
 import { useT } from './i18n/i18n';
 import { shopLanguage } from './i18n/translations';
 import { goBack, usePath } from './lib/router';
+import { clearGuestId, getGuestId } from './lib/guest';
+import { useAuth } from './state/auth';
+import { SavePrompt } from './screens/SavePrompt';
 import { AccessOffScreen } from './screens/AccessOffScreen';
 import { AddPartyScreen } from './screens/AddPartyScreen';
 import { StaffScreen } from './screens/StaffScreen';
@@ -49,17 +52,37 @@ export default function SignedInApp() {
   const { t, lang } = useT();
   const testShopMade = useRef(false);
   const path = usePath();
-  const found = useLive(async () => ({ shop: (await shopsRepo.getMine()) ?? null }), []);
   const [stage, setStage] = useState<Stage | null>(null);
   const [attachedShop, setAttachedShop] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const role = useRole();
+  const { status } = useAuth();
+  const guest = status === 'guest';
+  const simple = useSimpleMode();
+  // A person who started without a login and has now logged in: the guest khata moves under the real login first
+  const [moved, setMoved] = useState(() => guest || !getGuestId());
+  // `after` = the shop was looked up AFTER the guest records were moved (an earlier answer must not decide anything)
+  const found = useLive(async () => ({ shop: (await shopsRepo.getMine()) ?? null, after: moved }), [moved]);
+  useEffect(() => {
+    if (moved) return;
+    const guestId = getGuestId();
+    if (!guestId) return setMoved(true);
+    let alive = true;
+    void adoptGuestData(guestId, currentUserId())
+      .then(() => clearGuestId())
+      .catch(() => undefined) // the guest id stays, so the move is tried again next time (nothing was changed)
+      .finally(() => alive && setMoved(true));
+    return () => {
+      alive = false;
+    };
+  }, [moved]);
 
   useEffect(() => {
-    if (!found) return;
+    if (!found || !found.after) return;
     if (found.shop) {
       attachShop(found.shop.id);
-      setAttachedShop(found.shop.id);
+      // Simple mode is worked out before the first screen is drawn
+      void ensureSimpleMode(found.shop.id).then(() => setAttachedShop(found.shop!.id));
     }
     // Decided once, when we first learn whether this person already has a shop here
     setStage((current) => {
@@ -71,6 +94,11 @@ export default function SignedInApp() {
   // No shop on this phone: look on the internet before asking for a shop name
   useEffect(() => {
     if (stage !== 'restoring') return;
+    // No login yet: nothing to look for on the internet, go straight to the shop name
+    if (guest) {
+      setStage('name');
+      return;
+    }
     // Testing mode: no internet and no questions, a test shop is made at once
     if (isTesting()) {
       if (!testShopMade.current) {
@@ -88,15 +116,16 @@ export default function SignedInApp() {
     return () => {
       alive = false;
     };
-  }, [stage, attempt]);
+  }, [stage, attempt, guest]);
 
   // Keep the khata backed up while the app is open
   useEffect(() => {
-    if (!attachedShop) return;
+    if (!attachedShop || guest) return; // a guest khata stays on the phone
     return sync.start();
-  }, [attachedShop]);
+  }, [attachedShop, guest]);
 
   const shop = found?.shop;
+  if (!moved) return <main className="mx-auto min-h-screen max-w-app" />;
 
   if (stage === 'restoring' || stage === 'restoreFailed') {
     return (
@@ -125,6 +154,8 @@ export default function SignedInApp() {
   // Home and the customer screens, chosen by the page address. A new screen fades in softly (150 ms,
   // opacity only, so the bars fixed to the bottom do not move; off for "reduce motion").
   const screen = (() => {
+  // Simple mode: the screens for stock, cash, profit, staff and reports are not there (an address typed by hand lands on Home)
+  if (simple && hiddenInSimple(path)) return <HomeScreen shopName={shop?.shop_name ?? t('appName')} />;
   if (path === '/party/new') return <AddPartyScreen />;
   if (path === '/customers') return <CustomersScreen />;
   if (path === '/voice') {
@@ -186,6 +217,7 @@ export default function SignedInApp() {
     <>
       <TestBanner />
       <ConnectionBar />
+      {guest && <SavePrompt />}
       <div key={path} className="animate-fade">
         {screen}
       </div>

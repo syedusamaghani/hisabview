@@ -11,7 +11,9 @@ import { HideAmountsButton } from '../components/IconButton';
 import { Icon } from '../components/Icon';
 import { MicButton } from '../components/MicButton';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { entriesRepo, partiesRepo, statsRepo, useLive, useRole, type Entry } from '../data';
+import { entriesRepo, partiesRepo, statsRepo, useLive, useRole, useSimpleMode, type Entry } from '../data';
+import { useVoiceFull } from '../lib/voiceFull';
+import { SimpleHome } from './SimpleHome';
 import { useT } from '../i18n/i18n';
 import { totals } from '../lib/balance';
 import { cx } from '../lib/cx';
@@ -28,7 +30,13 @@ import { useEntrySnack } from './useEntrySnack';
 // Home: what I will collect and must pay, today's summary, the latest entries,
 // and the big Diye / mic / Mile bar at the bottom.
 export function HomeScreen({ shopName }: { shopName: string }) {
+  const simple = useSimpleMode();
+  return simple ? <SimpleHome shopName={shopName} /> : <FullHome shopName={shopName} />;
+}
+
+function FullHome({ shopName }: { shopName: string }) {
   const { t, lang } = useT();
+  const voiceFull = useVoiceFull();
   const { snackbar } = useEntrySnack();
   const role = useRole() ?? 'cashier';
 
@@ -58,7 +66,7 @@ export function HomeScreen({ shopName }: { shopName: string }) {
   };
 
   // No mic on a phone that cannot turn speech into text: just Diye and Mile
-  const canSpeak = speechSupported();
+  const canSpeak = speechSupported() && voiceFull; // the big mic is the Beta "Awaaz se poori entry" (Settings), off by default
   // The summary of the day, typed in WhatsApp (the shopkeeper chooses who gets it)
   const sendToday = () => {
     if (view) openWhatsApp(whatsappUrl(null, todayText(lang, shopName, new Date(), view.today)));

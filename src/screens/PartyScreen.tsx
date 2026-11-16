@@ -8,7 +8,7 @@ import { Chip } from '../components/Chip';
 import { Icon, type IconName } from '../components/Icon';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { CancelReasons } from '../components/CancelReasons';
-import { currentUserId, entriesRepo, partiesRepo, productsRepo, shopsRepo, tradeRepo, useLive, useRole, type CancelReason, type Entry, type Party } from '../data';
+import { currentUserId, entriesRepo, partiesRepo, productsRepo, shopsRepo, tradeRepo, useLive, useRole, useSimpleMode, type CancelReason, type Entry, type Party } from '../data';
 import { isMethod, METHOD_TEXT } from '../lib/methods';
 import { canChangeEntry, canEditCustomer, canManageStock } from '../lib/permissions';
 import { qtyText } from './stock/stockText';
@@ -39,6 +39,7 @@ export function PartyScreen({ partyId }: { partyId: string }) {
   const [speaking, setSpeaking] = useState(false);
   const { snackbar, notify, hide } = useEntrySnack();
   const role = useRole() ?? 'cashier'; // what is shown depends on the role; the database refuses the rest
+  const simple = useSimpleMode();
   const archiveRef = useRef<HTMLDivElement>(null);
 
   // Stop talking when the screen is left
@@ -137,8 +138,8 @@ export function PartyScreen({ partyId }: { partyId: string }) {
         <div className="grid grid-cols-2 gap-2">
           <ActionTile icon="bell" label={t('remind')} onClick={remind} />
           <ActionTile icon="whatsapp" label={t('sendStatement')} onClick={sendStatement} />
-          {party.type === 'supplier' && canManageStock(role) && <ActionTile icon="box" label={t('tileBuy')} onClick={() => navigate(`/stock/buy?supplier=${party.id}`)} />}
-          {party.type === 'supplier' && canManageStock(role) && <ActionTile icon="undo" label={t('tileReturn')} onClick={() => navigate(`/stock/return?supplier=${party.id}`)} />}
+          {party.type === 'supplier' && canManageStock(role) && !simple && <ActionTile icon="box" label={t('tileBuy')} onClick={() => navigate(`/stock/buy?supplier=${party.id}`)} />}
+          {party.type === 'supplier' && canManageStock(role) && !simple && <ActionTile icon="undo" label={t('tileReturn')} onClick={() => navigate(`/stock/return?supplier=${party.id}`)} />}
           {canEditCustomer(role) && <ActionTile icon="edit" label={t('editCustomer')} onClick={() => navigate(`/party/${party.id}/edit`)} />}
           {canSpeak && <ActionTile icon={speaking ? 'stop' : 'speaker'} label={speaking ? t('ruko') : t('listen')} pressed={speaking} onClick={sunao} />}
         </div>

@@ -16,7 +16,7 @@ function hasSavedLogin(): boolean {
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i) ?? '';
-      if (key.startsWith('sb-') && key.endsWith('-auth-token')) return true;
+      if ((key.startsWith('sb-') && key.endsWith('-auth-token')) || key === 'hv_guest_id') return true;
     }
   } catch {
     // storage blocked: just load normally
@@ -48,7 +48,7 @@ export function App() {
 
   if (!langChosen) return <LanguageScreen />;
   if (status === 'loading') return <Splash />;
-  if (status !== 'signedIn') return <LoginScreen />;
+  if (status !== 'signedIn' && status !== 'guest') return <LoginScreen />;
   return (
     <Suspense fallback={<Splash />}>
       <SignedInApp />
