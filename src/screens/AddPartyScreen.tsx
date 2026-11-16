@@ -12,6 +12,7 @@ import { useT } from '../i18n/i18n';
 import { loadBook, notYetCustomers, searchBook } from '../lib/contactBook';
 import { contactPickerSupported, pickContact } from '../lib/contacts';
 import { similarParties } from '../lib/partyText';
+import { skipPhoneAsk } from '../lib/phoneAsk';
 import { goBack, navigate } from '../lib/router';
 
 // Came here from "Diye / Mile"? Then after saving, go straight on to writing that entry.
@@ -53,6 +54,7 @@ export function AddPartyScreen() {
     setFailed(false);
     try {
       const { party } = await partiesRepo.create({ name, identifier, phone, credit_limit: Number(limit) > 0 ? Number(limit) : null });
+      skipPhoneAsk(party.id); // the phone box was right here; do not ask for the number again after the entry
       setSavedId(party.id);
     } catch {
       setFailed(true);

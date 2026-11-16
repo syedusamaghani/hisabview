@@ -55,7 +55,7 @@ export function StockScreen() {
       </ScreenHeader>
 
       <div className="flex flex-col gap-3 px-gutter pt-3">
-        {manager && (
+        {manager && view?.any && (
           <BigButton full variant="ghost" icon="plus" onClick={() => navigate('/stock/new')}>
             {t('addProduct')}
           </BigButton>
