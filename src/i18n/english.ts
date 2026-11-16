@@ -857,4 +857,9 @@ export const english: Record<TextKey, string> = {
   fMore: 'More details (optional)',
   fMoreHide: 'Hide details',
   fOnlyName: 'Only the name is needed. You can fill the rest later.',
+  bulkPhoto: 'From a photo of the list',
+  bulkReading: 'Reading... {n}%',
+  bulkPhotoHint: 'The photo is read on the phone and goes nowhere. The first time, a small reader is downloaded (needs internet). Use a clear, straight, bright photo. Handwriting may have mistakes: fix them in the table.',
+  bulkPhotoFail: 'Could not read the photo. Try again or paste the list.',
+  bulkPhotoOffline: 'The first time, reading a photo needs internet. Turn it on and try again.',
 };

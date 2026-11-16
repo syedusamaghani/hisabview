@@ -23,7 +23,10 @@ export default function BulkItemsScreen() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState('');
   const [saved, setSaved] = useState(false);
+  const [reading, setReading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   if (!canManageStock(role)) {
     return (
@@ -40,6 +43,19 @@ export default function BulkItemsScreen() {
     if (found.length > 0) {
       setRows((prev) => [...prev, ...found]);
       setText('');
+    }
+  };
+  const readPhoto = async (file: File) => {
+    setReading(true);
+    setProgress(0);
+    setResult('');
+    try {
+      const { readPhotoText } = await import('../../lib/ocr');
+      addFrom(await readPhotoText(file, setProgress));
+    } catch {
+      setResult(t(navigator.onLine ? 'bulkPhotoFail' : 'bulkPhotoOffline'));
+    } finally {
+      setReading(false);
     }
   };
   const change = (i: number, patch: Partial<BulkRow>) => setRows((prev) => prev.map((r, k) => (k === i ? { ...r, ...patch } : r)));
@@ -92,6 +108,21 @@ export default function BulkItemsScreen() {
           <BigButton variant="ghost" icon="plus" disabled={!text.trim()} onClick={() => addFrom(text)}>{t('bulkMake')}</BigButton>
           <BigButton variant="ghost" icon="cloud" onClick={() => fileRef.current?.click()}>{t('bulkFile')}</BigButton>
         </div>
+        <BigButton full variant="ghost" icon="up" disabled={reading} onClick={() => photoRef.current?.click()}>
+          {reading ? fill(t('bulkReading'), { n: String(progress) }) : t('bulkPhoto')}
+        </BigButton>
+        <p className="-mt-2 text-caption text-inkSoft">{t('bulkPhotoHint')}</p>
+        <input
+          ref={photoRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) void readPhoto(f);
+          }}
+        />
         <input
           ref={fileRef}
           type="file"

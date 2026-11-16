@@ -1049,6 +1049,11 @@ const base = {
   fMore: { ro: 'Aur tafseel (zaroori nahi)', ur: 'مزید تفصیل (ضروری نہیں)' },
   fMoreHide: { ro: 'Tafseel chhupayein', ur: 'تفصیل چھپائیں' },
   fOnlyName: { ro: 'Sirf naam zaroori hai. Baqi sab baad mein bhi bhar sakte hain.', ur: 'صرف نام ضروری ہے۔ باقی سب بعد میں بھی بھر سکتے ہیں۔' },
+  bulkPhoto: { ro: 'List ki tasveer se', ur: 'لسٹ کی تصویر سے' },
+  bulkReading: { ro: 'Padh raha hai... {n}%', ur: 'پڑھ رہا ہے... {n}%' },
+  bulkPhotoHint: { ro: 'Tasveer phone mein hi padhi jati hai, kahin nahi jati. Pehli baar ek chhoti si cheez download hogi (internet chahiye). Saaf, seedhi aur roshan tasveer lein. Haath ki likhai mein galtiyan ho sakti hain, table mein theek kar lein.', ur: 'تصویر فون میں ہی پڑھی جاتی ہے، کہیں نہیں جاتی۔ پہلی بار ایک چھوٹی سی چیز ڈاؤن لوڈ ہو گی (انٹرنیٹ چاہیے)۔ صاف، سیدھی اور روشن تصویر لیں۔ ہاتھ کی لکھائی میں غلطیاں ہو سکتی ہیں، ٹیبل میں ٹھیک کر لیں۔' },
+  bulkPhotoFail: { ro: 'Tasveer padhi nahi ja saki. Dobara koshish karein ya list paste karein.', ur: 'تصویر پڑھی نہیں جا سکی۔ دوبارہ کوشش کریں یا لسٹ پیسٹ کریں۔' },
+  bulkPhotoOffline: { ro: 'Pehli baar tasveer padhne ke liye internet chahiye. Internet on karke dobara koshish karein.', ur: 'پہلی بار تصویر پڑھنے کے لیے انٹرنیٹ چاہیے۔ انٹرنیٹ آن کر کے دوبارہ کوشش کریں۔' },
 } as const;
 
 export type TextKey = keyof typeof base;
