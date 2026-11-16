@@ -60,6 +60,7 @@ function Form({ productId, initial }: { productId?: string; initial: Initial }) 
   const [barcodeUsedBy, setBarcodeUsedBy] = useState<string | null>(null);
   const [problem, setProblem] = useState<TextKey | null>(null);
   const [saved, setSaved] = useState(false);
+  const [more, setMore] = useState(editing); // the extra fields are optional: hidden for a new item, open when editing
   const fileRef = useRef<HTMLInputElement>(null);
 
   const units = allUnits({ base_unit: base, units: packs });
@@ -126,6 +127,11 @@ function Form({ productId, initial }: { productId?: string; initial: Initial }) 
       <div className="flex flex-col gap-4 px-gutter pt-4">
         <TextField label={t('fName')} size="lg" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} autoFocus={!editing} />
 
+        <TextField label={t('fSell')} inputMode="numeric" value={sell} onChange={(e) => setSell(digits(e.target.value))} />
+        {!editing && <p className="text-label text-inkSoft">{t('fOnlyName')}</p>}
+        <BigButton full variant="ghost" aria-expanded={more} onClick={() => setMore(!more)}>{more ? t('fMoreHide') : t('fMore')}</BigButton>
+
+        {more && (<>
         <div>
           <p className="mb-1.5 text-label font-bold text-inkSoft">{t('fPhoto')}</p>
           <div className="flex items-center gap-3">
@@ -173,7 +179,6 @@ function Form({ productId, initial }: { productId?: string; initial: Initial }) 
           </div>
         </div>
         <TextField label={t('fCost')} inputMode="numeric" value={cost} onChange={(e) => setCost(digits(e.target.value))} />
-        <TextField label={t('fSell')} inputMode="numeric" value={sell} onChange={(e) => setSell(digits(e.target.value))} />
         {!editing && <TextField label={`${t('fOpening')} (${unitLabel(t, priceUnit)})`} hint={t('fOpeningHint')} inputMode="decimal" value={opening} onChange={(e) => setOpening(e.target.value)} />}
         <TextField label={`${t('fMin')} (${unitLabel(t, priceUnit)})`} hint={t('fMinHint')} inputMode="decimal" value={min} onChange={(e) => setMin(e.target.value)} />
 
@@ -181,6 +186,7 @@ function Form({ productId, initial }: { productId?: string; initial: Initial }) 
         <TextField label={t('fBarcode')} value={barcode} onChange={(e) => setBarcode(e.target.value)} onBlur={() => void checkBarcode(barcode)} maxLength={64} />
         {barcodeUsedBy && <p role="status" className="rounded-button bg-accent px-3 py-2 text-body font-extrabold text-accentInk">{fill(t('fBarcodeUsed'), { name: barcodeUsedBy })}</p>}
         <TextField label={t('fSku')} value={sku} onChange={(e) => setSku(e.target.value)} maxLength={64} />
+        </>)}
         {problem && <p role="alert" className="rounded-button bg-accent px-3 py-2 text-body font-extrabold text-accentInk">{t(problem)}</p>}
       </div>
 

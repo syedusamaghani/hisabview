@@ -1028,6 +1028,27 @@ const base = {
   cfBarcode: { ro: 'Barcode', ur: 'بار کوڈ' },
   cfYes: { ro: 'Haan', ur: 'ہاں' },
   cfNo: { ro: 'Nahi', ur: 'نہیں' },
+
+  // Bulk items (Phase 9b)
+  bulkBtn: { ro: 'Bohat saman ek saath', ur: 'بہت سامان ایک ساتھ' },
+  bulkTitle: { ro: 'Bohat saman ek saath', ur: 'بہت سامان ایک ساتھ' },
+  bulkHelp: { ro: 'Apni list yahan paste karein ya file chunein. Har line mein saman ka naam aur qeemat likhi ho, jaise "Biscuit 20". Phir neeche table mein theek karke save karein.', ur: 'اپنی لسٹ یہاں پیسٹ کریں یا فائل چنیں۔ ہر لائن میں سامان کا نام اور قیمت لکھی ہو، جیسے "Biscuit 20"۔ پھر نیچے ٹیبل میں ٹھیک کر کے محفوظ کریں۔' },
+  bulkPaste: { ro: 'Yahan list paste karein: Biscuit 20', ur: 'یہاں لسٹ پیسٹ کریں: Biscuit 20' },
+  bulkMake: { ro: 'Table banao', ur: 'ٹیبل بناؤ' },
+  bulkFile: { ro: 'File chunein', ur: 'فائل چنیں' },
+  bulkNoneFound: { ro: 'Is mein koi saman nahi mila. Har line mein naam likhein, qeemat saath mein.', ur: 'اس میں کوئی سامان نہیں ملا۔ ہر لائن میں نام لکھیں، قیمت ساتھ میں۔' },
+  bulkTable: { ro: 'Apna saman dekh lein', ur: 'اپنا سامان دیکھ لیں' },
+  bulkEditHint: { ro: 'Naam ya qeemat par dabakar badal sakte hain. Galat line × se hata dein. Qeemat khali ho to 0 rahegi.', ur: 'نام یا قیمت پر دبا کر بدل سکتے ہیں۔ غلط لائن × سے ہٹا دیں۔ قیمت خالی ہو تو 0 رہے گی۔' },
+  bulkName: { ro: 'Naam', ur: 'نام' },
+  bulkPrice: { ro: 'Qeemat', ur: 'قیمت' },
+  bulkAddRow: { ro: 'Ek line aur jodein', ur: 'ایک لائن اور جوڑیں' },
+  bulkSave: { ro: '{n} saman save karein', ur: '{n} سامان محفوظ کریں' },
+  bulkSavedN: { ro: '{n} saman save ho gaye.', ur: '{n} سامان محفوظ ہو گئے۔' },
+  bulkDupN: { ro: '{n} pehle se maujood the, chhor diye (neeche hain).', ur: '{n} پہلے سے موجود تھے، چھوڑ دیے (نیچے ہیں)۔' },
+  bulkFailN: { ro: '{n} save nahi ho sake (neeche hain).', ur: '{n} محفوظ نہیں ہو سکے (نیچے ہیں)۔' },
+  fMore: { ro: 'Aur tafseel (zaroori nahi)', ur: 'مزید تفصیل (ضروری نہیں)' },
+  fMoreHide: { ro: 'Tafseel chhupayein', ur: 'تفصیل چھپائیں' },
+  fOnlyName: { ro: 'Sirf naam zaroori hai. Baqi sab baad mein bhi bhar sakte hain.', ur: 'صرف نام ضروری ہے۔ باقی سب بعد میں بھی بھر سکتے ہیں۔' },
 } as const;
 
 export type TextKey = keyof typeof base;

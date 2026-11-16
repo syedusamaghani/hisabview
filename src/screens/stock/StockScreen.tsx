@@ -56,9 +56,14 @@ export function StockScreen() {
 
       <div className="flex flex-col gap-3 px-gutter pt-3">
         {manager && view?.any && (
-          <BigButton full variant="ghost" icon="plus" onClick={() => navigate('/stock/new')}>
-            {t('addProduct')}
-          </BigButton>
+          <div className="grid grid-cols-2 gap-3">
+            <BigButton variant="ghost" icon="plus" onClick={() => navigate('/stock/new')}>
+              {t('addProduct')}
+            </BigButton>
+            <BigButton variant="ghost" icon="box" onClick={() => navigate('/stock/bulk')}>
+              {t('bulkBtn')}
+            </BigButton>
+          </div>
         )}
 
         {view?.any && (
@@ -78,6 +83,11 @@ export function StockScreen() {
         )}
 
         {view && !view.any && <EmptyState title={t('stockEmptyTitle')} body={t('stockEmptyBody')} buttonLabel={manager ? t('addProduct') : undefined} onButton={manager ? () => navigate('/stock/new') : undefined} />}
+        {view && !view.any && manager && (
+          <BigButton full variant="ghost" icon="box" onClick={() => navigate('/stock/bulk')}>
+            {t('bulkBtn')}
+          </BigButton>
+        )}
 
         <ul className="flex flex-col gap-3">{limited.shown.map((row) => <ProductRow key={row.product.id} row={row} />)}</ul>
         {limited.more}
