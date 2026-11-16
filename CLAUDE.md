@@ -290,3 +290,9 @@ Customer read-only balance link, promise-date reminders, draft entries ("Jaldi n
 2. A step-by-step test checklist for my phone (what to tap, what I should see).
 3. Any decisions you need from me.
 Then STOP and wait for my "OK".
+
+## Bulk items and photo list (built after Phase 9; no migration)
+- New item form: only the name is required; everything else is under "Aur tafseel (zaroori nahi)" (closed for new, open when editing).
+- /stock/bulk "Bohat saman ek saath": paste a list, choose .txt/.csv, or a photo -> editable table (name + price) -> Save. `src/lib/bulkItems.ts` (parser, tested), `src/lib/ocr.ts` (free Tesseract in the phone, English only, lazy; first use downloads ~10 MB). Existing names are skipped, never changed. Paid OCR was deliberately NOT used.
+- No second "contacts?" question after adding a customer (AddPartyScreen calls skipPhoneAsk); empty Saman shows ONE "Naya saman" button.
+- docs/REPLICA_PROMPT.md is the one-file master prompt to rebuild the whole app; update it when something big changes.
