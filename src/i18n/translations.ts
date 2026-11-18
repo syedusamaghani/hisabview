@@ -1032,10 +1032,10 @@ const base = {
   // Bulk items (Phase 9b)
   bulkBtn: { ro: 'Bohat saman ek saath', ur: 'بہت سامان ایک ساتھ' },
   bulkTitle: { ro: 'Bohat saman ek saath', ur: 'بہت سامان ایک ساتھ' },
-  bulkHelp: { ro: 'Apni list yahan paste karein ya file chunein. Har line mein saman ka naam aur qeemat likhi ho, jaise "Biscuit 20". Phir neeche table mein theek karke save karein.', ur: 'اپنی لسٹ یہاں پیسٹ کریں یا فائل چنیں۔ ہر لائن میں سامان کا نام اور قیمت لکھی ہو، جیسے "Biscuit 20"۔ پھر نیچے ٹیبل میں ٹھیک کر کے محفوظ کریں۔' },
+  bulkHelp: { ro: 'Apni list paste karein, ya file ya tasveer chunein (txt, csv, photo). Har line mein saman ka naam aur qeemat ho, jaise "Biscuit 20". Phir neeche table mein theek karke save karein.', ur: 'اپنی لسٹ پیسٹ کریں، یا فائل یا تصویر چنیں۔ ہر لائن میں سامان کا نام اور قیمت ہو، جیسے "Biscuit 20"۔ پھر نیچے ٹیبل میں ٹھیک کر کے محفوظ کریں۔' },
   bulkPaste: { ro: 'Yahan list paste karein: Biscuit 20', ur: 'یہاں لسٹ پیسٹ کریں: Biscuit 20' },
   bulkMake: { ro: 'Table banao', ur: 'ٹیبل بناؤ' },
-  bulkFile: { ro: 'File chunein', ur: 'فائل چنیں' },
+  bulkFile: { ro: 'File ya tasveer chunein', ur: 'فائل یا تصویر چنیں' },
   bulkNoneFound: { ro: 'Is mein koi saman nahi mila. Har line mein naam likhein, qeemat saath mein.', ur: 'اس میں کوئی سامان نہیں ملا۔ ہر لائن میں نام لکھیں، قیمت ساتھ میں۔' },
   bulkTable: { ro: 'Apna saman dekh lein', ur: 'اپنا سامان دیکھ لیں' },
   bulkEditHint: { ro: 'Naam ya qeemat par dabakar badal sakte hain. Galat line × se hata dein. Qeemat khali ho to 0 rahegi.', ur: 'نام یا قیمت پر دبا کر بدل سکتے ہیں۔ غلط لائن × سے ہٹا دیں۔ قیمت خالی ہو تو 0 رہے گی۔' },
@@ -1074,6 +1074,7 @@ const base = {
   amountNotHeard: { ro: 'Number samajh nahi aaya. Dobara bolein ya neeche likhein.', ur: 'نمبر سمجھ نہیں آیا۔ دوبارہ بولیں یا نیچے لکھیں۔' },
   amountMicDenied: { ro: 'Mic ki ijazat nahi mili. Number neeche likhein.', ur: 'مائک کی اجازت نہیں ملی۔ نمبر نیچے لکھیں۔' },
   amountMicOffline: { ro: 'Awaaz ke liye internet chahiye. Number neeche likhein.', ur: 'آواز کے لیے انٹرنیٹ چاہیے۔ نمبر نیچے لکھیں۔' },
+  loginOr: { ro: 'ya', ur: 'یا' },
 } as const;
 
 export type TextKey = keyof typeof base;

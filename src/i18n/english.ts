@@ -840,10 +840,10 @@ export const english: Record<TextKey, string> = {
   // Bulk items (Phase 9b)
   bulkBtn: 'Add many items',
   bulkTitle: 'Add many items',
-  bulkHelp: 'Paste your list here or choose a file. Each line has an item name and price, like "Biscuit 20". Then fix it in the table below and save.',
+  bulkHelp: 'Paste your list, or choose a file or a photo (txt, csv, picture). Each line has an item name and price, like "Biscuit 20". Then fix it in the table below and save.',
   bulkPaste: 'Paste the list here: Biscuit 20',
   bulkMake: 'Make table',
-  bulkFile: 'Choose file',
+  bulkFile: 'Choose file or photo',
   bulkNoneFound: 'No items found. Write a name on each line, with the price.',
   bulkTable: 'Check your items',
   bulkEditHint: 'Tap a name or price to change it. Remove a wrong line with ×. An empty price stays 0.',
@@ -882,4 +882,5 @@ export const english: Record<TextKey, string> = {
   amountNotHeard: 'Could not understand a number. Say it again or type it below.',
   amountMicDenied: 'No microphone permission. Type the number below.',
   amountMicOffline: 'Voice needs internet. Type the number below.',
+  loginOr: 'or',
 };

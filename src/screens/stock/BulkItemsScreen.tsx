@@ -26,7 +26,6 @@ export default function BulkItemsScreen() {
   const [reading, setReading] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
-  const photoRef = useRef<HTMLInputElement>(null);
 
   if (!canManageStock(role)) {
     return (
@@ -104,34 +103,22 @@ export default function BulkItemsScreen() {
           aria-label={t('bulkPaste')}
           className={`${cell} py-3 font-normal`}
         />
-        <div className="grid grid-cols-2 gap-3">
-          <BigButton variant="ghost" icon="plus" disabled={!text.trim()} onClick={() => addFrom(text)}>{t('bulkMake')}</BigButton>
-          <BigButton variant="ghost" icon="cloud" onClick={() => fileRef.current?.click()}>{t('bulkFile')}</BigButton>
-        </div>
-        <BigButton full variant="ghost" icon="up" disabled={reading} onClick={() => photoRef.current?.click()}>
-          {reading ? fill(t('bulkReading'), { n: String(progress) }) : t('bulkPhoto')}
+        <BigButton full variant="ghost" icon="plus" disabled={!text.trim()} onClick={() => addFrom(text)}>{t('bulkMake')}</BigButton>
+        <BigButton full variant="ghost" icon="up" disabled={reading} onClick={() => fileRef.current?.click()}>
+          {reading ? fill(t('bulkReading'), { n: String(progress) }) : t('bulkFile')}
         </BigButton>
         <p className="-mt-2 text-caption text-inkSoft">{t('bulkPhotoHint')}</p>
         <input
-          ref={photoRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            e.target.value = '';
-            if (f) void readPhoto(f);
-          }}
-        />
-        <input
           ref={fileRef}
           type="file"
-          accept=".txt,.csv,text/plain,text/csv"
+          accept="image/*,.txt,.csv,text/plain,text/csv"
           hidden
           onChange={(e) => {
             const f = e.target.files?.[0];
             e.target.value = '';
-            if (f && f.size < 2_000_000) void f.text().then(addFrom);
+            if (!f) return;
+            if (f.type.startsWith('image/')) void readPhoto(f);
+            else if (f.size < 2_000_000) void f.text().then(addFrom);
           }}
         />
 
@@ -139,18 +126,23 @@ export default function BulkItemsScreen() {
           <Card className="flex flex-col gap-3">
             <p className="text-body font-extrabold text-ink">{t('bulkTable')}</p>
             <p className="text-label text-inkSoft">{t('bulkEditHint')}</p>
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-3">
               {rows.map((r, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  <input dir="auto" aria-label={t('bulkName')} placeholder={t('bulkName')} value={r.name} maxLength={120} onChange={(e) => change(i, { name: e.target.value })} className={`${cell} min-w-0 flex-1`} />
-                  <input dir="ltr" inputMode="numeric" aria-label={t('bulkPrice')} placeholder={t('bulkPrice')} value={r.price} maxLength={9} onChange={(e) => change(i, { price: e.target.value.replace(/\D/g, '') })} className={`${cell} w-[104px] shrink-0 text-end`} />
-                  <button type="button" aria-label={t('tRemove')} onClick={() => setRows((prev) => prev.filter((_, k) => k !== i))} className="grid size-[52px] shrink-0 place-items-center rounded-button border-[1.5px] border-line text-body font-extrabold text-ink">×</button>
+                <li key={i} className="flex flex-col gap-2 rounded-button border border-line bg-page p-2">
+                  <input dir="auto" aria-label={t('bulkName')} placeholder={t('bulkName')} value={r.name} maxLength={120} onChange={(e) => change(i, { name: e.target.value })} className={cell} />
+                  <div className="flex items-center gap-2">
+                    <input dir="ltr" inputMode="numeric" aria-label={t('bulkPrice')} placeholder={t('bulkPrice')} value={r.price} maxLength={9} onChange={(e) => change(i, { price: e.target.value.replace(/\D/g, '') })} className={`${cell} min-w-0 flex-1`} />
+                    <button type="button" aria-label={t('tRemove')} onClick={() => setRows((prev) => prev.filter((_, k) => k !== i))} className="grid size-[52px] shrink-0 place-items-center rounded-button border-[1.5px] border-line bg-surface text-body font-extrabold text-ink">×</button>
+                  </div>
                 </li>
               ))}
             </ul>
+            <BigButton full variant="ghost" icon="plus" onClick={() => setRows((prev) => [...prev, { name: '', price: '' }])}>{t('bulkAddRow')}</BigButton>
           </Card>
         )}
-        <BigButton full variant="ghost" icon="plus" onClick={() => setRows((prev) => [...prev, { name: '', price: '' }])}>{t('bulkAddRow')}</BigButton>
+        {rows.length === 0 && (
+          <BigButton full variant="ghost" icon="plus" onClick={() => setRows([{ name: '', price: '' }])}>{t('bulkAddRow')}</BigButton>
+        )}
         {result && <p role="status" className="rounded-button bg-accent px-3 py-2 text-body font-extrabold text-accentInk">{result}</p>}
       </div>
 
