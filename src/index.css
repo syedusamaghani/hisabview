@@ -33,6 +33,19 @@ body {
   @apply bg-page font-sans text-body text-ink antialiased;
   margin: 0;
   -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings a little tighter, amounts line up in columns */
+h1,
+h2,
+.text-display,
+.text-title {
+  letter-spacing: -0.01em;
+}
+[dir='ltr'],
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Urdu: Naskh needs more line height, and its small text needs a little more size */

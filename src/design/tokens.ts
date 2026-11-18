@@ -243,6 +243,6 @@ export function jali(stroke: string): string {
 }
 
 export const fonts = {
-  sans: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+  sans: ['Inter Variable', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
   urdu: ['Noto Naskh Arabic', 'Segoe UI', 'system-ui', 'sans-serif'],
 };

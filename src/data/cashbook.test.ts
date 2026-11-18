@@ -179,7 +179,7 @@ describe('customer and supplier balances follow every transaction; the statement
     const rows = ledgerRows(aslam, mine).filter((r) => r.balance !== null);
     expect(rows.at(-1)?.balance).toBe(770);
     const text = statementText('ro', { name: 'Aslam', shop: 'Ahmed General Store' }, aslam, mine);
-    expect(text.split('\n').at(-1)).toBe('Ab tak ka baqi hisaab: Rs 770.');
+    expect(text.split('\n').at(-1)).toBe('Ab tak ka baqi hisaab: *Rs 770*');
     expect(text).toContain('| Baqi: Rs 770');
   });
 });

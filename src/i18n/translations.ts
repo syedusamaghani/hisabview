@@ -300,31 +300,16 @@ const base = {
   },
   phoneNumberLabel: { ro: 'Number', ur: 'نمبر' },
   phoneInvalid: { ro: 'Number theek nahi lagta. Jaise 0300 1234567', ur: 'نمبر ٹھیک نہیں لگتا۔ جیسے 0300 1234567' },
-  msgSoft: {
-    ro: 'Assalam o alaikum {name}, umeed hai aap khairiyat se honge. {shop} ka {amount} aap ke zimme baqi hai. Jab suhoolat ho ada kar dijiye ga. Bohot shukriya.',
-    ur: 'السلام علیکم {name}، امید ہے آپ خیریت سے ہوں گے۔ {shop} کا {amount} آپ کے ذمے باقی ہے۔ جب سہولت ہو ادا کر دیجیے گا۔ بہت شکریہ۔',
-  },
-  msgNormal: {
-    ro: 'Assalam o alaikum {name}, {shop} mein aap ka {amount} baqi hai. Meherbani karke jald ada kar dein. Shukriya.',
-    ur: 'السلام علیکم {name}، {shop} میں آپ کا {amount} باقی ہے۔ مہربانی کر کے جلد ادا کر دیں۔ شکریہ۔',
-  },
-  msgFirm: {
-    ro: '{name}, {shop} mein aap ka {amount} kaafi dinon se baqi hai. Baraye meherbani aaj ya kal tak ada kar dein.',
-    ur: '{name}، {shop} میں آپ کا {amount} کافی دنوں سے باقی ہے۔ برائے مہربانی آج یا کل تک ادا کر دیں۔',
-  },
-  msgReceiptDiye: {
-    ro: 'Assalam o alaikum {name}, {shop} mein aap ka {amount} ka udhaar likha gaya. {balance}',
-    ur: 'السلام علیکم {name}، {shop} میں آپ کا {amount} کا ادھار لکھا گیا۔ {balance}',
-  },
-  msgReceiptMile: {
-    ro: 'Assalam o alaikum {name}, {shop} ko aap ke {amount} mile. Shukriya. {balance}',
-    ur: 'السلام علیکم {name}، {shop} کو آپ کے {amount} ملے۔ شکریہ۔ {balance}',
-  },
-  balOwes: { ro: 'Ab tak ka baqi hisaab: {amount}.', ur: 'اب تک کا باقی حساب: {amount}۔' },
+  msgSoft: { ro: 'Assalam o alaikum {name},\n\nUmeed hai aap khairiyat se honge.\n*{shop}* ka *{amount}* aap ke zimme baqi hai. Jab suhoolat ho ada kar dijiye ga.\n\nBohot shukriya.', ur: 'السلام علیکم {name}،\n\nامید ہے آپ خیریت سے ہوں گے۔\n*{shop}* کا *{amount}* آپ کے ذمے باقی ہے۔ جب سہولت ہو ادا کر دیجیے گا۔\n\nبہت شکریہ۔' },
+  msgNormal: { ro: 'Assalam o alaikum {name},\n\n*{shop}* mein aap ka *{amount}* baqi hai.\nMeherbani karke jald ada kar dein.\n\nShukriya.', ur: 'السلام علیکم {name}،\n\n*{shop}* میں آپ کا *{amount}* باقی ہے۔\nمہربانی کر کے جلد ادا کر دیں۔\n\nشکریہ۔' },
+  msgFirm: { ro: '{name},\n\n*{shop}* mein aap ka *{amount}* kaafi dinon se baqi hai.\nBaraye meherbani aaj ya kal tak ada kar dein.\n\nShukriya.', ur: '{name}،\n\n*{shop}* میں آپ کا *{amount}* کافی دنوں سے باقی ہے۔\nبرائے مہربانی آج یا کل تک ادا کر دیں۔\n\nشکریہ۔' },
+  msgReceiptDiye: { ro: 'Assalam o alaikum {name},\n\n*{shop}*\nAap ke naam *{amount}* udhaar likha gaya.\n\n{balance}', ur: 'السلام علیکم {name}،\n\n*{shop}*\nآپ کے نام *{amount}* ادھار لکھا گیا۔\n\n{balance}' },
+  msgReceiptMile: { ro: 'Assalam o alaikum {name},\n\n*{shop}* ko aap ke *{amount}* mile. Shukriya.\n\n{balance}', ur: 'السلام علیکم {name}،\n\n*{shop}* کو آپ کے *{amount}* ملے۔ شکریہ۔\n\n{balance}' },
+  balOwes: { ro: 'Ab tak ka baqi hisaab: *{amount}*', ur: 'اب تک کا باقی حساب: *{amount}*' },
   balZero: { ro: 'Aap ka hisaab barabar hai.', ur: 'آپ کا حساب برابر ہے۔' },
-  balAdvance: { ro: 'Aap ke {amount} hamare paas jama hain.', ur: 'آپ کے {amount} ہمارے پاس جمع ہیں۔' },
-  msgStatementTitle: { ro: '{shop}: {name} ka hisaab', ur: '{shop}: {name} کا حساب' },
-  todayShareTitle: { ro: '{shop}: aaj ka hisaab ({day})', ur: '{shop}: آج کا حساب ({day})' },
+  balAdvance: { ro: 'Aap ke *{amount}* hamare paas jama hain.', ur: 'آپ کے *{amount}* ہمارے پاس جمع ہیں۔' },
+  msgStatementTitle: { ro: '*{shop}*: {name} ka hisaab', ur: '*{shop}*: {name} کا حساب' },
+  todayShareTitle: { ro: '*{shop}*: aaj ka hisaab ({day})', ur: '*{shop}*: آج کا حساب ({day})' },
 
   // Aaj ka hisaab page, and writing a sale or a kharcha
   todaySale: { ro: 'Aaj ki sale', ur: 'آج کی سیل' },
@@ -919,12 +904,12 @@ const base = {
   spNone: { ro: 'Abhi kisi supplier se is ki kharid nahi likhi.', ur: 'ابھی کسی سپلائر سے اس کی خرید نہیں لکھی۔' },
   spPer: { ro: '{rate} / {unit}', ur: '{rate} / {unit}' },
   spNoName: { ro: 'Supplier', ur: 'سپلائر' },
-  msgSaleHead: { ro: '{shop} - bill', ur: '{shop} - بل' },
+  msgSaleHead: { ro: '*{shop}* - bill', ur: '*{shop}* - بل' },
   msgSaleCustomer: { ro: 'Customer: {name}', ur: 'کسٹمر: {name}' },
   msgSaleLine: { ro: '{name}: {qty} = Rs {amount}', ur: '{name}: {qty} = Rs {amount}' },
   msgSaleFree: { ro: '{name}: {qty} - muft', ur: '{name}: {qty} - مفت' },
   msgSaleDiscount: { ro: 'Discount: Rs {amount}', ur: 'ڈسکاؤنٹ: Rs {amount}' },
-  msgSaleTotal: { ro: 'Kul: Rs {amount}', ur: 'کل: Rs {amount}' },
+  msgSaleTotal: { ro: '*Kul: Rs {amount}*', ur: '*کل: Rs {amount}*' },
   msgSaleThanks: { ro: 'Shukriya!', ur: 'شکریہ!' },
 
   // Reports and export (Phase 8)

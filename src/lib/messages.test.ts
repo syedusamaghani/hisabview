@@ -29,8 +29,8 @@ describe('reminders', () => {
 
 describe('balance line', () => {
   it('they owe me, I owe them, equal', () => {
-    expect(balanceLine(1800, 'ro')).toBe('Ab tak ka baqi hisaab: Rs 1,800.');
-    expect(balanceLine(-300, 'ro')).toBe('Aap ke Rs 300 hamare paas jama hain.');
+    expect(balanceLine(1800, 'ro')).toBe('Ab tak ka baqi hisaab: *Rs 1,800*');
+    expect(balanceLine(-300, 'ro')).toBe('Aap ke *Rs 300* hamare paas jama hain.');
     expect(balanceLine(0, 'ro')).toBe('Aap ka hisaab barabar hai.');
   });
 });
@@ -60,20 +60,20 @@ describe('statement', () => {
       e('opening', 1000, '2026-11-01T10:00:00Z'),
     ];
     const lines = statementText('ro', who, customer, list).split('\n');
-    expect(lines[0]).toBe('Ahmed Store: Aslam ka hisaab');
+    expect(lines[0]).toBe('*Ahmed Store*: Aslam ka hisaab');
     expect(lines.slice(2, 5)).toEqual([
       '1 Nov: Purana hisaab Rs 1,000 | Baqi: Rs 1,000',
       '2 Nov: Diye Rs 300 | Baqi: Rs 1,300',
       '3 Nov: Mile Rs 100 | Baqi: Rs 1,200',
     ]);
-    expect(lines.at(-1)).toBe('Ab tak ka baqi hisaab: Rs 1,200.');
+    expect(lines.at(-1)).toBe('Ab tak ka baqi hisaab: *Rs 1,200*');
     expect(lines.join('\n')).not.toContain('999');
   });
   it('the last running balance is the same as the final balance line', () => {
     const list = [e('diye', 500, '2026-11-01T10:00:00Z'), e('mile', 200, '2026-11-02T10:00:00Z'), e('diye', 50, '2026-11-03T10:00:00Z')];
     const text = statementText('ro', who, { type: 'customer', opening_balance: 70 }, list);
     expect(text).toContain('| Baqi: Rs 420');
-    expect(text.split('\n').at(-1)).toBe('Ab tak ka baqi hisaab: Rs 420.');
+    expect(text.split('\n').at(-1)).toBe('Ab tak ka baqi hisaab: *Rs 420*');
   });
   it('when there are too many lines it keeps the newest and carries the earlier balance in', () => {
     const many = Array.from({ length: 40 }, (_, i) => e('diye', 10, `2026-10-${String((i % 28) + 1).padStart(2, '0')}T${String(Math.floor(i / 28) + 10)}:00:00Z`));
@@ -85,7 +85,7 @@ describe('statement', () => {
     // the carried balance + the lines shown = the final balance
     const carried = Number(/Rs ([\d,]+)/.exec(body.find((l) => l.startsWith('Pehle ka hisaab')) as string)?.[1].replace(',', ''));
     expect(carried + shown.length * 10).toBe(400);
-    expect(body.at(-1)).toBe('Ab tak ka baqi hisaab: Rs 400.');
+    expect(body.at(-1)).toBe('Ab tak ka baqi hisaab: *Rs 400*');
   });
   it('a supplier statement shows purchases and payments the same way', () => {
     const list = [e('purchase', 2880, '2026-11-01T10:00:00Z'), e('diye', 1000, '2026-11-01T10:05:00Z')];
@@ -98,7 +98,7 @@ describe('statement', () => {
 describe("today's summary text", () => {
   it('has all four numbers', () => {
     const msg = todayText('ro', 'Ahmed Store', new Date('2026-11-03T08:00:00Z'), { diye: 750, mile: 300, sale: 15500, kharcha: 3000, count: 5 });
-    expect(msg).toContain('Ahmed Store: aaj ka hisaab (3 Nov)');
+    expect(msg).toContain('*Ahmed Store*: aaj ka hisaab (3 Nov)');
     expect(msg).toContain('Aaj diye: Rs 750');
     expect(msg).toContain('Aaj mile: Rs 300');
     expect(msg).toContain('Aaj ki sale: Rs 15,500');
